@@ -54,6 +54,36 @@ function showUser(user) {
     }
 }
 
+// Save or update member data in database
+async function saveMemberData(user) {
+    try {
+        const metadata = user.user_metadata || {};
+
+        const memberData = {
+            id: user.id,
+            email: user.email || '',
+            full_name: metadata.full_name || metadata.name || '',
+            avatar_url: metadata.avatar_url || metadata.picture || '',
+            last_login_at: new Date().toISOString()
+        };
+
+        // Upsert: insert if new, update if exists
+        const { error } = await supabase
+            .from('members')
+            .upsert(memberData, {
+                onConflict: 'id'
+            });
+
+        if (error) {
+            console.error('Error saving member data:', error.message);
+        } else {
+            console.log('Member data saved successfully');
+        }
+    } catch (err) {
+        console.error('Error saving member data:', err);
+    }
+}
+
 // Google Sign In
 async function signInWithGoogle() {
     try {
@@ -126,6 +156,8 @@ supabase.auth.onAuthStateChange((event, session) => {
 
     if (event === 'SIGNED_IN' && session) {
         showUser(session.user);
+        // Save member data to database on sign in
+        saveMemberData(session.user);
     } else if (event === 'SIGNED_OUT') {
         showLogin();
     }
