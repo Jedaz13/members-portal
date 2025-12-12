@@ -394,28 +394,69 @@ async function checkUserStatusAndRoute(user) {
     showView('loading-view');
     currentUser = user;
 
+    console.log('Checking user status for:', user.email);
+    console.log('Auth UID:', user.id);
+
     try {
         // Step 1: Check if email exists in users table
         const { data: member, error } = await supabase
             .from('users')
             .select('*')
             .eq('email', user.email)
-            .single();
+            .maybeSingle();
 
-        if (error || !member) {
+        console.log('User lookup result:', { member, error });
+
+        if (error) {
+            console.error('Database error:', error);
+            // If RLS is blocking, show helpful message
+            if (error.code === 'PGRST301' || error.message.includes('RLS')) {
+                showToast('Database access error. Please contact support.');
+            }
+            showView('not-found-view');
+            return;
+        }
+
+        if (!member) {
             // Email NOT found - show "take quiz first" page
             console.log('User not found in database - needs to take quiz');
             showView('not-found-view');
             return;
         }
 
+        // Step 1b: Link the auth ID to the user record if different
+        // This syncs the Supabase auth ID with the quiz-created user record
+        if (member.id !== user.id) {
+            console.log('Linking auth ID to user record...');
+            const { error: linkError } = await supabase
+                .from('users')
+                .update({
+                    id: user.id,
+                    avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || member.avatar_url,
+                    name: user.user_metadata?.full_name || user.user_metadata?.name || member.name
+                })
+                .eq('email', user.email);
+
+            if (linkError) {
+                console.warn('Could not link auth ID:', linkError);
+                // Continue anyway - we can still use the record
+            } else {
+                member.id = user.id;
+                console.log('Auth ID linked successfully');
+            }
+        }
+
         currentMember = member;
+        console.log('Current member:', currentMember);
 
         // Step 2: Handle status-based routing
-        let updatedStatus = member.status;
+        // Default to 'lead' if status is null/undefined
+        let updatedStatus = member.status || 'lead';
+        console.log('Current status:', updatedStatus);
 
-        // If status is "lead", upgrade to "trial"
-        if (member.status === 'lead') {
+        // If status is "lead" or null, upgrade to "trial"
+        if (!member.status || member.status === 'lead') {
+            console.log('Upgrading user from lead to trial...');
             const { error: updateError } = await supabase
                 .from('users')
                 .update({
@@ -423,9 +464,11 @@ async function checkUserStatusAndRoute(user) {
                     trial_start_date: new Date().toISOString(),
                     last_login_at: new Date().toISOString()
                 })
-                .eq('id', member.id);
+                .eq('email', user.email);
 
-            if (!updateError) {
+            if (updateError) {
+                console.error('Error upgrading to trial:', updateError);
+            } else {
                 updatedStatus = 'trial';
                 currentMember.status = 'trial';
                 currentMember.trial_start_date = new Date().toISOString();
@@ -434,10 +477,11 @@ async function checkUserStatusAndRoute(user) {
         }
 
         // If status is "trial", check if expired
-        if (updatedStatus === 'trial' && member.trial_start_date) {
-            const trialStart = new Date(member.trial_start_date);
+        if (updatedStatus === 'trial' && currentMember.trial_start_date) {
+            const trialStart = new Date(currentMember.trial_start_date);
             const now = new Date();
             const daysPassed = Math.floor((now - trialStart) / (1000 * 60 * 60 * 24));
+            console.log('Trial days passed:', daysPassed);
 
             if (daysPassed >= 7) {
                 // Trial has expired
@@ -447,7 +491,7 @@ async function checkUserStatusAndRoute(user) {
                         status: 'trial_expired',
                         last_login_at: new Date().toISOString()
                     })
-                    .eq('id', member.id);
+                    .eq('email', user.email);
 
                 if (!expireError) {
                     updatedStatus = 'trial_expired';
@@ -457,21 +501,26 @@ async function checkUserStatusAndRoute(user) {
             }
         }
 
-        // Update last login for all other cases
-        if (updatedStatus !== 'lead') {
+        // Update last login for active users
+        if (updatedStatus === 'trial' || updatedStatus === 'active') {
             await supabase
                 .from('users')
                 .update({ last_login_at: new Date().toISOString() })
-                .eq('id', member.id);
+                .eq('email', user.email);
         }
 
         // Step 3: Route based on final status
+        console.log('Final status for routing:', updatedStatus);
         switch (updatedStatus) {
             case 'trial_expired':
                 showView('trial-expired-view');
                 break;
             case 'trial':
             case 'active':
+                initializeDashboard();
+                break;
+            case 'lead':
+                // If still lead (update failed), try dashboard anyway
                 initializeDashboard();
                 break;
             default:
@@ -490,20 +539,32 @@ async function checkUserStatusAndRoute(user) {
 // DASHBOARD INITIALIZATION
 // ============================================
 function initializeDashboard() {
+    console.log('Initializing dashboard...');
+    console.log('Current member data:', currentMember);
+
     showView('dashboard-view');
 
     // Set welcome message
-    const name = currentMember.name || currentUser.user_metadata?.full_name || 'Member';
+    const name = currentMember?.name || currentUser?.user_metadata?.full_name || 'Member';
     document.getElementById('dashboard-welcome').textContent = `Welcome, ${name}!`;
 
-    // Set protocol name
-    const protocol = currentMember.protocol || 1;
+    // Set protocol - default to 1 if not set
+    const protocol = currentMember?.protocol || 1;
     const protocolInfo = PROTOCOLS[protocol];
-    document.getElementById('dashboard-protocol').textContent = `Your Protocol: ${protocolInfo.name}`;
+
+    if (protocolInfo) {
+        document.getElementById('dashboard-protocol').textContent = `Your Protocol: ${protocolInfo.name}`;
+    } else {
+        document.getElementById('dashboard-protocol').textContent = 'Your Protocol: General Gut Health';
+    }
+
+    console.log('Protocol:', protocol);
 
     // Show trial banner if on trial
-    if (currentMember.status === 'trial' && currentMember.trial_start_date) {
-        const trialStart = new Date(currentMember.trial_start_date);
+    if (currentMember?.status === 'trial') {
+        const trialStart = currentMember.trial_start_date
+            ? new Date(currentMember.trial_start_date)
+            : new Date();
         const now = new Date();
         const daysPassed = Math.floor((now - trialStart) / (1000 * 60 * 60 * 24));
         const daysRemaining = Math.max(0, 7 - daysPassed);
@@ -526,6 +587,8 @@ function initializeDashboard() {
 
     // Load tracking history
     loadTrackingHistory();
+
+    console.log('Dashboard initialized successfully');
 }
 
 // ============================================
