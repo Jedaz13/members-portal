@@ -423,7 +423,8 @@ async function checkUserStatusAndRoute(user) {
         // Use direct fetch to bypass Supabase client blocking issue
         // Don't call supabase.auth.getSession() as it also hangs
         const startTime = Date.now();
-        const fetchUrl = `${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(user.email)}&select=*`;
+        // Use ilike for case-insensitive email matching
+        const fetchUrl = `${SUPABASE_URL}/rest/v1/users?email=ilike.${encodeURIComponent(user.email)}&select=*`;
         console.log('Fetching:', fetchUrl);
 
         const controller = new AbortController();
