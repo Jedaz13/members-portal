@@ -954,135 +954,67 @@ a:hover {
 }
 
 /* ============================================
-   LOCKED PROTOCOL PATHWAY
+   RECOVERY PATH SECTION
    ============================================ */
-.locked-pathway-section {
-    margin-top: 48px;
-    padding-top: 32px;
-    border-top: 2px solid var(--border);
-}
-
-.locked-pathway-title {
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--text);
-    text-align: center;
-    margin-bottom: 32px;
-}
-
-/* Progress Tracker */
-.protocol-progress-tracker {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.recovery-path-section {
     margin-bottom: 40px;
-    padding: 0 20px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--border);
 }
 
-.progress-node {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
+/* Recovery Path Header */
+.recovery-path-header {
+    text-align: center;
+    margin-bottom: 24px;
 }
 
-.node-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+.recovery-path-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.recovery-path-subtitle {
+    font-size: 15px;
+    color: var(--text-light);
+    font-weight: 400;
+}
+
+/* Current Phase Display */
+.current-phase-display {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px var(--shadow);
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--secondary-light) 0%, #e8f4ed 100%);
+    border-radius: 10px;
+    margin-bottom: 32px;
+    font-size: 15px;
 }
 
-.progress-node.active .node-circle {
-    background: var(--success);
-    border: 3px solid var(--success);
-}
-
-.progress-node.locked .node-circle {
-    background: var(--background);
-    border: 3px solid var(--border);
-}
-
-.node-icon {
-    width: 24px;
-    height: 24px;
-}
-
-.progress-node.active .node-icon {
-    color: var(--white);
-}
-
-.progress-node.locked .node-icon {
-    color: var(--text-light);
-}
-
-.node-label {
-    margin-top: 8px;
-    font-size: 13px;
-    font-weight: 600;
+.phase-label {
     color: var(--text);
-    white-space: nowrap;
+    font-weight: 500;
 }
 
-.progress-node.active .node-label {
-    color: var(--success);
+.phase-name {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 16px;
 }
 
-.progress-node.locked .node-label {
+.phase-arrow {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.phase-next {
     color: var(--text-light);
-}
-
-/* Progress Line */
-.progress-line {
-    height: 3px;
-    width: 40px;
-    background: var(--border);
-    margin: 0 8px;
-    margin-bottom: 28px;
-}
-
-/* Tooltip */
-.node-tooltip {
-    position: absolute;
-    bottom: -32px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--text);
-    color: var(--white);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-    z-index: 10;
-}
-
-.node-tooltip::before {
-    content: '';
-    position: absolute;
-    top: -4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-bottom: 4px solid var(--text);
-}
-
-.progress-node.locked:hover .node-tooltip {
-    opacity: 1;
-}
-
-.progress-node.locked:hover .node-circle {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px var(--shadow-lg);
+    font-style: italic;
 }
 
 /* Locked Content Card */
@@ -1178,83 +1110,123 @@ a:hover {
     line-height: 1.5;
 }
 
-/* Adaptive Pathway Preview */
-.adaptive-pathway-preview {
-    background: linear-gradient(135deg, var(--secondary-light) 0%, #e8f4ed 100%);
+/* Paid User Milestone Card */
+.milestone-card {
+    background: var(--white);
+    border: 2px solid var(--secondary);
     border-radius: 12px;
-    padding: 24px 20px;
-    margin-bottom: 32px;
+    padding: 28px 24px;
 }
 
-.adaptive-pathway-preview h4 {
-    font-size: 16px;
+.milestone-card h4 {
+    font-size: 18px;
     font-weight: 600;
-    color: var(--primary-dark);
-    text-align: center;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.milestone-intro {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.milestone-section {
+    margin-bottom: 24px;
+}
+
+.milestone-section:last-of-type {
     margin-bottom: 20px;
 }
 
-.pathway-flowchart {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    flex-wrap: wrap;
+.milestone-section h5 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
 }
 
-.pathway-node {
-    display: flex;
-    align-items: center;
+.milestone-list {
+    list-style: none;
+    padding-left: 0;
 }
 
-.pathway-split {
+.milestone-list li {
+    font-size: 14px;
+    color: var(--text);
+    padding: 6px 0 6px 24px;
+    position: relative;
+    line-height: 1.5;
+}
+
+.milestone-list li::before {
+    content: "•";
+    position: absolute;
+    left: 8px;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Custom Checkboxes */
+.milestone-checklist {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.pathway-branch {
+.milestone-checkbox {
     display: flex;
     align-items: center;
-    gap: 8px;
+    cursor: not-allowed;
+    opacity: 0.8;
 }
 
-.pathway-box {
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    text-align: center;
-    min-width: 100px;
-    white-space: nowrap;
+.milestone-checkbox input[type="checkbox"] {
+    display: none;
 }
 
-.pathway-box.start {
-    background: var(--primary);
-    color: var(--white);
-    font-weight: 600;
-}
-
-.pathway-box.condition {
+.checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    margin-right: 12px;
+    flex-shrink: 0;
     background: var(--white);
-    border: 2px solid var(--secondary);
-    color: var(--text);
+    position: relative;
 }
 
-.pathway-box.action {
-    background: var(--accent);
+.milestone-checkbox input[type="checkbox"]:checked + .checkbox-custom {
+    background: var(--success);
+    border-color: var(--success);
+}
+
+.milestone-checkbox input[type="checkbox"]:checked + .checkbox-custom::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     color: var(--white);
-}
-
-.pathway-arrow {
-    font-size: 20px;
-    color: var(--primary);
+    font-size: 14px;
     font-weight: 600;
 }
 
-.pathway-arrow-sm {
-    font-size: 16px;
+.checkbox-label {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.4;
+}
+
+.milestone-footer {
+    font-size: 12px;
     color: var(--text-light);
+    font-style: italic;
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
 }
 
 /* Upgrade CTA Section */
@@ -1840,37 +1812,36 @@ a:hover {
         max-height: 300px;
     }
 
-    /* Locked Pathway */
-    .locked-pathway-section {
-        margin-top: 32px;
-        padding-top: 24px;
+    /* Recovery Path */
+    .recovery-path-section {
+        margin-bottom: 32px;
+        padding-bottom: 24px;
     }
 
-    .locked-pathway-title {
+    .recovery-path-title {
         font-size: 20px;
     }
 
-    .protocol-progress-tracker {
-        padding: 0 10px;
+    .recovery-path-subtitle {
+        font-size: 14px;
     }
 
-    .node-circle {
-        width: 40px;
-        height: 40px;
+    .current-phase-display {
+        font-size: 14px;
+        padding: 14px 16px;
+        gap: 6px;
     }
 
-    .node-icon {
-        width: 20px;
-        height: 20px;
+    .phase-name {
+        font-size: 15px;
     }
 
-    .progress-line {
-        width: 30px;
-        margin: 0 4px;
+    .phase-arrow {
+        font-size: 16px;
     }
 
-    .node-label {
-        font-size: 12px;
+    .phase-next {
+        font-size: 13px;
     }
 
     .locked-content-card {
@@ -1907,30 +1878,28 @@ a:hover {
         font-size: 12px;
     }
 
-    .adaptive-pathway-preview {
-        padding: 20px 16px;
+    .milestone-card {
+        padding: 24px 16px;
     }
 
-    .adaptive-pathway-preview h4 {
-        font-size: 15px;
+    .milestone-card h4 {
+        font-size: 17px;
     }
 
-    .pathway-flowchart {
-        gap: 8px;
+    .milestone-intro {
+        font-size: 13px;
     }
 
-    .pathway-box {
-        padding: 8px 12px;
-        font-size: 12px;
-        min-width: 80px;
-    }
-
-    .pathway-arrow {
-        font-size: 16px;
-    }
-
-    .pathway-arrow-sm {
+    .milestone-section h5 {
         font-size: 14px;
+    }
+
+    .milestone-list li {
+        font-size: 13px;
+    }
+
+    .checkbox-label {
+        font-size: 13px;
     }
 
     .upgrade-cta-section {
