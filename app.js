@@ -1042,6 +1042,8 @@ function escapeHtml(text) {
 // SESSION MANAGEMENT
 // ============================================
 async function checkSession() {
+    // Show loading while we wait for auth state to be determined
+    // The onAuthStateChange handler will take care of routing
     showView('loading-view');
 
     try {
@@ -1053,10 +1055,21 @@ async function checkSession() {
             return;
         }
 
-        if (session && session.user) {
-            await checkUserStatusAndRoute(session.user);
-        } else {
+        // If no session exists, show login immediately
+        // If session exists, onAuthStateChange will handle routing
+        if (!session) {
+            console.log('No session found, showing login');
             showView('login-view');
+        } else {
+            console.log('Session found, waiting for auth state handler...');
+            // onAuthStateChange with INITIAL_SESSION will handle the routing
+            // Set a fallback timeout in case auth state change doesn't fire
+            setTimeout(() => {
+                if (!currentMember && !isRouting) {
+                    console.log('Fallback: manually routing from checkSession');
+                    checkUserStatusAndRoute(session.user);
+                }
+            }, 2000);
         }
     } catch (err) {
         console.error('Session check error:', err);
@@ -1066,13 +1079,15 @@ async function checkSession() {
 
 // Listen for auth state changes
 supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('Auth state changed:', event);
+    console.log('Auth state changed:', event, session ? 'with session' : 'no session');
 
-    if (event === 'SIGNED_IN' && session) {
+    // Handle all events that indicate a valid session
+    if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session) {
         await checkUserStatusAndRoute(session.user);
     } else if (event === 'SIGNED_OUT') {
         currentUser = null;
         currentMember = null;
+        isRouting = false;
         showView('login-view');
     }
 });
