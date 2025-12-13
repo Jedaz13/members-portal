@@ -995,6 +995,34 @@ function loadProtocolContent(protocol) {
     const content = PROTOCOL_CONTENT[protocol] || '<p>Protocol content coming soon...</p>';
     document.getElementById('protocol-content').innerHTML = content;
     document.getElementById('protocol-title').textContent = `Week 1: ${PROTOCOLS[protocol].shortName}`;
+
+    // Show locked pathway section for trial users only
+    showLockedPathwayForTrialUsers();
+}
+
+function showLockedPathwayForTrialUsers() {
+    const lockedPathwaySection = document.getElementById('locked-pathway-section');
+
+    if (!lockedPathwaySection) return;
+
+    // Show section only if user is on trial
+    if (currentMember?.status === 'trial') {
+        lockedPathwaySection.classList.remove('hidden');
+
+        // Track upgrade button clicks (add listener if not already added)
+        const upgradeBtn = document.getElementById('locked-pathway-upgrade-btn');
+        if (upgradeBtn && !upgradeBtn.dataset.listenerAdded) {
+            upgradeBtn.addEventListener('click', () => {
+                console.log('Locked pathway upgrade button clicked');
+                // You can add analytics tracking here if needed
+                // e.g., trackEvent('upgrade_click', { source: 'locked_pathway' });
+            });
+            upgradeBtn.dataset.listenerAdded = 'true';
+        }
+    } else {
+        // Hide for active/paid users
+        lockedPathwaySection.classList.add('hidden');
+    }
 }
 
 // ============================================
