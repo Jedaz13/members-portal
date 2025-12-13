@@ -407,11 +407,27 @@ async function checkUserStatusAndRoute(user) {
 
     try {
         // Step 1: Check if email exists in users table
-        const { data: member, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', user.email)
-            .maybeSingle();
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Query timeout')), 10000)
+        );
+
+        const queryPromise = (async () => {
+            return await supabase
+                .from('users')
+                .select('*')
+                .eq('email', user.email)
+                .maybeSingle();
+        })();
+
+        let member, error;
+        try {
+            const result = await Promise.race([queryPromise, timeoutPromise]);
+            member = result.data;
+            error = result.error;
+        } catch (timeoutErr) {
+            throw timeoutErr;
+        }
 
         console.log('User lookup result:', { member, error });
 
@@ -538,7 +554,14 @@ async function checkUserStatusAndRoute(user) {
 
     } catch (err) {
         console.error('Error checking user status:', err);
-        showToast('Error loading your account. Please try again.');
+
+        if (err.message === 'Query timeout') {
+            showToast('Connection slow. Please refresh the page.');
+        } else {
+            showToast('Error loading your account. Please try again.');
+        }
+
+        // Show login view with option to retry
         showView('login-view');
     } finally {
         isRouting = false;
