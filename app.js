@@ -407,11 +407,27 @@ async function checkUserStatusAndRoute(user) {
 
     try {
         // Step 1: Check if email exists in users table
-        const { data: member, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', user.email)
-            .maybeSingle();
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Query timeout')), 10000)
+        );
+
+        const queryPromise = (async () => {
+            return await supabase
+                .from('users')
+                .select('*')
+                .eq('email', user.email)
+                .maybeSingle();
+        })();
+
+        let member, error;
+        try {
+            const result = await Promise.race([queryPromise, timeoutPromise]);
+            member = result.data;
+            error = result.error;
+        } catch (timeoutErr) {
+            throw timeoutErr;
+        }
 
         console.log('User lookup result:', { member, error });
 
@@ -538,7 +554,14 @@ async function checkUserStatusAndRoute(user) {
 
     } catch (err) {
         console.error('Error checking user status:', err);
-        showToast('Error loading your account. Please try again.');
+
+        if (err.message === 'Query timeout') {
+            showToast('Connection slow. Please refresh the page.');
+        } else {
+            showToast('Error loading your account. Please try again.');
+        }
+
+        // Show login view with option to retry
         showView('login-view');
     } finally {
         isRouting = false;
@@ -1019,6 +1042,8 @@ function escapeHtml(text) {
 // SESSION MANAGEMENT
 // ============================================
 async function checkSession() {
+    // Show loading while we wait for auth state to be determined
+    // The onAuthStateChange handler will take care of routing
     showView('loading-view');
 
     try {
@@ -1030,10 +1055,21 @@ async function checkSession() {
             return;
         }
 
-        if (session && session.user) {
-            await checkUserStatusAndRoute(session.user);
-        } else {
+        // If no session exists, show login immediately
+        // If session exists, onAuthStateChange will handle routing
+        if (!session) {
+            console.log('No session found, showing login');
             showView('login-view');
+        } else {
+            console.log('Session found, waiting for auth state handler...');
+            // onAuthStateChange with INITIAL_SESSION will handle the routing
+            // Set a fallback timeout in case auth state change doesn't fire
+            setTimeout(() => {
+                if (!currentMember && !isRouting) {
+                    console.log('Fallback: manually routing from checkSession');
+                    checkUserStatusAndRoute(session.user);
+                }
+            }, 2000);
         }
     } catch (err) {
         console.error('Session check error:', err);
@@ -1043,13 +1079,15 @@ async function checkSession() {
 
 // Listen for auth state changes
 supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('Auth state changed:', event);
+    console.log('Auth state changed:', event, session ? 'with session' : 'no session');
 
-    if (event === 'SIGNED_IN' && session) {
+    // Handle all events that indicate a valid session
+    if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session) {
         await checkUserStatusAndRoute(session.user);
     } else if (event === 'SIGNED_OUT') {
         currentUser = null;
         currentMember = null;
+        isRouting = false;
         showView('login-view');
     }
 });
