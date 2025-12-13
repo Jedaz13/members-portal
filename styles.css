@@ -954,6 +954,357 @@ a:hover {
 }
 
 /* ============================================
+   LOCKED PROTOCOL PATHWAY
+   ============================================ */
+.locked-pathway-section {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 2px solid var(--border);
+}
+
+.locked-pathway-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+/* Progress Tracker */
+.protocol-progress-tracker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 0 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.progress-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.node-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.progress-node.active .node-circle {
+    background: var(--success);
+    border: 3px solid var(--success);
+}
+
+.progress-node.locked .node-circle {
+    background: var(--background);
+    border: 3px solid var(--border);
+}
+
+.node-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.progress-node.active .node-icon {
+    color: var(--white);
+}
+
+.progress-node.locked .node-icon {
+    color: var(--text-light);
+}
+
+.node-label {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+.progress-node.active .node-label {
+    color: var(--success);
+}
+
+.progress-node.locked .node-label {
+    color: var(--text-light);
+}
+
+/* Progress Line */
+.progress-line {
+    height: 3px;
+    width: 40px;
+    background: var(--border);
+    margin: 0 8px;
+    margin-bottom: 28px;
+}
+
+/* Tooltip */
+.node-tooltip {
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: var(--white);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+
+.node-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 4px solid var(--text);
+}
+
+.progress-node.locked:hover .node-tooltip {
+    opacity: 1;
+}
+
+.progress-node.locked:hover .node-circle {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-lg);
+}
+
+/* Locked Content Card */
+.locked-content-card {
+    position: relative;
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    margin-bottom: 32px;
+    overflow: hidden;
+}
+
+.locked-content-overlay {
+    position: relative;
+}
+
+.locked-content-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(253, 248, 245, 0.5) 0%, rgba(253, 248, 245, 0.9) 100%);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.locked-content-preview {
+    position: relative;
+    z-index: 0;
+    opacity: 0.7;
+}
+
+.locked-content-preview h4 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.locked-subtitle {
+    font-size: 15px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.locked-features {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.locked-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.feature-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: var(--secondary-light);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+}
+
+.feature-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.feature-text h5 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.feature-text p {
+    font-size: 13px;
+    color: var(--text-light);
+    line-height: 1.5;
+}
+
+/* Adaptive Pathway Preview */
+.adaptive-pathway-preview {
+    background: linear-gradient(135deg, var(--secondary-light) 0%, #e8f4ed 100%);
+    border-radius: 12px;
+    padding: 24px 20px;
+    margin-bottom: 32px;
+}
+
+.adaptive-pathway-preview h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.pathway-flowchart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pathway-node {
+    display: flex;
+    align-items: center;
+}
+
+.pathway-split {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pathway-branch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pathway-box {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 100px;
+    white-space: nowrap;
+}
+
+.pathway-box.start {
+    background: var(--primary);
+    color: var(--white);
+    font-weight: 600;
+}
+
+.pathway-box.condition {
+    background: var(--white);
+    border: 2px solid var(--secondary);
+    color: var(--text);
+}
+
+.pathway-box.action {
+    background: var(--accent);
+    color: var(--white);
+}
+
+.pathway-arrow {
+    font-size: 20px;
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.pathway-arrow-sm {
+    font-size: 16px;
+    color: var(--text-light);
+}
+
+/* Upgrade CTA Section */
+.upgrade-cta-section {
+    text-align: center;
+    padding: 32px 24px;
+    background: linear-gradient(135deg, #fff9f7 0%, var(--white) 100%);
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+}
+
+.btn-upgrade-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 32px;
+    background-color: var(--accent);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+}
+
+.btn-upgrade-primary:hover {
+    background-color: var(--accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(224, 122, 95, 0.4);
+    text-decoration: none;
+}
+
+.btn-upgrade-primary:active {
+    transform: translateY(0);
+}
+
+.upgrade-cta-subtext {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--text-light);
+    font-style: italic;
+}
+
+/* ============================================
    MESSAGING
    ============================================ */
 .message-compose {
@@ -1489,6 +1840,113 @@ a:hover {
 
     .messages-list {
         max-height: 300px;
+    }
+
+    /* Locked Pathway */
+    .locked-pathway-section {
+        margin-top: 32px;
+        padding-top: 24px;
+    }
+
+    .locked-pathway-title {
+        font-size: 20px;
+    }
+
+    .protocol-progress-tracker {
+        padding: 0 10px;
+    }
+
+    .node-circle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .node-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .progress-line {
+        width: 30px;
+        margin: 0 4px;
+    }
+
+    .node-label {
+        font-size: 12px;
+    }
+
+    .locked-content-card {
+        padding: 24px 16px;
+    }
+
+    .locked-content-preview h4 {
+        font-size: 18px;
+    }
+
+    .locked-subtitle {
+        font-size: 14px;
+    }
+
+    .locked-features {
+        gap: 16px;
+    }
+
+    .feature-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .feature-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .feature-text h5 {
+        font-size: 14px;
+    }
+
+    .feature-text p {
+        font-size: 12px;
+    }
+
+    .adaptive-pathway-preview {
+        padding: 20px 16px;
+    }
+
+    .adaptive-pathway-preview h4 {
+        font-size: 15px;
+    }
+
+    .pathway-flowchart {
+        gap: 8px;
+    }
+
+    .pathway-box {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-width: 80px;
+    }
+
+    .pathway-arrow {
+        font-size: 16px;
+    }
+
+    .pathway-arrow-sm {
+        font-size: 14px;
+    }
+
+    .upgrade-cta-section {
+        padding: 24px 16px;
+    }
+
+    .btn-upgrade-primary {
+        padding: 14px 24px;
+        font-size: 15px;
+        width: 100%;
+    }
+
+    .upgrade-cta-subtext {
+        font-size: 13px;
     }
 }
 
