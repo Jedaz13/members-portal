@@ -996,32 +996,49 @@ function loadProtocolContent(protocol) {
     document.getElementById('protocol-content').innerHTML = content;
     document.getElementById('protocol-title').textContent = `Week 1: ${PROTOCOLS[protocol].shortName}`;
 
-    // Show locked pathway section for trial users only
-    showLockedPathwayForTrialUsers();
+    // Show recovery path section with appropriate content
+    showRecoveryPathSection();
 }
 
-function showLockedPathwayForTrialUsers() {
-    const lockedPathwaySection = document.getElementById('locked-pathway-section');
+function showRecoveryPathSection() {
+    const recoveryPathSection = document.getElementById('recovery-path-section');
+    const trialCard = document.getElementById('trial-upgrade-card');
+    const paidCard = document.getElementById('paid-milestone-card');
 
-    if (!lockedPathwaySection) return;
+    if (!recoveryPathSection || !trialCard || !paidCard) return;
 
-    // Show section only if user is on trial
+    // Always show the recovery path section (for both trial and paid users)
+    recoveryPathSection.classList.remove('hidden');
+
     if (currentMember?.status === 'trial') {
-        lockedPathwaySection.classList.remove('hidden');
+        // Trial user: show upgrade card, hide milestone card
+        trialCard.classList.remove('hidden');
+        paidCard.classList.add('hidden');
 
         // Track upgrade button clicks (add listener if not already added)
         const upgradeBtn = document.getElementById('locked-pathway-upgrade-btn');
         if (upgradeBtn && !upgradeBtn.dataset.listenerAdded) {
             upgradeBtn.addEventListener('click', () => {
-                console.log('Locked pathway upgrade button clicked');
-                // You can add analytics tracking here if needed
-                // e.g., trackEvent('upgrade_click', { source: 'locked_pathway' });
+                console.log('Recovery path upgrade button clicked');
+                // TODO: Add analytics tracking here
+                // e.g., trackEvent('upgrade_click', { source: 'recovery_path' });
             });
             upgradeBtn.dataset.listenerAdded = 'true';
         }
+    } else if (currentMember?.status === 'active') {
+        // Paid user: hide upgrade card, show milestone card
+        trialCard.classList.add('hidden');
+        paidCard.classList.remove('hidden');
+
+        // TODO: Future enhancement - populate milestone checkboxes based on actual user data
+        // For now, all milestones are unchecked (static)
+        // Example future logic:
+        // - Check "Complete 7 days of tracking" when user has 7+ tracking entries
+        // - Check other milestones based on practitioner reviews, etc.
     } else {
-        // Hide for active/paid users
-        lockedPathwaySection.classList.add('hidden');
+        // Unknown status: hide both cards
+        trialCard.classList.add('hidden');
+        paidCard.classList.add('hidden');
     }
 }
 
