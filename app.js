@@ -418,59 +418,63 @@ async function checkUserStatusAndRoute(user) {
     try {
         // Step 1: Check if email exists in users table
         console.log('Starting user lookup query...');
-        console.log('Supabase URL:', SUPABASE_URL);
         console.log('User email:', user.email);
 
-        // Add timeout to detect if query hangs
-        const timeoutId = setTimeout(() => {
-            console.warn('Query taking longer than 5 seconds - checking network...');
-        }, 5000);
+        // Get the access token from the session
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData?.session?.access_token;
+        console.log('Access token available:', !!accessToken);
 
-        // Try a simple test query first
-        console.log('Testing Supabase connection...');
+        // Use direct fetch to bypass Supabase client blocking issue
         const startTime = Date.now();
+        const fetchUrl = `${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(user.email)}&select=*`;
+        console.log('Fetching:', fetchUrl);
 
-        // Create AbortController for timeout
-        const abortController = new AbortController();
-        const abortTimeout = setTimeout(() => {
-            console.error('Aborting query after 15 seconds');
-            abortController.abort();
-        }, 15000);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-        let member, error;
+        let member = null;
+        let error = null;
+
         try {
-            const result = await supabase
-                .from('users')
-                .select('*')
-                .eq('email', user.email)
-                .abortSignal(abortController.signal)
-                .maybeSingle();
-            member = result.data;
-            error = result.error;
-        } catch (abortError) {
-            console.error('Query aborted or failed:', abortError);
-            error = abortError;
-        }
+            const response = await fetch(fetchUrl, {
+                method: 'GET',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                signal: controller.signal
+            });
 
-        clearTimeout(abortTimeout);
-        const endTime = Date.now();
-        clearTimeout(timeoutId);
-        console.log(`Query completed in ${endTime - startTime}ms`);
-        console.log('User lookup result:', { member, error });
+            clearTimeout(timeoutId);
+            const endTime = Date.now();
+            console.log(`Fetch completed in ${endTime - startTime}ms, status: ${response.status}`);
 
-        if (error) {
-            console.error('Database error:', error);
-            // Check if it was aborted
-            if (error.name === 'AbortError' || error.message?.includes('abort')) {
-                showToast('Connection timeout. Please check your internet and try again.');
+            if (response.ok) {
+                const data = await response.json();
+                member = data && data.length > 0 ? data[0] : null;
+                console.log('Fetched member:', member);
+            } else {
+                const errorText = await response.text();
+                console.error('Fetch error:', response.status, errorText);
+                error = { message: errorText, status: response.status };
+            }
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            console.error('Fetch failed:', fetchError);
+            if (fetchError.name === 'AbortError') {
+                showToast('Connection timeout. Please try again.');
                 showView('login-view');
                 return;
             }
-            // If RLS is blocking, show helpful message
-            if (error.code === 'PGRST301' || error.message?.includes('RLS')) {
-                showToast('Database access error. Please contact support.');
-            }
-            showView('not-found-view');
+            error = fetchError;
+        }
+
+        if (error) {
+            console.error('Database error:', error);
+            showToast('Error connecting to database. Please try again.');
+            showView('login-view');
             return;
         }
 
