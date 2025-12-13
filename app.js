@@ -418,25 +418,56 @@ async function checkUserStatusAndRoute(user) {
     try {
         // Step 1: Check if email exists in users table
         console.log('Starting user lookup query...');
+        console.log('Supabase URL:', SUPABASE_URL);
+        console.log('User email:', user.email);
 
         // Add timeout to detect if query hangs
         const timeoutId = setTimeout(() => {
-            console.warn('Query taking longer than 5 seconds - possible RLS issue');
+            console.warn('Query taking longer than 5 seconds - checking network...');
         }, 5000);
 
-        const { data: member, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', user.email)
-            .maybeSingle();
+        // Try a simple test query first
+        console.log('Testing Supabase connection...');
+        const startTime = Date.now();
 
+        // Create AbortController for timeout
+        const abortController = new AbortController();
+        const abortTimeout = setTimeout(() => {
+            console.error('Aborting query after 15 seconds');
+            abortController.abort();
+        }, 15000);
+
+        let member, error;
+        try {
+            const result = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', user.email)
+                .abortSignal(abortController.signal)
+                .maybeSingle();
+            member = result.data;
+            error = result.error;
+        } catch (abortError) {
+            console.error('Query aborted or failed:', abortError);
+            error = abortError;
+        }
+
+        clearTimeout(abortTimeout);
+        const endTime = Date.now();
         clearTimeout(timeoutId);
+        console.log(`Query completed in ${endTime - startTime}ms`);
         console.log('User lookup result:', { member, error });
 
         if (error) {
             console.error('Database error:', error);
+            // Check if it was aborted
+            if (error.name === 'AbortError' || error.message?.includes('abort')) {
+                showToast('Connection timeout. Please check your internet and try again.');
+                showView('login-view');
+                return;
+            }
             // If RLS is blocking, show helpful message
-            if (error.code === 'PGRST301' || error.message.includes('RLS')) {
+            if (error.code === 'PGRST301' || error.message?.includes('RLS')) {
                 showToast('Database access error. Please contact support.');
             }
             showView('not-found-view');
