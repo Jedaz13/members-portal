@@ -417,12 +417,20 @@ async function checkUserStatusAndRoute(user) {
 
     try {
         // Step 1: Check if email exists in users table
+        console.log('Starting user lookup query...');
+
+        // Add timeout to detect if query hangs
+        const timeoutId = setTimeout(() => {
+            console.warn('Query taking longer than 5 seconds - possible RLS issue');
+        }, 5000);
+
         const { data: member, error } = await supabase
             .from('users')
             .select('*')
             .eq('email', user.email)
             .maybeSingle();
 
+        clearTimeout(timeoutId);
         console.log('User lookup result:', { member, error });
 
         if (error) {
