@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gut Healing Academy - Practitioner Dashboard</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="practitioner.css">
+</head>
+<body>
+    <!-- Login View -->
+    <div id="login-view" class="view">
+        <div class="container">
+            <div class="card">
+                <div class="brand">
+                    <h1>Gut Healing Academy</h1>
+                    <p class="subtitle">Practitioner Dashboard</p>
+                </div>
+                <div id="login-section">
+                    <p class="welcome-text">Sign in to access your practitioner dashboard</p>
+                    <button id="google-login-btn" class="btn-google">
+                        <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        Sign in with Google
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading View -->
+    <div id="loading-view" class="view hidden">
+        <div class="container">
+            <div class="card">
+                <div class="spinner"></div>
+                <p class="loading-text">Loading your dashboard...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Access Denied View -->
+    <div id="access-denied-view" class="view hidden">
+        <div class="container">
+            <div class="card">
+                <div class="brand">
+                    <h1>Gut Healing Academy</h1>
+                </div>
+                <div class="status-icon">🔒</div>
+                <h2 class="status-title">Access Denied</h2>
+                <p class="status-message">
+                    This dashboard is for authorized practitioners only.
+                    If you're a member, please visit the member portal.
+                </p>
+                <a href="index.html" class="btn-primary">Go to Member Portal</a>
+                <button id="access-denied-logout" class="btn-text">Sign out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="view hidden">
+        <!-- Dashboard Header -->
+        <header class="practitioner-header">
+            <div class="header-content">
+                <div class="header-brand">
+                    <h1>Gut Healing Academy</h1>
+                    <span class="header-role">Practitioner Dashboard</span>
+                </div>
+                <div class="header-actions">
+                    <span id="practitioner-name" class="practitioner-name">Loading...</span>
+                    <button id="dashboard-logout" class="btn-logout-small">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Main -->
+        <main class="dashboard-main">
+            <!-- Tab Navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="patients">
+                    <span>My Patients</span>
+                    <span id="patients-count" class="tab-badge hidden">0</span>
+                </button>
+                <button class="tab-btn" data-tab="unassigned">
+                    <span>Unassigned</span>
+                    <span id="unassigned-count" class="tab-badge hidden">0</span>
+                </button>
+                <button class="tab-btn" data-tab="alerts">
+                    <span>Alerts</span>
+                    <span id="alerts-count" class="tab-badge alert hidden">0</span>
+                </button>
+                <button class="tab-btn" data-tab="profile">My Profile</button>
+            </nav>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Tab 1: My Patients -->
+                <div id="tab-patients" class="tab-panel active">
+                    <div class="panel-header">
+                        <h3 class="panel-title">My Patients</h3>
+                        <div class="panel-filters">
+                            <select id="filter-protocol" class="filter-select">
+                                <option value="">All Protocols</option>
+                                <option value="1">Bloating-Dominant</option>
+                                <option value="2">IBS-C</option>
+                                <option value="3">IBS-D</option>
+                                <option value="4">IBS-M</option>
+                                <option value="5">Post-SIBO</option>
+                                <option value="6">Gut-Brain</option>
+                            </select>
+                            <select id="filter-attention" class="filter-select">
+                                <option value="">All Patients</option>
+                                <option value="needs_attention">Needs Attention</option>
+                            </select>
+                            <select id="sort-by" class="filter-select">
+                                <option value="last_active">Last Active</option>
+                                <option value="name">Name</option>
+                                <option value="days_in_program">Days in Program</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="patients-container">
+                        <div id="patients-list" class="patients-table-wrapper">
+                            <!-- Patients table will be populated by JS -->
+                            <p class="empty-state">Loading patients...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Unassigned Patients -->
+                <div id="tab-unassigned" class="tab-panel hidden">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Unassigned Patients</h3>
+                        <p class="panel-subtitle">New patients waiting to be claimed</p>
+                    </div>
+
+                    <div id="unassigned-list" class="unassigned-grid">
+                        <!-- Unassigned patient cards will be populated by JS -->
+                        <p class="empty-state">Loading unassigned patients...</p>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Alerts -->
+                <div id="tab-alerts" class="tab-panel hidden">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Alerts</h3>
+                        <div class="panel-filters">
+                            <select id="filter-alerts" class="filter-select">
+                                <option value="unresolved">Unresolved Only</option>
+                                <option value="all">Show All</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="alerts-list" class="alerts-container">
+                        <!-- Alert cards will be populated by JS -->
+                        <p class="empty-state">Loading alerts...</p>
+                    </div>
+                </div>
+
+                <!-- Tab 4: My Profile -->
+                <div id="tab-profile" class="tab-panel hidden">
+                    <div class="panel-header">
+                        <h3 class="panel-title">My Profile</h3>
+                    </div>
+
+                    <div class="profile-container">
+                        <form id="profile-form" class="profile-form">
+                            <div class="form-group">
+                                <label for="profile-name">Name</label>
+                                <input type="text" id="profile-name" class="form-input" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="profile-credentials">Credentials</label>
+                                <input type="text" id="profile-credentials" class="form-input"
+                                       placeholder="e.g., RNutr, Registered Clinical Nutritionist">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="profile-bio">Bio</label>
+                                <textarea id="profile-bio" class="form-textarea" rows="4"
+                                          placeholder="Tell patients about your background and specializations"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Specializations</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" value="bloating" class="specialization-checkbox">
+                                        <span>Bloating-Dominant</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" value="ibs_c" class="specialization-checkbox">
+                                        <span>IBS-C (Constipation)</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" value="ibs_d" class="specialization-checkbox">
+                                        <span>IBS-D (Diarrhea)</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" value="ibs_m" class="specialization-checkbox">
+                                        <span>IBS-M (Mixed)</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" value="post_sibo" class="specialization-checkbox">
+                                        <span>Post-SIBO Recovery</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" value="gut_brain" class="specialization-checkbox">
+                                        <span>Gut-Brain Connection</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="profile-status">Status</label>
+                                <select id="profile-status" class="form-select">
+                                    <option value="available">Available</option>
+                                    <option value="busy">Busy</option>
+                                    <option value="offline">Offline</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Referral Link</label>
+                                <div class="referral-link-container">
+                                    <input type="text" id="referral-link" class="form-input" readonly>
+                                    <button type="button" id="copy-referral-btn" class="btn-secondary">Copy Link</button>
+                                </div>
+                                <p class="form-hint">Patients who sign up via this link will be automatically assigned to you.</p>
+                            </div>
+
+                            <button type="submit" class="btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Patient Detail Modal -->
+    <div id="patient-detail-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content patient-detail-content">
+            <div class="modal-header">
+                <button id="close-patient-detail" class="btn-back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Back to Patients
+                </button>
+                <button class="modal-close">&times;</button>
+            </div>
+
+            <div class="patient-detail-header">
+                <h2 id="patient-detail-name">Patient Name</h2>
+                <div class="patient-detail-meta">
+                    <span id="patient-detail-protocol" class="patient-protocol-badge">Protocol</span>
+                    <span id="patient-detail-days">Day X</span>
+                    <span id="patient-detail-status" class="patient-status-badge">Status</span>
+                </div>
+            </div>
+
+            <!-- Patient Detail Sub-navigation -->
+            <nav class="patient-detail-nav">
+                <button class="patient-tab-btn active" data-patient-tab="overview">Overview</button>
+                <button class="patient-tab-btn" data-patient-tab="tracking">Tracking History</button>
+                <button class="patient-tab-btn" data-patient-tab="messages">
+                    Messages
+                    <span id="patient-messages-badge" class="tab-badge hidden">0</span>
+                </button>
+                <button class="patient-tab-btn" data-patient-tab="protocol">Protocol</button>
+                <button class="patient-tab-btn" data-patient-tab="notes">Notes</button>
+            </nav>
+
+            <!-- Patient Detail Tab Content -->
+            <div class="patient-detail-tabs">
+                <!-- Overview Tab -->
+                <div id="patient-tab-overview" class="patient-tab-panel active">
+                    <div id="patient-overview-content">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Tracking History Tab -->
+                <div id="patient-tab-tracking" class="patient-tab-panel hidden">
+                    <div id="patient-tracking-content">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Messages Tab -->
+                <div id="patient-tab-messages" class="patient-tab-panel hidden">
+                    <div class="patient-messages-container">
+                        <div id="patient-messages-list" class="messages-list">
+                            <!-- Messages will be populated by JS -->
+                        </div>
+                        <div class="message-compose">
+                            <textarea id="patient-message-input" placeholder="Type your message to this patient..." rows="4"></textarea>
+                            <button id="send-patient-message-btn" class="btn-primary">Send Message</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Protocol Tab -->
+                <div id="patient-tab-protocol" class="patient-tab-panel hidden">
+                    <div id="patient-protocol-content">
+                        <!-- Will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Notes Tab -->
+                <div id="patient-tab-notes" class="patient-tab-panel hidden">
+                    <div class="patient-notes-container">
+                        <p class="notes-hint">These notes are private and only visible to you.</p>
+                        <textarea id="patient-notes-textarea" class="notes-textarea" rows="10"
+                                  placeholder="Add private notes about this patient..."></textarea>
+                        <button id="save-notes-btn" class="btn-primary">Save Notes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Claim Confirmation Modal -->
+    <div id="claim-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Claim Patient</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="claim-modal-text">Claim <strong id="claim-patient-name"></strong> as your patient? You'll be responsible for their care and messages.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-claim-btn" class="btn-text">Cancel</button>
+                <button id="confirm-claim-btn" class="btn-primary">Claim Patient</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="practitioner.js"></script>
+</body>
+</html>
