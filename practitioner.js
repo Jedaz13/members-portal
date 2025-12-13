@@ -221,7 +221,7 @@ function renderPatientsList() {
         filteredPatients = filteredPatients.filter(p => {
             const daysSinceLogin = p.last_login_at ?
                 Math.floor((new Date() - new Date(p.last_login_at)) / (1000 * 60 * 60 * 24)) : 999;
-            return daysSinceLogin >= 3 || p.unread_message_count > 0;
+            return daysSinceLogin >= 3 || p.unread_messages > 0;
         });
     }
 
@@ -258,7 +258,7 @@ function renderPatientsList() {
                 ${filteredPatients.map(patient => {
                     const daysSinceLogin = patient.last_login_at ?
                         Math.floor((new Date() - new Date(patient.last_login_at)) / (1000 * 60 * 60 * 24)) : null;
-                    const needsAttention = daysSinceLogin >= 3 || patient.unread_message_count > 0;
+                    const needsAttention = daysSinceLogin >= 3 || patient.unread_messages > 0;
 
                     return `
                         <tr>
@@ -269,8 +269,8 @@ function renderPatientsList() {
                                 ${formatDate(patient.last_login_at)}
                             </td>
                             <td>
-                                ${patient.unread_message_count > 0 ?
-                                    `<span class="unread-badge">${patient.unread_message_count}</span>` :
+                                ${patient.unread_messages > 0 ?
+                                    `<span class="unread-badge">${patient.unread_messages}</span>` :
                                     '0'}
                             </td>
                             <td>
@@ -292,7 +292,7 @@ function renderPatientsList() {
 // ============================================
 async function loadUnassignedPatients() {
     const { data, error } = await supabase
-        .from('unassigned_patients_view')
+        .from('unassigned_patients')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -345,9 +345,9 @@ function renderUnassignedList() {
                 <div class="unassigned-card-meta-item">
                     <strong>Signed up:</strong> ${formatTime(patient.created_at)}
                 </div>
-                ${patient.unread_message_count > 0 ? `
+                ${patient.unread_messages > 0 ? `
                     <div class="unassigned-card-meta-item">
-                        <strong>Has ${patient.unread_message_count} unread message(s)</strong>
+                        <strong>Has ${patient.unread_messages} unread message(s)</strong>
                     </div>
                 ` : ''}
             </div>
