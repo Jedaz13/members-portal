@@ -559,12 +559,19 @@ async function checkUserStatusAndRoute(user) {
             }
         }
 
-        // Update last login for active users
+        // Update last login for active users (non-blocking, fire and forget)
         if (updatedStatus === 'trial' || updatedStatus === 'active') {
-            await supabase
-                .from('users')
-                .update({ last_login_at: new Date().toISOString() })
-                .eq('email', user.email);
+            // Don't await - let it run in background to avoid Supabase client blocking
+            fetch(`${SUPABASE_URL}/rest/v1/users?email=ilike.${encodeURIComponent(user.email)}`, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify({ last_login_at: new Date().toISOString() })
+            }).catch(err => console.warn('Failed to update last login:', err));
         }
 
         // Step 3: Route based on final status
