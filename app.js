@@ -420,12 +420,8 @@ async function checkUserStatusAndRoute(user) {
         console.log('Starting user lookup query...');
         console.log('User email:', user.email);
 
-        // Get the access token from the session
-        const { data: sessionData } = await supabase.auth.getSession();
-        const accessToken = sessionData?.session?.access_token;
-        console.log('Access token available:', !!accessToken);
-
         // Use direct fetch to bypass Supabase client blocking issue
+        // Don't call supabase.auth.getSession() as it also hangs
         const startTime = Date.now();
         const fetchUrl = `${SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(user.email)}&select=*`;
         console.log('Fetching:', fetchUrl);
@@ -441,7 +437,7 @@ async function checkUserStatusAndRoute(user) {
                 method: 'GET',
                 headers: {
                     'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
                     'Content-Type': 'application/json'
                 },
                 signal: controller.signal
