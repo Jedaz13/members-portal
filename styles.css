@@ -988,6 +988,203 @@ a:hover {
     width: 100%;
 }
 
+/* File Attachment */
+.attachment-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.file-input-hidden {
+    display: none;
+}
+
+.btn-attach {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-attach:hover {
+    background: var(--secondary-light);
+    border-color: var(--secondary);
+}
+
+.file-size-hint {
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+/* Attached Files Preview */
+.attached-files {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: var(--background);
+    border-radius: 8px;
+}
+
+.attached-file {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.attached-file-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+}
+
+.attached-file-name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.attached-file-size {
+    font-size: 11px;
+    color: var(--text-light);
+}
+
+.attached-file-remove {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 2px;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.attached-file-remove:hover {
+    color: var(--accent);
+}
+
+/* Message History Header */
+.message-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.message-history-header h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.btn-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-filter:hover {
+    background: var(--secondary-light);
+    border-color: var(--secondary);
+    color: var(--text);
+}
+
+.btn-filter.active {
+    background: var(--warning);
+    border-color: var(--warning);
+    color: var(--white);
+}
+
+.btn-filter svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Message Search */
+.message-search {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 36px;
+    font-size: 14px;
+    font-family: inherit;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--text);
+    transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.search-input::placeholder {
+    color: var(--text-light);
+}
+
+.btn-clear-search {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+}
+
+.btn-clear-search:hover {
+    color: var(--text);
+}
+
 .message-history h4 {
     font-size: 16px;
     font-weight: 600;
@@ -1065,6 +1262,95 @@ a:hover {
     line-height: 1.6;
     white-space: pre-wrap;
     word-wrap: break-word;
+}
+
+/* Message Highlight Button */
+.message-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.btn-highlight {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: var(--text-light);
+    opacity: 0.6;
+    transition: all 0.2s ease;
+}
+
+.btn-highlight:hover {
+    opacity: 1;
+    color: var(--warning);
+}
+
+.btn-highlight.highlighted {
+    opacity: 1;
+    color: var(--warning);
+}
+
+.btn-highlight svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Highlighted Message Style */
+.message.highlighted {
+    border: 2px solid var(--warning);
+    box-shadow: 0 2px 8px rgba(243, 156, 18, 0.2);
+}
+
+/* Message Attachments Display */
+.message-attachments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.message-attachment {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 4px;
+    font-size: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease;
+}
+
+.message-attachment:hover {
+    background: rgba(255,255,255,0.5);
+    text-decoration: none;
+}
+
+.message-member .message-attachment {
+    background: rgba(0,0,0,0.05);
+}
+
+.message-member .message-attachment:hover {
+    background: rgba(0,0,0,0.1);
+}
+
+.attachment-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* Search highlight */
+.search-match {
+    background: var(--warning);
+    color: var(--text);
+    padding: 0 2px;
+    border-radius: 2px;
 }
 
 /* ============================================
@@ -1263,10 +1549,19 @@ a:hover {
 .btn-primary:focus,
 .btn-google:focus,
 .btn-logout:focus,
-.btn-logout-small:focus,
-.tab-btn:focus {
+.btn-logout-small:focus {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+}
+
+/* Tab focus - only show bottom border, no outline */
+.tab-btn:focus {
+    outline: none;
+}
+
+.tab-btn:focus-visible {
+    outline: none;
+    border-bottom-color: var(--primary);
 }
 
 .form-input:focus,

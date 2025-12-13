@@ -328,6 +328,17 @@ const PROTOCOL_CONTENT = {
 let currentUser = null;
 let currentMember = null;
 let isRouting = false; // Prevent double routing from auth events
+let authProcessed = false; // Track if we've already handled auth for this page load
+let attachedFiles = []; // Files to be uploaded with message
+let allMessages = []; // Store all messages for search/filter
+let showHighlightedOnly = false; // Filter to show only highlighted messages
+let highlightedMessages = new Set(); // Store highlighted message IDs (in localStorage)
+
+// Constants
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB in bytes
+const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+                             'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                             'text/plain'];
 
 // ============================================
 // VIEW MANAGEMENT
@@ -403,31 +414,14 @@ async function checkUserStatusAndRoute(user) {
     currentUser = user;
 
     console.log('Checking user status for:', user.email);
-    console.log('Auth UID:', user.id);
 
     try {
         // Step 1: Check if email exists in users table
-        // Add timeout to prevent infinite loading
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Query timeout')), 10000)
-        );
-
-        const queryPromise = (async () => {
-            return await supabase
-                .from('users')
-                .select('*')
-                .eq('email', user.email)
-                .maybeSingle();
-        })();
-
-        let member, error;
-        try {
-            const result = await Promise.race([queryPromise, timeoutPromise]);
-            member = result.data;
-            error = result.error;
-        } catch (timeoutErr) {
-            throw timeoutErr;
-        }
+        const { data: member, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', user.email)
+            .maybeSingle();
 
         console.log('User lookup result:', { member, error });
 
@@ -554,14 +548,7 @@ async function checkUserStatusAndRoute(user) {
 
     } catch (err) {
         console.error('Error checking user status:', err);
-
-        if (err.message === 'Query timeout') {
-            showToast('Connection slow. Please refresh the page.');
-        } else {
-            showToast('Error loading your account. Please try again.');
-        }
-
-        // Show login view with option to retry
+        showToast('Error loading your account. Please try again.');
         showView('login-view');
     } finally {
         isRouting = false;
@@ -620,6 +607,12 @@ function initializeDashboard() {
 
     // Load tracking history
     loadTrackingHistory();
+
+    // Initialize file upload
+    initializeFileUpload();
+
+    // Initialize message search
+    initializeMessageSearch();
 
     console.log('Dashboard initialized successfully');
 }
@@ -969,10 +962,309 @@ async function loadMessages() {
         .eq('user_id', currentMember.id)
         .order('created_at', { ascending: true });
 
+    if (error) {
+        console.error('Error loading messages:', error);
+        allMessages = [];
+    } else {
+        allMessages = messages || [];
+    }
+
+    // Update highlighted button visibility
+    updateHighlightedButton();
+
+    // Render messages
+    renderMessages(allMessages);
+}
+
+async function sendMessage() {
+    const input = document.getElementById('message-input');
+    const message = input.value.trim();
+    const sendBtn = document.getElementById('send-message-btn');
+
+    if (!message && attachedFiles.length === 0) {
+        showToast('Please enter a message or attach a file');
+        return;
+    }
+
+    // Disable button while sending
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'Sending...';
+
+    try {
+        // Upload files if any
+        let uploadedFiles = [];
+        if (attachedFiles.length > 0) {
+            showToast('Uploading files...');
+            for (const file of attachedFiles) {
+                try {
+                    const uploadedFile = await uploadFile(file);
+                    uploadedFiles.push(uploadedFile);
+                } catch (uploadError) {
+                    console.error('File upload failed:', uploadError);
+                    showToast(`Failed to upload ${file.name}`);
+                }
+            }
+        }
+
+        // Send message with attachments
+        const { error } = await supabase
+            .from('messages')
+            .insert({
+                user_id: currentMember.id,
+                sender_type: 'member',
+                sender_email: currentMember.email,
+                message_text: message || '(File attachment)',
+                attachments: uploadedFiles.length > 0 ? uploadedFiles : null
+            });
+
+        if (error) {
+            console.error('Error sending message:', error);
+            showToast('Error sending message. Please try again.');
+        } else {
+            input.value = '';
+            attachedFiles = [];
+            updateAttachedFilesUI();
+            showToast('Message sent!');
+            loadMessages();
+        }
+    } catch (err) {
+        console.error('Error sending message:', err);
+        showToast('Error sending message. Please try again.');
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send Message';
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ============================================
+// FILE ATTACHMENT FUNCTIONS
+// ============================================
+function initializeFileUpload() {
+    const fileInput = document.getElementById('file-input');
+    const attachBtn = document.getElementById('attach-file-btn');
+
+    attachBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+}
+
+function handleFileSelect(e) {
+    const files = Array.from(e.target.files);
+
+    files.forEach(file => {
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+            showToast(`File "${file.name}" is too large. Max size is 20MB.`);
+            return;
+        }
+
+        // Check file type
+        if (!ALLOWED_FILE_TYPES.includes(file.type) && !file.name.match(/\.(pdf|jpg|jpeg|png|gif|webp|doc|docx|txt)$/i)) {
+            showToast(`File type not allowed: ${file.name}`);
+            return;
+        }
+
+        // Check for duplicates
+        if (attachedFiles.some(f => f.name === file.name && f.size === file.size)) {
+            showToast(`File "${file.name}" is already attached.`);
+            return;
+        }
+
+        attachedFiles.push(file);
+    });
+
+    updateAttachedFilesUI();
+    e.target.value = ''; // Reset input
+}
+
+function updateAttachedFilesUI() {
+    const container = document.getElementById('attached-files');
+
+    if (attachedFiles.length === 0) {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+        return;
+    }
+
+    container.classList.remove('hidden');
+    container.innerHTML = attachedFiles.map((file, index) => `
+        <div class="attached-file">
+            <span class="attached-file-icon">${getFileIcon(file.name)}</span>
+            <span class="attached-file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span>
+            <span class="attached-file-size">${formatFileSize(file.size)}</span>
+            <button class="attached-file-remove" data-index="${index}" title="Remove">×</button>
+        </div>
+    `).join('');
+
+    // Add remove handlers
+    container.querySelectorAll('.attached-file-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(e.target.dataset.index);
+            attachedFiles.splice(index, 1);
+            updateAttachedFilesUI();
+        });
+    });
+}
+
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    switch (ext) {
+        case 'pdf': return '📄';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'webp': return '🖼️';
+        case 'doc':
+        case 'docx': return '📝';
+        case 'txt': return '📃';
+        default: return '📎';
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+async function uploadFile(file) {
+    const timestamp = Date.now();
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const filePath = `${currentMember.id}/${timestamp}_${safeName}`;
+
+    const { data, error } = await supabase.storage
+        .from('message-attachments')
+        .upload(filePath, file);
+
+    if (error) {
+        console.error('Upload error:', error);
+        throw error;
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+        .from('message-attachments')
+        .getPublicUrl(filePath);
+
+    return {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        path: filePath,
+        url: urlData.publicUrl
+    };
+}
+
+// ============================================
+// MESSAGE SEARCH FUNCTIONS
+// ============================================
+function initializeMessageSearch() {
+    const searchInput = document.getElementById('message-search');
+    const clearBtn = document.getElementById('clear-search-btn');
+    const highlightedBtn = document.getElementById('show-highlighted-btn');
+
+    // Load highlighted messages from localStorage
+    loadHighlightedMessages();
+
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        clearBtn.classList.toggle('hidden', !query);
+        filterMessages(query);
+    });
+
+    clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        clearBtn.classList.add('hidden');
+        filterMessages('');
+    });
+
+    highlightedBtn.addEventListener('click', () => {
+        showHighlightedOnly = !showHighlightedOnly;
+        highlightedBtn.classList.toggle('active', showHighlightedOnly);
+        filterMessages(searchInput.value.trim());
+    });
+}
+
+function loadHighlightedMessages() {
+    try {
+        const stored = localStorage.getItem('highlightedMessages');
+        if (stored) {
+            highlightedMessages = new Set(JSON.parse(stored));
+        }
+    } catch (e) {
+        console.error('Error loading highlighted messages:', e);
+    }
+}
+
+function saveHighlightedMessages() {
+    try {
+        localStorage.setItem('highlightedMessages', JSON.stringify([...highlightedMessages]));
+    } catch (e) {
+        console.error('Error saving highlighted messages:', e);
+    }
+}
+
+function toggleHighlight(messageId) {
+    if (highlightedMessages.has(messageId)) {
+        highlightedMessages.delete(messageId);
+    } else {
+        highlightedMessages.add(messageId);
+    }
+    saveHighlightedMessages();
+    updateHighlightedButton();
+    renderMessages(allMessages);
+}
+
+function updateHighlightedButton() {
+    const btn = document.getElementById('show-highlighted-btn');
+    btn.classList.toggle('hidden', highlightedMessages.size === 0);
+}
+
+function filterMessages(query) {
+    let filtered = allMessages;
+
+    // Filter by highlighted if active
+    if (showHighlightedOnly) {
+        filtered = filtered.filter(msg => highlightedMessages.has(msg.id));
+    }
+
+    // Filter by search query
+    if (query) {
+        const lowerQuery = query.toLowerCase();
+        filtered = filtered.filter(msg =>
+            msg.message_text.toLowerCase().includes(lowerQuery)
+        );
+    }
+
+    renderMessages(filtered, query);
+}
+
+function highlightSearchTerm(text, query) {
+    if (!query) return escapeHtml(text);
+
+    const escapedText = escapeHtml(text);
+    const escapedQuery = escapeHtml(query);
+    const regex = new RegExp(`(${escapedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return escapedText.replace(regex, '<span class="search-match">$1</span>');
+}
+
+function renderMessages(messages, searchQuery = '') {
     const messagesList = document.getElementById('messages-list');
 
-    if (error || !messages || messages.length === 0) {
-        messagesList.innerHTML = '<p class="messages-empty">No messages yet. Send your first message above!</p>';
+    if (!messages || messages.length === 0) {
+        if (showHighlightedOnly) {
+            messagesList.innerHTML = '<p class="messages-empty">No highlighted messages.</p>';
+        } else if (searchQuery) {
+            messagesList.innerHTML = '<p class="messages-empty">No messages match your search.</p>';
+        } else {
+            messagesList.innerHTML = '<p class="messages-empty">No messages yet. Send your first message above!</p>';
+        }
         return;
     }
 
@@ -986,56 +1278,57 @@ async function loadMessages() {
         });
 
         const isExpert = msg.sender_type === 'practitioner';
+        const isHighlighted = highlightedMessages.has(msg.id);
+        const messageText = searchQuery
+            ? highlightSearchTerm(msg.message_text, searchQuery)
+            : escapeHtml(msg.message_text);
+
+        // Parse attachments if they exist
+        let attachmentsHtml = '';
+        if (msg.attachments && msg.attachments.length > 0) {
+            attachmentsHtml = `
+                <div class="message-attachments">
+                    ${msg.attachments.map(att => `
+                        <a href="${att.url}" target="_blank" class="message-attachment">
+                            <span class="attachment-icon">${getFileIcon(att.name)}</span>
+                            <span>${escapeHtml(att.name)}</span>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+        }
 
         html += `
-            <div class="message ${isExpert ? 'message-expert' : 'message-member'}">
+            <div class="message ${isExpert ? 'message-expert' : 'message-member'} ${isHighlighted ? 'highlighted' : ''}" data-id="${msg.id}">
                 <div class="message-header">
                     <span class="message-sender">${isExpert ? 'Gut Health Expert' : 'You'}</span>
                     <span class="message-time">${time}</span>
                 </div>
-                <div class="message-text">${escapeHtml(msg.message_text)}</div>
+                <div class="message-text">${messageText}</div>
+                ${attachmentsHtml}
+                <div class="message-actions">
+                    <button class="btn-highlight ${isHighlighted ? 'highlighted' : ''}" data-id="${msg.id}" title="${isHighlighted ? 'Remove highlight' : 'Highlight message'}">
+                        <svg viewBox="0 0 24 24" fill="${isHighlighted ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         `;
     });
 
     messagesList.innerHTML = html;
 
+    // Add highlight button handlers
+    messagesList.querySelectorAll('.btn-highlight').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const messageId = e.currentTarget.dataset.id;
+            toggleHighlight(messageId);
+        });
+    });
+
     // Scroll to bottom
     messagesList.scrollTop = messagesList.scrollHeight;
-}
-
-async function sendMessage() {
-    const input = document.getElementById('message-input');
-    const message = input.value.trim();
-
-    if (!message) {
-        showToast('Please enter a message');
-        return;
-    }
-
-    const { error } = await supabase
-        .from('messages')
-        .insert({
-            user_id: currentMember.id,
-            sender_type: 'member',
-            sender_email: currentMember.email,
-            message_text: message
-        });
-
-    if (error) {
-        console.error('Error sending message:', error);
-        showToast('Error sending message. Please try again.');
-    } else {
-        input.value = '';
-        showToast('Message sent!');
-        loadMessages();
-    }
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 // ============================================
@@ -1043,7 +1336,6 @@ function escapeHtml(text) {
 // ============================================
 async function checkSession() {
     // Show loading while we wait for auth state to be determined
-    // The onAuthStateChange handler will take care of routing
     showView('loading-view');
 
     try {
@@ -1056,21 +1348,12 @@ async function checkSession() {
         }
 
         // If no session exists, show login immediately
-        // If session exists, onAuthStateChange will handle routing
         if (!session) {
             console.log('No session found, showing login');
             showView('login-view');
-        } else {
-            console.log('Session found, waiting for auth state handler...');
-            // onAuthStateChange with INITIAL_SESSION will handle the routing
-            // Set a fallback timeout in case auth state change doesn't fire
-            setTimeout(() => {
-                if (!currentMember && !isRouting) {
-                    console.log('Fallback: manually routing from checkSession');
-                    checkUserStatusAndRoute(session.user);
-                }
-            }, 2000);
         }
+        // If session exists, onAuthStateChange will handle routing
+        // No need for fallback - auth state change is reliable
     } catch (err) {
         console.error('Session check error:', err);
         showView('login-view');
@@ -1081,14 +1364,25 @@ async function checkSession() {
 supabase.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth state changed:', event, session ? 'with session' : 'no session');
 
-    // Handle all events that indicate a valid session
-    if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session) {
-        await checkUserStatusAndRoute(session.user);
-    } else if (event === 'SIGNED_OUT') {
+    // Handle sign out
+    if (event === 'SIGNED_OUT') {
         currentUser = null;
         currentMember = null;
         isRouting = false;
+        authProcessed = false;
         showView('login-view');
+        return;
+    }
+
+    // Handle valid session events - only process once per page load
+    if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session) {
+        // Skip if already processed or currently routing
+        if (authProcessed || isRouting) {
+            console.log('Auth already processed or routing in progress, skipping...');
+            return;
+        }
+        authProcessed = true;
+        await checkUserStatusAndRoute(session.user);
     }
 });
 
