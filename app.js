@@ -327,6 +327,7 @@ const PROTOCOL_CONTENT = {
 // ============================================
 let currentUser = null;
 let currentMember = null;
+let isRouting = false; // Prevent double routing from auth events
 
 // ============================================
 // VIEW MANAGEMENT
@@ -391,6 +392,13 @@ async function signOut() {
 // USER STATUS ROUTING - THE CORE BUSINESS LOGIC
 // ============================================
 async function checkUserStatusAndRoute(user) {
+    // Prevent double routing from multiple auth events
+    if (isRouting) {
+        console.log('Already routing, skipping...');
+        return;
+    }
+    isRouting = true;
+
     showView('loading-view');
     currentUser = user;
 
@@ -532,6 +540,8 @@ async function checkUserStatusAndRoute(user) {
         console.error('Error checking user status:', err);
         showToast('Error loading your account. Please try again.');
         showView('login-view');
+    } finally {
+        isRouting = false;
     }
 }
 
@@ -827,7 +837,7 @@ async function loadTrackingHistory() {
     const protocol = currentMember.protocol || 1;
 
     let html = '';
-    entries.forEach(entry => {
+    entries.forEach((entry, index) => {
         const date = new Date(entry.date).toLocaleDateString('en-US', {
             weekday: 'short',
             month: 'short',
@@ -836,16 +846,42 @@ async function loadTrackingHistory() {
 
         // Create a summary based on protocol
         const summary = createEntrySummary(entry.tracking_data, protocol);
+        const hasNotes = entry.notes && entry.notes.trim().length > 0;
 
         html += `
-            <div class="history-item">
-                <div class="history-date">${date}</div>
-                <div class="history-summary">${summary}</div>
+            <div class="history-item ${hasNotes ? 'has-notes' : ''}">
+                <div class="history-main">
+                    <div class="history-date">${date}</div>
+                    <div class="history-summary">${summary}</div>
+                    ${hasNotes ? `<button class="notes-toggle" data-index="${index}" aria-label="Toggle notes">
+                        <span class="toggle-icon">▼</span>
+                    </button>` : ''}
+                </div>
+                ${hasNotes ? `<div class="history-notes hidden" id="notes-${index}">
+                    <div class="notes-content">${escapeHtml(entry.notes)}</div>
+                </div>` : ''}
             </div>
         `;
     });
 
     historyList.innerHTML = html;
+
+    // Add click handlers for notes toggles
+    historyList.querySelectorAll('.notes-toggle').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = e.currentTarget.dataset.index;
+            const notesDiv = document.getElementById(`notes-${index}`);
+            const icon = e.currentTarget.querySelector('.toggle-icon');
+
+            if (notesDiv.classList.contains('hidden')) {
+                notesDiv.classList.remove('hidden');
+                icon.textContent = '▲';
+            } else {
+                notesDiv.classList.add('hidden');
+                icon.textContent = '▼';
+            }
+        });
+    });
 }
 
 function createEntrySummary(data, protocol) {
