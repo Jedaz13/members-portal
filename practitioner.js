@@ -653,20 +653,52 @@ async function viewPatient(patientId) {
     selectedPatient = null;
 
     try {
-        // Load patient data
-        const { data: patient, error: patientError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', patientId)
-            .single();
+        // AGGRESSIVE: Try query with retry logic
+        let patient = null;
+        let patientError = null;
+        let attempts = 0;
+        const maxAttempts = 3;
 
-        console.log('Patient data loaded:', patient, 'Error:', patientError);
+        while (attempts < maxAttempts && !patient) {
+            attempts++;
+            console.log(`Attempt ${attempts}/${maxAttempts} to load patient data...`);
+
+            const result = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', patientId)
+                .single();
+
+            patient = result.data;
+            patientError = result.error;
+
+            console.log(`Attempt ${attempts} result:`, { patient, error: patientError });
+
+            // If failed, wait and retry
+            if (!patient && attempts < maxAttempts) {
+                console.warn(`Query failed, retrying in ${attempts * 200}ms...`);
+                await new Promise(resolve => setTimeout(resolve, attempts * 200));
+
+                // Force refresh session before retry
+                console.log('Forcing session refresh before retry...');
+                const { data: { session } } = await supabase.auth.refreshSession();
+                if (session) {
+                    await supabase.auth.setSession({
+                        access_token: session.access_token,
+                        refresh_token: session.refresh_token
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+        }
 
         if (patientError || !patient) {
-            console.error('Failed to load patient:', patientError);
+            console.error('Failed to load patient after all retries:', patientError);
             showToast('Error loading patient details');
             return;
         }
+
+        console.log('✅ Patient data successfully loaded:', patient);
 
     // Load assignment data
     const { data: assignment } = await supabase
@@ -1288,37 +1320,60 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize auth
     initAuth();
 
-    // Handle tab visibility changes - refresh session when returning to tab
+    // Handle tab visibility changes - AGGRESSIVELY refresh everything
+    let isRefreshing = false;
     document.addEventListener('visibilitychange', async () => {
-        if (!document.hidden && currentUser) {
-            console.log('Tab became visible, refreshing session...');
+        if (!document.hidden && currentUser && !isRefreshing) {
+            isRefreshing = true;
+            console.log('Tab became visible, FORCING full session refresh...');
 
-            // Refresh the Supabase session
-            const { data: { session }, error } = await supabase.auth.refreshSession();
+            try {
+                // Step 1: Get fresh session
+                const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
 
-            if (error) {
-                console.error('Error refreshing session:', error);
-                // Session might be expired, force re-login
-                handleSignOut();
-            } else if (session) {
-                console.log('Session refreshed successfully', session);
+                if (refreshError || !session) {
+                    console.error('Refresh failed:', refreshError);
+                    handleSignOut();
+                    return;
+                }
 
-                // Explicitly set the session on the Supabase client
+                console.log('✅ Step 1: Session refreshed', {
+                    access_token: session.access_token.substring(0, 20) + '...',
+                    expires_at: session.expires_at
+                });
+
+                // Step 2: Force set session (this updates internal state)
                 const { error: setError } = await supabase.auth.setSession({
                     access_token: session.access_token,
                     refresh_token: session.refresh_token
                 });
 
                 if (setError) {
-                    console.error('Error setting session:', setError);
+                    console.error('Set session failed:', setError);
                     handleSignOut();
-                } else {
-                    console.log('Session set successfully on client');
-
-                    // Reload dashboard data to ensure fresh queries with new session
-                    console.log('Reloading dashboard data...');
-                    await loadDashboard();
+                    return;
                 }
+
+                console.log('✅ Step 2: Session explicitly set on client');
+
+                // Step 3: Wait for Supabase to fully update (critical!)
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Step 4: Verify we can actually query
+                console.log('✅ Step 3: Testing auth with simple query...');
+                const { data: testData, error: testError } = await supabase.auth.getSession();
+                console.log('Auth test result:', { testData, testError });
+
+                // Step 5: Force reload dashboard
+                console.log('✅ Step 4: Reloading dashboard...');
+                await loadDashboard();
+
+                console.log('✅ ALL STEPS COMPLETE - Session fully refreshed!');
+            } catch (err) {
+                console.error('Fatal error refreshing session:', err);
+                handleSignOut();
+            } finally {
+                isRefreshing = false;
             }
         }
     });
