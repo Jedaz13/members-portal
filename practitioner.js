@@ -1291,15 +1291,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (document.hidden) {
             // Tab just became hidden - record the time
             hiddenAt = Date.now();
+            console.log('Tab hidden at:', new Date().toLocaleTimeString());
         } else if (hiddenAt && currentUser) {
             // Tab became visible again
             const hiddenDuration = Date.now() - hiddenAt;
-            console.log(`Tab was hidden for ${hiddenDuration}ms`);
+            console.log(`Tab visible again - was hidden for ${Math.round(hiddenDuration/1000)}s`);
 
-            // If tab was hidden for more than 30 seconds, reload the page
-            // This prevents stale connections and ensures everything works
-            if (hiddenDuration > 30000) {
-                console.log('Tab was hidden for >30s, reloading page...');
+            // If tab was hidden for more than 3 seconds, reload the page
+            // This prevents stale Supabase connections and ensures everything works
+            if (hiddenDuration > 3000) {
+                console.log('Reloading page to refresh connections...');
                 window.location.reload();
             }
 
