@@ -1026,9 +1026,9 @@
    MESSAGE STYLING FOR PRACTITIONER VIEW
    ============================================ */
 .message-item {
-    padding: 12px 16px;
-    border-radius: 12px;
-    margin-bottom: 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    margin-bottom: 6px;
     max-width: 70%;
 }
 
@@ -1048,21 +1048,37 @@
 .message-item.received .message-sender {
     color: var(--primary);
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .message-item.sent .message-sender {
     color: rgba(255, 255, 255, 0.9);
     font-weight: 600;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .message-item.received .message-time {
     color: var(--text-light);
+    font-size: 11px;
 }
 
 .message-item.sent .message-time {
     color: rgba(255, 255, 255, 0.8);
+    font-size: 11px;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    gap: 8px;
+}
+
+.message-body {
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
 }
 
 .message-item.sent .message-body {
@@ -1074,20 +1090,20 @@
 }
 
 .message-attachments {
-    margin-top: 8px;
+    margin-top: 6px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .message-attachment {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: 6px;
+    padding: 6px 10px;
     border-radius: 6px;
     text-decoration: none;
-    font-size: 13px;
+    font-size: 12px;
     transition: background 0.2s ease;
 }
 
