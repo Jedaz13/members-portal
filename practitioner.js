@@ -649,19 +649,24 @@ function copyReferralLink() {
 // PATIENT DETAIL VIEW
 // ============================================
 async function viewPatient(patientId) {
+    console.log('viewPatient called with ID:', patientId);
     selectedPatient = null;
 
-    // Load patient data
-    const { data: patient, error: patientError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', patientId)
-        .single();
+    try {
+        // Load patient data
+        const { data: patient, error: patientError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', patientId)
+            .single();
 
-    if (patientError || !patient) {
-        showToast('Error loading patient details');
-        return;
-    }
+        console.log('Patient data loaded:', patient, 'Error:', patientError);
+
+        if (patientError || !patient) {
+            console.error('Failed to load patient:', patientError);
+            showToast('Error loading patient details');
+            return;
+        }
 
     // Load assignment data
     const { data: assignment } = await supabase
@@ -671,25 +676,33 @@ async function viewPatient(patientId) {
         .eq('practitioner_id', currentUser.id)
         .single();
 
-    selectedPatient = { ...patient, assignment };
+        selectedPatient = { ...patient, assignment };
 
-    // Update modal header
-    document.getElementById('patient-detail-name').textContent = patient.name || 'Unknown';
-    document.getElementById('patient-detail-protocol').textContent = patient.protocol_name || 'N/A';
+        // Update modal header
+        document.getElementById('patient-detail-name').textContent = patient.name || 'Unknown';
+        document.getElementById('patient-detail-protocol').textContent = patient.protocol_name || 'N/A';
 
-    const daysInProgram = assignment ?
-        Math.floor((new Date() - new Date(assignment.assigned_at)) / (1000 * 60 * 60 * 24)) : 0;
-    document.getElementById('patient-detail-days').textContent = `Day ${daysInProgram}`;
+        const daysInProgram = assignment ?
+            Math.floor((new Date() - new Date(assignment.assigned_at)) / (1000 * 60 * 60 * 24)) : 0;
+        document.getElementById('patient-detail-days').textContent = `Day ${daysInProgram}`;
 
-    const statusBadge = document.getElementById('patient-detail-status');
-    statusBadge.textContent = assignment?.status || 'N/A';
-    statusBadge.className = `patient-status-badge ${assignment?.status || ''}`;
+        const statusBadge = document.getElementById('patient-detail-status');
+        statusBadge.textContent = assignment?.status || 'N/A';
+        statusBadge.className = `patient-status-badge ${assignment?.status || ''}`;
 
-    // Show modal
-    document.getElementById('patient-detail-modal').classList.remove('hidden');
+        console.log('Opening patient modal for:', patient.name);
 
-    // Load overview tab by default
-    loadPatientOverview();
+        // Show modal
+        document.getElementById('patient-detail-modal').classList.remove('hidden');
+
+        // Load overview tab by default
+        await loadPatientOverview();
+
+        console.log('Patient modal opened successfully');
+    } catch (err) {
+        console.error('Error in viewPatient:', err);
+        showToast('Error opening patient details');
+    }
 }
 
 function closePatientDetail() {
