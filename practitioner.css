@@ -923,3 +923,38 @@
         font-size: 13px;
     }
 }
+
+/* ============================================
+   TRACKING DATA DISPLAY
+   ============================================ */
+.tracking-data-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 0;
+}
+
+.tracking-data-item {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    padding: 4px 0;
+}
+
+.tracking-data-label {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 13px;
+    min-width: 120px;
+}
+
+.tracking-data-value {
+    color: var(--text-light);
+    font-size: 13px;
+    flex: 1;
+}
+
+.text-muted {
+    color: var(--text-light);
+    font-style: italic;
+}

@@ -672,7 +672,7 @@ function initializeTabs() {
     const tabPanels = document.querySelectorAll('.tab-panel');
 
     tabButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
             // Remove active from all
             tabButtons.forEach(b => b.classList.remove('active'));
             tabPanels.forEach(p => p.classList.add('hidden'));
@@ -681,8 +681,43 @@ function initializeTabs() {
             btn.classList.add('active');
             const tabId = btn.dataset.tab;
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Mark expert messages as read when viewing Messages tab
+            if (tabId === 'messages') {
+                await markExpertMessagesAsRead();
+            }
         });
     });
+}
+
+async function markExpertMessagesAsRead() {
+    if (!currentMember) return;
+
+    // Get unread expert messages
+    const unreadExpertMessages = allMessages.filter(msg =>
+        msg.sender_type === 'practitioner' && !msg.member_read_at
+    );
+
+    if (unreadExpertMessages.length === 0) return;
+
+    // Mark them as read
+    const messageIds = unreadExpertMessages.map(msg => msg.id);
+    const { error } = await supabase
+        .from('messages')
+        .update({ member_read_at: new Date().toISOString() })
+        .in('id', messageIds);
+
+    if (!error) {
+        // Update local messages array
+        allMessages.forEach(msg => {
+            if (messageIds.includes(msg.id)) {
+                msg.member_read_at = new Date().toISOString();
+            }
+        });
+
+        // Update badge
+        updateExpertMessagesBadge();
+    }
 }
 
 // ============================================
@@ -1064,8 +1099,28 @@ async function loadMessages() {
     // Update highlighted button visibility
     updateHighlightedButton();
 
+    // Update expert messages badge
+    updateExpertMessagesBadge();
+
     // Render messages
     renderMessages(allMessages);
+}
+
+function updateExpertMessagesBadge() {
+    // Count unread messages from practitioners
+    const unreadExpertMessages = allMessages.filter(msg =>
+        msg.sender_type === 'practitioner' && !msg.member_read_at
+    ).length;
+
+    const badge = document.getElementById('expert-messages-badge');
+    if (badge) {
+        if (unreadExpertMessages > 0) {
+            badge.textContent = unreadExpertMessages;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
 }
 
 async function sendMessage() {
