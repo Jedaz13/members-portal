@@ -319,7 +319,7 @@ function renderPatientsList() {
                                 <span class="patient-status-badge ${patient.assignment_status}">${patient.assignment_status}</span>
                             </td>
                             <td>
-                                <button class="btn-view" onclick="viewPatient('${patient.patient_id}')">View</button>
+                                <button class="btn-view" data-action="view-patient" data-patient-id="${patient.patient_id}">View</button>
                             </td>
                         </tr>
                     `;
@@ -409,20 +409,21 @@ function renderUnassignedList() {
             </div>
 
             <div class="unassigned-card-actions">
-                <button class="btn-view-quiz" onclick="toggleQuizAnswers('${patient.id}')">View Quiz Answers</button>
-                <button class="btn-claim" onclick="showClaimModal('${patient.id}', '${patient.name}')">Claim Patient</button>
+                <button class="btn-view-quiz" data-action="toggle-quiz" data-patient-id="${patient.id}">View Quiz Answers</button>
+                <button class="btn-claim" data-action="claim-patient" data-patient-id="${patient.id}" data-patient-name="${patient.name}">Claim Patient</button>
             </div>
         </div>
     `).join('');
 }
 
-function toggleQuizAnswers(patientId) {
+function toggleQuizAnswers(patientId, button) {
     const quizDiv = document.getElementById(`quiz-${patientId}`);
+    if (!quizDiv) return;
+
     const isHidden = quizDiv.classList.contains('hidden');
     quizDiv.classList.toggle('hidden');
 
     // Update button text
-    const button = event?.target;
     if (button) {
         button.textContent = isHidden ? 'Hide Quiz Answers' : 'View Quiz Answers';
     }
@@ -543,8 +544,8 @@ function renderAlertsList() {
 
             ${!alert.resolved_at ? `
                 <div class="alert-actions">
-                    <button class="btn-view" onclick="viewPatient('${alert.patient_id}')">View Patient</button>
-                    <button class="btn-resolve" onclick="resolveAlert('${alert.id}')">Mark Resolved</button>
+                    <button class="btn-view" data-action="view-patient" data-patient-id="${alert.patient_id}">View Patient</button>
+                    <button class="btn-resolve" data-action="resolve-alert" data-alert-id="${alert.id}">Mark Resolved</button>
                 </div>
             ` : `
                 <p class="alert-time">Resolved ${formatTime(alert.resolved_at)}</p>
@@ -769,32 +770,7 @@ async function loadPatientOverview() {
         </div>
 
         <div class="overview-section">
-            <h4>Quiz Summary</h4>
-            <div class="info-list">
-                <div class="info-item">
-                    <div class="info-label">Primary Complaint</div>
-                    <div class="info-value">${selectedPatient.primary_complaint || 'N/A'}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Duration</div>
-                    <div class="info-value">${selectedPatient.duration || 'N/A'}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Diagnoses</div>
-                    <div class="info-value">${selectedPatient.diagnoses?.join(', ') || 'None'}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Treatments Tried</div>
-                    <div class="info-value">${selectedPatient.treatments_tried?.join(', ') || 'None'}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Stress Connection</div>
-                    <div class="info-value">${selectedPatient.stress_connection || 'N/A'}</div>
-                </div>
-            </div>
-
-            <!-- Expandable Full Quiz Answers -->
-            <div class="quiz-answers-expandable">
+            <div class="quiz-answers-expandable" style="margin-top: 0; padding-top: 0; border-top: none;">
                 <button class="btn-expand-quiz" id="expand-full-quiz-btn">
                     <span id="expand-quiz-icon">▼</span>
                     View Full Quiz Answers
@@ -811,7 +787,7 @@ async function loadPatientOverview() {
                         ${selectedPatient.dietary_restrictions ? `<div class="quiz-answer-item"><strong>Dietary Restrictions:</strong> ${escapeHtml(selectedPatient.dietary_restrictions)}</div>` : ''}
                         ${selectedPatient.current_medications ? `<div class="quiz-answer-item"><strong>Current Medications:</strong> ${escapeHtml(selectedPatient.current_medications)}</div>` : ''}
                         ${selectedPatient.worst_symptoms ? `<div class="quiz-answer-item"><strong>Worst Symptoms:</strong> ${escapeHtml(selectedPatient.worst_symptoms)}</div>` : ''}
-                        ${!selectedPatient.primary_complaint && !selectedPatient.symptom_frequency && !selectedPatient.duration ? '<p class="text-muted">No additional quiz data available.</p>' : ''}
+                        ${!selectedPatient.primary_complaint && !selectedPatient.symptom_frequency && !selectedPatient.duration ? '<p class="text-muted">No quiz data available.</p>' : ''}
                     </div>
                 </div>
             </div>
@@ -1178,14 +1154,6 @@ function switchPatientTab(tabName) {
 }
 
 // ============================================
-// EXPOSE FUNCTIONS GLOBALLY (before DOMContentLoaded to avoid race conditions)
-// ============================================
-window.viewPatient = viewPatient;
-window.toggleQuizAnswers = toggleQuizAnswers;
-window.showClaimModal = showClaimModal;
-window.resolveAlert = resolveAlert;
-
-// ============================================
 // EVENT LISTENERS
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -1193,6 +1161,32 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('google-login-btn')?.addEventListener('click', signInWithGoogle);
     document.getElementById('dashboard-logout')?.addEventListener('click', signOut);
     document.getElementById('access-denied-logout')?.addEventListener('click', signOut);
+
+    // Event delegation for dynamically generated buttons
+    document.body.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+
+        const action = target.dataset.action;
+        const patientId = target.dataset.patientId;
+        const alertId = target.dataset.alertId;
+        const patientName = target.dataset.patientName;
+
+        switch (action) {
+            case 'view-patient':
+                if (patientId) viewPatient(patientId);
+                break;
+            case 'toggle-quiz':
+                if (patientId) toggleQuizAnswers(patientId, target);
+                break;
+            case 'claim-patient':
+                if (patientId && patientName) showClaimModal(patientId, patientName);
+                break;
+            case 'resolve-alert':
+                if (alertId) resolveAlert(alertId);
+                break;
+        }
+    });
 
     // Tab navigation
     document.querySelectorAll('.tab-btn').forEach(btn => {
