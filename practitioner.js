@@ -7,27 +7,7 @@
 const SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
 
-let supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Helper function to recreate Supabase client (for tab visibility fixes)
-function recreateSupabaseClient() {
-    console.log('🔄 Recreating Supabase client from scratch...');
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    return supabase;
-}
-
-// Timeout wrapper for Supabase queries to prevent hanging
-function withTimeout(promise, timeoutMs = 5000, operationName = 'Operation') {
-    return Promise.race([
-        promise,
-        new Promise((_, reject) =>
-            setTimeout(() => {
-                console.error(`❌ ${operationName} timed out after ${timeoutMs}ms`);
-                reject(new Error(`${operationName} timed out after ${timeoutMs}ms`));
-            }, timeoutMs)
-        )
-    ]);
-}
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Global state
 let currentUser = null;
@@ -669,88 +649,21 @@ function copyReferralLink() {
 // PATIENT DETAIL VIEW
 // ============================================
 async function viewPatient(patientId) {
-    console.log('🔵 viewPatient called with ID:', patientId);
+    console.log('viewPatient called with ID:', patientId);
     selectedPatient = null;
 
     try {
-        // ULTRA AGGRESSIVE: Try query with timeout and retry logic
-        let patient = null;
-        let patientError = null;
-        let attempts = 0;
-        const maxAttempts = 3;
-
-        while (attempts < maxAttempts && !patient) {
-            attempts++;
-            console.log(`🔵 Attempt ${attempts}/${maxAttempts} to load patient data...`);
-
-            try {
-                console.log(`🔵 Step 1: Building query...`);
-                const query = supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', patientId)
-                    .single();
-
-                console.log(`🔵 Step 2: Executing query with 5 second timeout...`);
-                const result = await withTimeout(
-                    query,
-                    5000,
-                    `Patient query attempt ${attempts}`
-                );
-
-                console.log(`🔵 Step 3: Query completed, processing result...`);
-                patient = result.data;
-                patientError = result.error;
-
-                console.log(`✅ Attempt ${attempts} result:`, {
-                    hasData: !!patient,
-                    hasError: !!patientError,
-                    errorMessage: patientError?.message
-                });
-            } catch (timeoutError) {
-                console.error(`❌ Attempt ${attempts} timed out or failed:`, timeoutError);
-                patientError = timeoutError;
-            }
-
-            // If failed, wait and retry
-            if (!patient && attempts < maxAttempts) {
-                console.warn(`⚠️ Query failed, retrying in ${attempts * 300}ms...`);
-                await new Promise(resolve => setTimeout(resolve, attempts * 300));
-
-                // NUCLEAR OPTION: Recreate the entire Supabase client
-                console.log('🔄 RECREATING Supabase client before retry...');
-                recreateSupabaseClient();
-
-                // Also refresh session
-                console.log('🔄 Refreshing session...');
-                try {
-                    const { data: { session } } = await withTimeout(
-                        supabase.auth.refreshSession(),
-                        3000,
-                        'Session refresh'
-                    );
-
-                    if (session) {
-                        await supabase.auth.setSession({
-                            access_token: session.access_token,
-                            refresh_token: session.refresh_token
-                        });
-                        console.log('✅ Session refreshed successfully');
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-                } catch (sessionError) {
-                    console.error('❌ Session refresh failed:', sessionError);
-                }
-            }
-        }
+        const { data: patient, error: patientError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', patientId)
+            .single();
 
         if (patientError || !patient) {
-            console.error('❌ Failed to load patient after all retries:', patientError);
-            showToast('Error loading patient details. Please refresh the page.');
+            console.error('Error loading patient:', patientError);
+            showToast('Error loading patient details');
             return;
         }
-
-        console.log('✅ Patient data successfully loaded:', patient.name);
 
     // Load assignment data
     const { data: assignment } = await supabase
@@ -1372,72 +1285,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize auth
     initAuth();
 
-    // Handle tab visibility changes - Gentle refresh, don't force logout
-    let isRefreshing = false;
-    document.addEventListener('visibilitychange', async () => {
-        if (!document.hidden && currentUser && !isRefreshing) {
-            isRefreshing = true;
-            console.log('🔴 TAB BECAME VISIBLE - Starting gentle refresh...');
+    // Track when tab was hidden
+    let hiddenAt = null;
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            // Tab just became hidden - record the time
+            hiddenAt = Date.now();
+        } else if (hiddenAt && currentUser) {
+            // Tab became visible again
+            const hiddenDuration = Date.now() - hiddenAt;
+            console.log(`Tab was hidden for ${hiddenDuration}ms`);
 
-            try {
-                // STEP 0: RECREATE THE ENTIRE SUPABASE CLIENT
-                console.log('🔄 Step 0: RECREATING Supabase client from scratch...');
-                recreateSupabaseClient();
-
-                // Step 1: Get fresh session (with longer 15 second timeout)
-                console.log('🔄 Step 1: Getting fresh session...');
-                const { data: { session }, error: refreshError } = await withTimeout(
-                    supabase.auth.refreshSession(),
-                    15000,
-                    'Tab visibility session refresh'
-                );
-
-                if (refreshError || !session) {
-                    console.warn('⚠️ Session refresh failed, but continuing anyway:', refreshError);
-                    // DON'T log out - just continue with existing session
-                    isRefreshing = false;
-                    return;
-                }
-
-                console.log('✅ Step 1: Session refreshed', {
-                    access_token: session.access_token.substring(0, 20) + '...',
-                    expires_at: session.expires_at
-                });
-
-                // Step 2: Force set session (this updates internal state)
-                console.log('🔄 Step 2: Setting session on client...');
-                const { error: setError } = await supabase.auth.setSession({
-                    access_token: session.access_token,
-                    refresh_token: session.refresh_token
-                });
-
-                if (setError) {
-                    console.warn('⚠️ Set session failed, but continuing anyway:', setError);
-                    isRefreshing = false;
-                    return;
-                }
-
-                console.log('✅ Step 2: Session explicitly set on client');
-
-                // Step 3: Wait for Supabase to fully update (critical!)
-                await new Promise(resolve => setTimeout(resolve, 150));
-
-                // Step 4: Verify we can actually query
-                console.log('🔄 Step 3: Testing auth with simple query...');
-                const { data: testData, error: testError } = await supabase.auth.getSession();
-                console.log('Auth test result:', { testData, testError });
-
-                // Step 5: Force reload dashboard
-                console.log('🔄 Step 4: Reloading dashboard...');
-                await loadDashboard();
-
-                console.log('✅✅✅ ALL STEPS COMPLETE - Session fully refreshed with new client!');
-            } catch (err) {
-                console.warn('⚠️ Error refreshing session on tab visibility, but continuing:', err);
-                // DON'T log out on error - just continue
-            } finally {
-                isRefreshing = false;
+            // If tab was hidden for more than 30 seconds, reload the page
+            // This prevents stale connections and ensures everything works
+            if (hiddenDuration > 30000) {
+                console.log('Tab was hidden for >30s, reloading page...');
+                window.location.reload();
             }
+
+            hiddenAt = null;
         }
     });
 });
