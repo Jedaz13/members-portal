@@ -1216,9 +1216,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log('Button clicked:', action, { patientId, alertId, patientName });
 
+        // Force a reflow to wake up the browser after idle
+        document.body.offsetHeight;
+
         switch (action) {
             case 'view-patient':
-                if (patientId) viewPatient(patientId);
+                if (patientId) {
+                    // Use setTimeout to ensure we're in a fresh execution context
+                    setTimeout(() => viewPatient(patientId), 0);
+                }
                 break;
             case 'toggle-quiz':
                 if (patientId) toggleQuizAnswers(patientId, target);
