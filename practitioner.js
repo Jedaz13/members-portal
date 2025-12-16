@@ -33,6 +33,28 @@ function showToast(message, duration = 3000) {
     setTimeout(() => toast.classList.add('hidden'), duration);
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function getFileIcon(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    switch (ext) {
+        case 'pdf': return '📄';
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'webp': return '🖼️';
+        case 'doc':
+        case 'docx': return '📝';
+        case 'txt': return '📃';
+        default: return '📎';
+    }
+}
+
 function formatDate(dateString) {
     if (!dateString) return 'Never';
     const date = new Date(dateString);
@@ -134,11 +156,30 @@ async function signInWithGoogle() {
 }
 
 async function signOut() {
-    // Clean up real-time subscriptions
-    realTimeSubscriptions.forEach(sub => sub.unsubscribe());
-    realTimeSubscriptions = [];
+    try {
+        // Show loading view immediately
+        showView('loading-view');
 
-    await supabase.auth.signOut();
+        // Clean up real-time subscriptions
+        realTimeSubscriptions.forEach(sub => {
+            try {
+                sub.unsubscribe();
+            } catch (e) {
+                console.warn('Error unsubscribing:', e);
+            }
+        });
+        realTimeSubscriptions = [];
+
+        // Sign out from Supabase
+        await supabase.auth.signOut();
+
+        // Clean up state
+        handleSignOut();
+    } catch (err) {
+        console.error('Sign out error:', err);
+        // Still show login view even if there's an error
+        handleSignOut();
+    }
 }
 
 function handleSignOut() {
@@ -146,6 +187,7 @@ function handleSignOut() {
     currentPatients = [];
     currentUnassigned = [];
     currentAlerts = [];
+    selectedPatient = null;
     showView('login-view');
 }
 
@@ -355,11 +397,14 @@ function renderUnassignedList() {
             <div id="quiz-${patient.id}" class="quiz-answers hidden">
                 <h4>Quiz Responses</h4>
                 <div class="quiz-answers-list">
-                    ${patient.symptom_frequency ? `<div class="quiz-answer-item"><strong>Frequency:</strong> ${patient.symptom_frequency}</div>` : ''}
+                    ${patient.primary_complaint ? `<div class="quiz-answer-item"><strong>Primary Complaint:</strong> ${patient.primary_complaint}</div>` : ''}
+                    ${patient.symptom_frequency ? `<div class="quiz-answer-item"><strong>Symptom Frequency:</strong> ${patient.symptom_frequency}</div>` : ''}
                     ${patient.duration ? `<div class="quiz-answer-item"><strong>Duration:</strong> ${patient.duration}</div>` : ''}
-                    ${patient.diagnoses && patient.diagnoses.length ? `<div class="quiz-answer-item"><strong>Diagnoses:</strong> ${patient.diagnoses.join(', ')}</div>` : ''}
+                    ${patient.diagnoses && patient.diagnoses.length ? `<div class="quiz-answer-item"><strong>Previous Diagnoses:</strong> ${patient.diagnoses.join(', ')}</div>` : ''}
                     ${patient.treatments_tried && patient.treatments_tried.length ? `<div class="quiz-answer-item"><strong>Treatments Tried:</strong> ${patient.treatments_tried.join(', ')}</div>` : ''}
                     ${patient.stress_connection ? `<div class="quiz-answer-item"><strong>Stress Connection:</strong> ${patient.stress_connection}</div>` : ''}
+                    ${patient.has_stress_component !== null && patient.has_stress_component !== undefined ? `<div class="quiz-answer-item"><strong>Has Stress Component:</strong> ${patient.has_stress_component ? 'Yes' : 'No'}</div>` : ''}
+                    ${!patient.primary_complaint && !patient.symptom_frequency && !patient.duration && (!patient.diagnoses || !patient.diagnoses.length) && (!patient.treatments_tried || !patient.treatments_tried.length) && !patient.stress_connection ? '<p class="empty-state">No quiz data available for this patient.</p>' : ''}
                 </div>
             </div>
 
@@ -373,7 +418,14 @@ function renderUnassignedList() {
 
 function toggleQuizAnswers(patientId) {
     const quizDiv = document.getElementById(`quiz-${patientId}`);
+    const isHidden = quizDiv.classList.contains('hidden');
     quizDiv.classList.toggle('hidden');
+
+    // Update button text
+    const button = event?.target;
+    if (button) {
+        button.textContent = isHidden ? 'Hide Quiz Answers' : 'View Quiz Answers';
+    }
 }
 
 // ============================================
@@ -700,20 +752,20 @@ async function loadPatientOverview() {
                 <div class="info-list">
                     <div class="info-item">
                         <div class="info-label">Date</div>
-                        <div class="info-value">${new Date(latestTracking.date).toLocaleDateString()}</div>
+                        <div class="info-value">${new Date(latestTracking.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Tracking Data</div>
-                        <div class="info-value">${JSON.stringify(latestTracking.tracking_data, null, 2)}</div>
+                    <div class="info-item" style="display: block;">
+                        <div class="info-label" style="margin-bottom: 12px;">Tracking Data</div>
+                        <div class="info-value">${formatTrackingData(latestTracking.tracking_data)}</div>
                     </div>
                     ${latestTracking.notes ? `
                         <div class="info-item">
                             <div class="info-label">Notes</div>
-                            <div class="info-value">${latestTracking.notes}</div>
+                            <div class="info-value">${escapeHtml(latestTracking.notes)}</div>
                         </div>
                     ` : ''}
                 </div>
-            ` : '<p>No tracking entries yet.</p>'}
+            ` : '<p class="empty-state">No tracking entries yet.</p>'}
         </div>
 
         <div class="overview-section">
@@ -744,6 +796,25 @@ async function loadPatientOverview() {
     `;
 }
 
+function formatTrackingData(data) {
+    if (!data) return '<span class="text-muted">No data</span>';
+
+    const entries = Object.entries(data).map(([key, value]) => {
+        // Format the key to be more readable
+        const formattedKey = key
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+
+        return `<div class="tracking-data-item">
+            <span class="tracking-data-label">${formattedKey}:</span>
+            <span class="tracking-data-value">${value}</span>
+        </div>`;
+    });
+
+    return `<div class="tracking-data-grid">${entries.join('')}</div>`;
+}
+
 async function loadPatientTracking() {
     if (!selectedPatient) return;
 
@@ -768,16 +839,16 @@ async function loadPatientTracking() {
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Data</th>
+                        <th>Tracking Data</th>
                         <th>Notes</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${trackingLogs.map(log => `
                         <tr>
-                            <td>${new Date(log.date).toLocaleDateString()}</td>
-                            <td><pre style="font-size: 12px;">${JSON.stringify(log.tracking_data, null, 2)}</pre></td>
-                            <td>${log.notes || '-'}</td>
+                            <td style="white-space: nowrap;">${new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                            <td>${formatTrackingData(log.tracking_data)}</td>
+                            <td style="max-width: 200px;">${log.notes ? escapeHtml(log.notes) : '<span class="text-muted">-</span>'}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -814,15 +885,33 @@ async function loadPatientMessages() {
         .eq('user_id', selectedPatient.id)
         .is('read_at', null);
 
-    container.innerHTML = messages.reverse().map(msg => `
-        <div class="message-item ${msg.sender_type === 'practitioner' ? 'sent' : 'received'}">
-            <div class="message-header">
-                <span class="message-sender">${msg.sender_type === 'practitioner' ? 'You' : selectedPatient.name}</span>
-                <span class="message-time">${formatTime(msg.created_at)}</span>
+    container.innerHTML = messages.reverse().map(msg => {
+        // Parse attachments if they exist
+        let attachmentsHtml = '';
+        if (msg.attachments && msg.attachments.length > 0) {
+            attachmentsHtml = `
+                <div class="message-attachments">
+                    ${msg.attachments.map(att => `
+                        <a href="${att.url}" target="_blank" class="message-attachment">
+                            <span class="attachment-icon">${getFileIcon(att.name)}</span>
+                            <span>${escapeHtml(att.name)}</span>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        return `
+            <div class="message-item ${msg.sender_type === 'practitioner' ? 'sent' : 'received'}">
+                <div class="message-header">
+                    <span class="message-sender">${msg.sender_type === 'practitioner' ? 'You' : selectedPatient.name}</span>
+                    <span class="message-time">${formatTime(msg.created_at)}</span>
+                </div>
+                <div class="message-body">${msg.message_text}</div>
+                ${attachmentsHtml}
             </div>
-            <div class="message-body">${msg.message_text}</div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
     // Update badge
     const badge = document.getElementById('patient-messages-badge');
