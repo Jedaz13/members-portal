@@ -958,3 +958,66 @@
     color: var(--text-light);
     font-style: italic;
 }
+
+/* ============================================
+   EXPANDABLE QUIZ ANSWERS
+   ============================================ */
+.quiz-answers-expandable {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.btn-expand-quiz {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-expand-quiz:hover {
+    background: var(--background);
+    border-color: var(--primary);
+}
+
+.btn-expand-quiz span {
+    font-size: 12px;
+}
+
+.full-quiz-answers {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--background);
+    border-radius: 8px;
+}
+
+.full-quiz-answers .quiz-answers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.quiz-answer-item {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.quiz-answer-item:last-child {
+    border-bottom: none;
+}
+
+.quiz-answer-item strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
