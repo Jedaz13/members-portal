@@ -1287,4 +1287,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize auth
     initAuth();
+
+    // Handle tab visibility changes - refresh session when returning to tab
+    document.addEventListener('visibilitychange', async () => {
+        if (!document.hidden && currentUser) {
+            console.log('Tab became visible, refreshing session...');
+
+            // Refresh the Supabase session
+            const { data: { session }, error } = await supabase.auth.refreshSession();
+
+            if (error) {
+                console.error('Error refreshing session:', error);
+                // Session might be expired, force re-login
+                handleSignOut();
+            } else if (session) {
+                console.log('Session refreshed successfully');
+            }
+        }
+    });
 });
