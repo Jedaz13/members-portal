@@ -929,6 +929,11 @@ async function loadPatientMessages() {
     // Update badge
     const badge = document.getElementById('patient-messages-badge');
     badge.classList.add('hidden');
+
+    // Auto-scroll to bottom of messages
+    setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+    }, 100);
 }
 
 async function sendPatientMessage() {
@@ -955,6 +960,14 @@ async function sendPatientMessage() {
         input.value = '';
         showToast('Message sent');
         await loadPatientMessages();
+
+        // Auto-scroll to bottom after sending
+        const container = document.getElementById('patient-messages-list');
+        if (container) {
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
+        }
     } catch (error) {
         console.error('Error sending message:', error);
         showToast('Error sending message');
@@ -1167,10 +1180,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
 
+        // Prevent default and stop propagation to avoid conflicts
+        e.preventDefault();
+        e.stopPropagation();
+
         const action = target.dataset.action;
         const patientId = target.dataset.patientId;
         const alertId = target.dataset.alertId;
         const patientName = target.dataset.patientName;
+
+        console.log('Button clicked:', action, { patientId, alertId, patientName });
 
         switch (action) {
             case 'view-patient':
@@ -1186,7 +1205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (alertId) resolveAlert(alertId);
                 break;
         }
-    });
+    }, true); // Use capture phase to ensure we catch events first
 
     // Tab navigation
     document.querySelectorAll('.tab-btn').forEach(btn => {
