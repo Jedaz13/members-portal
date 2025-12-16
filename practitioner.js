@@ -792,8 +792,45 @@ async function loadPatientOverview() {
                     <div class="info-value">${selectedPatient.stress_connection || 'N/A'}</div>
                 </div>
             </div>
+
+            <!-- Expandable Full Quiz Answers -->
+            <div class="quiz-answers-expandable">
+                <button class="btn-expand-quiz" id="expand-full-quiz-btn">
+                    <span id="expand-quiz-icon">▼</span>
+                    View Full Quiz Answers
+                </button>
+                <div id="full-quiz-answers" class="full-quiz-answers hidden">
+                    <div class="quiz-answers-list">
+                        ${selectedPatient.primary_complaint ? `<div class="quiz-answer-item"><strong>Primary Complaint:</strong> ${escapeHtml(selectedPatient.primary_complaint)}</div>` : ''}
+                        ${selectedPatient.symptom_frequency ? `<div class="quiz-answer-item"><strong>Symptom Frequency:</strong> ${escapeHtml(selectedPatient.symptom_frequency)}</div>` : ''}
+                        ${selectedPatient.duration ? `<div class="quiz-answer-item"><strong>Duration:</strong> ${escapeHtml(selectedPatient.duration)}</div>` : ''}
+                        ${selectedPatient.diagnoses && selectedPatient.diagnoses.length ? `<div class="quiz-answer-item"><strong>Previous Diagnoses:</strong> ${selectedPatient.diagnoses.map(d => escapeHtml(d)).join(', ')}</div>` : ''}
+                        ${selectedPatient.treatments_tried && selectedPatient.treatments_tried.length ? `<div class="quiz-answer-item"><strong>Treatments Tried:</strong> ${selectedPatient.treatments_tried.map(t => escapeHtml(t)).join(', ')}</div>` : ''}
+                        ${selectedPatient.stress_connection ? `<div class="quiz-answer-item"><strong>Stress Connection:</strong> ${escapeHtml(selectedPatient.stress_connection)}</div>` : ''}
+                        ${selectedPatient.has_stress_component !== null && selectedPatient.has_stress_component !== undefined ? `<div class="quiz-answer-item"><strong>Has Stress Component:</strong> ${selectedPatient.has_stress_component ? 'Yes' : 'No'}</div>` : ''}
+                        ${selectedPatient.dietary_restrictions ? `<div class="quiz-answer-item"><strong>Dietary Restrictions:</strong> ${escapeHtml(selectedPatient.dietary_restrictions)}</div>` : ''}
+                        ${selectedPatient.current_medications ? `<div class="quiz-answer-item"><strong>Current Medications:</strong> ${escapeHtml(selectedPatient.current_medications)}</div>` : ''}
+                        ${selectedPatient.worst_symptoms ? `<div class="quiz-answer-item"><strong>Worst Symptoms:</strong> ${escapeHtml(selectedPatient.worst_symptoms)}</div>` : ''}
+                        ${!selectedPatient.primary_complaint && !selectedPatient.symptom_frequency && !selectedPatient.duration ? '<p class="text-muted">No additional quiz data available.</p>' : ''}
+                    </div>
+                </div>
+            </div>
         </div>
     `;
+
+    // Add event listener for expand button
+    const expandBtn = document.getElementById('expand-full-quiz-btn');
+    if (expandBtn) {
+        expandBtn.addEventListener('click', () => {
+            const fullQuiz = document.getElementById('full-quiz-answers');
+            const icon = document.getElementById('expand-quiz-icon');
+            const isHidden = fullQuiz.classList.contains('hidden');
+
+            fullQuiz.classList.toggle('hidden');
+            icon.textContent = isHidden ? '▲' : '▼';
+            expandBtn.innerHTML = `<span id="expand-quiz-icon">${isHidden ? '▲' : '▼'}</span> ${isHidden ? 'Hide' : 'View'} Full Quiz Answers`;
+        });
+    }
 }
 
 function formatTrackingData(data) {
@@ -1141,6 +1178,14 @@ function switchPatientTab(tabName) {
 }
 
 // ============================================
+// EXPOSE FUNCTIONS GLOBALLY (before DOMContentLoaded to avoid race conditions)
+// ============================================
+window.viewPatient = viewPatient;
+window.toggleQuizAnswers = toggleQuizAnswers;
+window.showClaimModal = showClaimModal;
+window.resolveAlert = resolveAlert;
+
+// ============================================
 // EVENT LISTENERS
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -1199,9 +1244,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize auth
     initAuth();
 });
-
-// Make functions globally available
-window.viewPatient = viewPatient;
-window.toggleQuizAnswers = toggleQuizAnswers;
-window.showClaimModal = showClaimModal;
-window.resolveAlert = resolveAlert;
