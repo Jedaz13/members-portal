@@ -693,7 +693,19 @@ async function viewPatient(patientId) {
         console.log('Opening patient modal for:', patient.name);
 
         // Show modal
-        document.getElementById('patient-detail-modal').classList.remove('hidden');
+        const modal = document.getElementById('patient-detail-modal');
+        console.log('Modal element:', modal);
+        console.log('Modal has hidden class before removal:', modal?.classList.contains('hidden'));
+
+        if (modal) {
+            modal.classList.remove('hidden');
+            console.log('Modal has hidden class after removal:', modal.classList.contains('hidden'));
+            console.log('Modal display style:', window.getComputedStyle(modal).display);
+            console.log('Modal visibility:', window.getComputedStyle(modal).visibility);
+            console.log('Modal opacity:', window.getComputedStyle(modal).opacity);
+        } else {
+            console.error('Modal element not found in DOM!');
+        }
 
         // Load overview tab by default
         await loadPatientOverview();
