@@ -1372,29 +1372,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize auth
     initAuth();
 
-    // Handle tab visibility changes - NUCLEAR OPTION: Recreate everything
+    // Handle tab visibility changes - Gentle refresh, don't force logout
     let isRefreshing = false;
     document.addEventListener('visibilitychange', async () => {
         if (!document.hidden && currentUser && !isRefreshing) {
             isRefreshing = true;
-            console.log('🔴 TAB BECAME VISIBLE - NUCLEAR REFRESH MODE ACTIVATED');
+            console.log('🔴 TAB BECAME VISIBLE - Starting gentle refresh...');
 
             try {
                 // STEP 0: RECREATE THE ENTIRE SUPABASE CLIENT
                 console.log('🔄 Step 0: RECREATING Supabase client from scratch...');
                 recreateSupabaseClient();
 
-                // Step 1: Get fresh session
+                // Step 1: Get fresh session (with longer 15 second timeout)
                 console.log('🔄 Step 1: Getting fresh session...');
                 const { data: { session }, error: refreshError } = await withTimeout(
                     supabase.auth.refreshSession(),
-                    5000,
+                    15000,
                     'Tab visibility session refresh'
                 );
 
                 if (refreshError || !session) {
-                    console.error('❌ Refresh failed:', refreshError);
-                    handleSignOut();
+                    console.warn('⚠️ Session refresh failed, but continuing anyway:', refreshError);
+                    // DON'T log out - just continue with existing session
+                    isRefreshing = false;
                     return;
                 }
 
@@ -1411,8 +1412,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (setError) {
-                    console.error('❌ Set session failed:', setError);
-                    handleSignOut();
+                    console.warn('⚠️ Set session failed, but continuing anyway:', setError);
+                    isRefreshing = false;
                     return;
                 }
 
@@ -1432,8 +1433,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 console.log('✅✅✅ ALL STEPS COMPLETE - Session fully refreshed with new client!');
             } catch (err) {
-                console.error('❌ Fatal error refreshing session:', err);
-                handleSignOut();
+                console.warn('⚠️ Error refreshing session on tab visibility, but continuing:', err);
+                // DON'T log out on error - just continue
             } finally {
                 isRefreshing = false;
             }
