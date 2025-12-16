@@ -1302,6 +1302,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleSignOut();
             } else if (session) {
                 console.log('Session refreshed successfully');
+
+                // Reload dashboard data to ensure fresh queries with new session
+                console.log('Reloading dashboard data...');
+                await loadDashboard();
             }
         }
     });
