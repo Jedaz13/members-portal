@@ -1297,9 +1297,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const hiddenDuration = Date.now() - hiddenAt;
             console.log(`Tab visible again - was hidden for ${Math.round(hiddenDuration/1000)}s`);
 
-            // If tab was hidden for more than 3 seconds, reload the page
+            // If tab was hidden for more than 1 second, reload the page
             // This prevents stale Supabase connections and ensures everything works
-            if (hiddenDuration > 3000) {
+            // We use 1s to catch even quick tab switches that break the connection
+            if (hiddenDuration > 1000) {
                 console.log('Reloading page to refresh connections...');
                 window.location.reload();
             }
