@@ -1301,11 +1301,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Session might be expired, force re-login
                 handleSignOut();
             } else if (session) {
-                console.log('Session refreshed successfully');
+                console.log('Session refreshed successfully', session);
 
-                // Reload dashboard data to ensure fresh queries with new session
-                console.log('Reloading dashboard data...');
-                await loadDashboard();
+                // Explicitly set the session on the Supabase client
+                const { error: setError } = await supabase.auth.setSession({
+                    access_token: session.access_token,
+                    refresh_token: session.refresh_token
+                });
+
+                if (setError) {
+                    console.error('Error setting session:', setError);
+                    handleSignOut();
+                } else {
+                    console.log('Session set successfully on client');
+
+                    // Reload dashboard data to ensure fresh queries with new session
+                    console.log('Reloading dashboard data...');
+                    await loadDashboard();
+                }
             }
         }
     });
