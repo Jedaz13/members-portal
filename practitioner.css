@@ -21,6 +21,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 48px;
 }
 
 .practitioner-header .header-brand {
@@ -1192,4 +1193,83 @@
 .protocol-change-section h4 {
     margin-bottom: 20px;
     color: var(--primary);
+}
+
+/* ============================================
+   PROTOCOL HISTORY SECTION
+   ============================================ */
+.protocol-history-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid var(--border);
+}
+
+.protocol-history-section h4 {
+    margin-bottom: 20px;
+    color: var(--primary);
+}
+
+.protocol-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.history-entry {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.history-date {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.history-practitioner {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.history-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-detail {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+}
+
+.empty-state {
+    text-align: center;
+    color: var(--text-light);
+    padding: 32px;
+    font-size: 14px;
+}
+
+.error-text {
+    color: var(--accent);
+    font-size: 14px;
+    padding: 16px;
+}
+
+.loading-text {
+    text-align: center;
+    color: var(--text-light);
+    padding: 16px;
+    font-size: 14px;
 }

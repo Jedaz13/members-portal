@@ -1122,11 +1122,89 @@ async function loadPatientProtocol() {
                 <button id="save-protocol-btn" class="btn-primary">Save Protocol Changes</button>
                 <p class="form-hint">Changes will be immediately visible to the patient in their dashboard</p>
             </div>
+
+            <div class="protocol-history-section">
+                <h4>Protocol Change History</h4>
+                <div id="protocol-history-list" class="protocol-history-list">
+                    <p class="loading-text">Loading history...</p>
+                </div>
+            </div>
         </div>
     `;
 
     // Add event listener for save button
     document.getElementById('save-protocol-btn')?.addEventListener('click', savePatientProtocol);
+
+    // Load protocol history
+    await loadProtocolHistory();
+}
+
+async function loadProtocolHistory() {
+    if (!selectedPatient) return;
+
+    const historyList = document.getElementById('protocol-history-list');
+    if (!historyList) return;
+
+    try {
+        const { data: history, error } = await supabase
+            .from('protocol_history')
+            .select(`
+                *,
+                practitioner:practitioner_id (name)
+            `)
+            .eq('patient_id', selectedPatient.id)
+            .order('changed_at', { ascending: false });
+
+        if (error) throw error;
+
+        var protocols = {
+            1: 'Bloating-Dominant Protocol',
+            2: 'Constipation-Dominant Protocol (IBS-C)',
+            3: 'Diarrhea-Dominant Protocol (IBS-D)',
+            4: 'Mixed Pattern Protocol (IBS-M)',
+            5: 'Post-SIBO Recovery Protocol',
+            6: 'Gut-Brain Connection Protocol'
+        };
+
+        if (!history || history.length === 0) {
+            historyList.innerHTML = '<p class="empty-state">No protocol changes yet</p>';
+            return;
+        }
+
+        historyList.innerHTML = history.map(entry => {
+            var date = new Date(entry.changed_at);
+            var dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            var timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            var previousProtocolName = entry.previous_protocol ? protocols[entry.previous_protocol] : 'None';
+            var newProtocolName = protocols[entry.new_protocol] || 'Unknown';
+
+            var stressChange = '';
+            if (entry.previous_stress_component !== entry.new_stress_component) {
+                stressChange = `<div class="history-detail">
+                    Stress Component: ${entry.previous_stress_component ? 'Yes' : 'No'} → ${entry.new_stress_component ? 'Yes' : 'No'}
+                </div>`;
+            }
+
+            return `
+                <div class="history-entry">
+                    <div class="history-header">
+                        <span class="history-date">${dateStr} at ${timeStr}</span>
+                        <span class="history-practitioner">${entry.practitioner?.name || 'Unknown Practitioner'}</span>
+                    </div>
+                    <div class="history-details">
+                        <div class="history-detail">
+                            <strong>Protocol Changed:</strong> ${previousProtocolName} → ${newProtocolName}
+                        </div>
+                        ${stressChange}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading protocol history:', error);
+        historyList.innerHTML = '<p class="error-text">Failed to load protocol history</p>';
+    }
 }
 
 async function savePatientProtocol() {
@@ -1139,10 +1217,15 @@ async function savePatientProtocol() {
     var newProtocol = parseInt(protocolSelect.value);
     var stressComponent = stressCheckbox.checked;
 
+    // Store old values for history
+    var previousProtocol = selectedPatient.protocol;
+    var previousStressComponent = selectedPatient.has_stress_component;
+
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
 
     try {
+        // Update user's protocol
         const { error } = await supabase
             .from('users')
             .update({
@@ -1153,15 +1236,41 @@ async function savePatientProtocol() {
 
         if (error) throw error;
 
+        // Insert protocol history record
+        const { error: historyError } = await supabase
+            .from('protocol_history')
+            .insert({
+                patient_id: selectedPatient.id,
+                practitioner_id: currentUser.id,
+                previous_protocol: previousProtocol,
+                new_protocol: newProtocol,
+                previous_stress_component: previousStressComponent,
+                new_stress_component: stressComponent
+            });
+
+        if (historyError) {
+            console.error('Error saving protocol history:', historyError);
+            // Don't fail the whole operation if history fails
+        }
+
         showToast('Protocol updated successfully');
 
-        // Refresh patient data
+        // Update button to show success
+        saveBtn.textContent = 'Saved!';
+        setTimeout(() => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Protocol Changes';
+        }, 2000);
+
+        // Update selectedPatient with new values
+        selectedPatient.protocol = newProtocol;
+        selectedPatient.has_stress_component = stressComponent;
+
+        // Refresh patient list in background (updates the table)
         await loadMyPatients();
-        // Re-select the patient to update the view
-        var updatedPatient = currentPatients.find(p => p.id === selectedPatient.id);
-        if (updatedPatient) {
-            selectPatient(updatedPatient);
-        }
+
+        // Reload protocol history to show the new change
+        await loadProtocolHistory();
     } catch (error) {
         console.error('Error saving protocol:', error);
         showToast('Failed to update protocol');
