@@ -1116,17 +1116,25 @@ async function loadPractitionerInfo() {
     if (!currentMember) return;
 
     try {
-        // Fetch practitioner assignment
+        // Fetch practitioner assignment (use maybeSingle instead of single to avoid errors)
         const { data: assignment, error: assignmentError } = await supabase
             .from('patient_assignments')
             .select('practitioner_id')
             .eq('patient_id', currentMember.id)
             .eq('status', 'active')
-            .single();
+            .maybeSingle();
 
-        if (assignmentError || !assignment) {
-            console.log('No practitioner assigned yet');
+        if (assignmentError) {
+            console.log('Error fetching practitioner assignment:', assignmentError);
             currentPractitioner = null;
+            updatePractitionerHeader();
+            return;
+        }
+
+        if (!assignment) {
+            // No practitioner assigned - this is normal for trial users
+            currentPractitioner = null;
+            updatePractitionerHeader();
             return;
         }
 
@@ -1135,19 +1143,21 @@ async function loadPractitionerInfo() {
             .from('users')
             .select('id, name, avatar_url, credentials')
             .eq('id', assignment.practitioner_id)
-            .single();
+            .maybeSingle();
 
-        if (practitionerError || !practitioner) {
-            console.error('Error loading practitioner info:', practitionerError);
+        if (practitionerError) {
+            console.log('Error fetching practitioner details:', practitionerError);
             currentPractitioner = null;
+            updatePractitionerHeader();
             return;
         }
 
         currentPractitioner = practitioner;
         updatePractitionerHeader();
     } catch (error) {
-        console.error('Error in loadPractitionerInfo:', error);
+        console.log('Error in loadPractitionerInfo:', error);
         currentPractitioner = null;
+        updatePractitionerHeader();
     }
 }
 
@@ -1197,6 +1207,7 @@ function updateExpertMessagesBadge() {
             badge.textContent = unreadExpertMessages;
             badge.classList.remove('hidden');
         } else {
+            badge.textContent = '';
             badge.classList.add('hidden');
         }
     }
