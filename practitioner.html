@@ -182,6 +182,20 @@
                             </div>
 
                             <div class="form-group">
+                                <label for="profile-avatar">Profile Picture</label>
+                                <div class="avatar-upload-section">
+                                    <div class="avatar-preview">
+                                        <img id="avatar-preview" src="https://via.placeholder.com/100" alt="Profile picture">
+                                    </div>
+                                    <div class="avatar-upload-controls">
+                                        <input type="file" id="profile-avatar" class="file-input-hidden" accept="image/*">
+                                        <button type="button" id="upload-avatar-btn" class="btn-secondary">Upload Photo</button>
+                                        <p class="form-hint">This photo will be visible to your patients in their chat</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
                                 <label for="profile-credentials">Credentials</label>
                                 <input type="text" id="profile-credentials" class="form-input"
                                        placeholder="e.g., RNutr, Registered Clinical Nutritionist">
@@ -358,6 +372,6 @@
 
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="practitioner.js?v=3.0.2"></script>
+    <script src="practitioner.js?v=3.1.0"></script>
 </body>
 </html>
