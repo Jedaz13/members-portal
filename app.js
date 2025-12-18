@@ -692,6 +692,13 @@ function initializeTabs() {
             // Mark expert messages as read when viewing Messages tab
             if (tabId === 'messages') {
                 await markExpertMessagesAsRead();
+                // Scroll to bottom of messages
+                setTimeout(() => {
+                    var messagesList = document.getElementById('messages-list');
+                    if (messagesList) {
+                        messagesList.scrollTop = messagesList.scrollHeight;
+                    }
+                }, 100);
             }
         });
     });
