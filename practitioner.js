@@ -634,7 +634,7 @@ async function uploadAvatar() {
         const filePath = `avatars/${fileName}`;
 
         const { data, error: uploadError } = await supabase.storage
-            .from('practitioner-assets')
+            .from('avatars')
             .upload(filePath, file, {
                 cacheControl: '3600',
                 upsert: true
@@ -644,7 +644,7 @@ async function uploadAvatar() {
 
         // Get public URL
         const { data: urlData } = supabase.storage
-            .from('practitioner-assets')
+            .from('avatars')
             .getPublicUrl(filePath);
 
         const avatarUrl = urlData.publicUrl;
@@ -1147,7 +1147,7 @@ async function savePatientProtocol() {
             .from('users')
             .update({
                 protocol: newProtocol,
-                stress_component: stressComponent
+                has_stress_component: stressComponent
             })
             .eq('id', selectedPatient.id);
 

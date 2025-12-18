@@ -26,7 +26,7 @@
 .practitioner-header .header-brand {
     display: flex;
     align-items: baseline;
-    gap: 12px;
+    gap: 24px;
 }
 
 .practitioner-header .header-brand h1 {
@@ -44,7 +44,7 @@
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 32px;
 }
 
 .practitioner-name {
