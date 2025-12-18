@@ -31,6 +31,7 @@
                         </svg>
                         Sign in with Google
                     </button>
+                    <p class="legal-agreement">By signing in, you agree to our <a href="https://www.guthealingacademy.com/legal/terms.html" target="_blank">Terms of Service</a> and <a href="https://www.guthealingacademy.com/legal/index.html" target="_blank">Privacy Policy</a></p>
                 </div>
             </div>
         </div>
@@ -146,6 +147,8 @@
             <nav class="tab-nav">
                 <button class="tab-btn active" data-tab="tracking">Today's Tracking</button>
                 <button class="tab-btn" data-tab="protocol">My Protocol</button>
+                <button class="tab-btn" data-tab="qna">Live Q&A</button>
+                <button class="tab-btn" data-tab="learning">Learning Material</button>
                 <button class="tab-btn" data-tab="messages">
                     Message Expert
                     <span id="expert-messages-badge" class="tab-badge hidden"></span>
@@ -322,7 +325,107 @@
                     </div>
                 </div>
 
-                <!-- Tab 3: Message Expert -->
+                <!-- Tab 3: Live Q&A -->
+                <div id="tab-qna" class="tab-panel hidden">
+                    <div class="panel-card">
+                        <h3 class="panel-title">Live Q&A Sessions</h3>
+                        <p class="panel-intro">Join our weekly live sessions to get your questions answered by gut health experts.</p>
+
+                        <!-- Next Session Info -->
+                        <div class="qna-session-card">
+                            <div class="qna-session-header">
+                                <div class="qna-icon">🎥</div>
+                                <h4>Next Live Q&A Session</h4>
+                            </div>
+
+                            <div class="qna-session-details">
+                                <div class="qna-detail-item">
+                                    <span class="qna-label">📅 Date:</span>
+                                    <span class="qna-value">January 9th, 2025</span>
+                                </div>
+                                <div class="qna-detail-item">
+                                    <span class="qna-label">🕐 Time:</span>
+                                    <span class="qna-value">5:00 PM GMT</span>
+                                </div>
+                            </div>
+
+                            <div id="qna-join-section" class="qna-join-section">
+                                <a href="https://us05web.zoom.us/j/86523812381?pwd=NMb1KICk2pz4C6FaW8kuluOU582qnz.1"
+                                   target="_blank"
+                                   id="qna-join-btn"
+                                   class="btn-qna-join">
+                                    Join Zoom Meeting
+                                </a>
+                                <p class="qna-note">The link will be active 15 minutes before the session starts.</p>
+                            </div>
+
+                            <div id="qna-locked-message" class="locked-message hidden">
+                                <div class="lock-icon">🔒</div>
+                                <p class="lock-text">Upgrade your membership to join live Q&A sessions</p>
+                                <a href="https://www.guthealingacademy.com/offer/#pricing" class="btn-upgrade-small">Upgrade Now</a>
+                            </div>
+                        </div>
+
+                        <!-- Session Benefits -->
+                        <div class="qna-benefits">
+                            <h4>What to Expect:</h4>
+                            <ul class="qna-benefits-list">
+                                <li>Ask questions about your specific protocol</li>
+                                <li>Get real-time guidance from gut health experts</li>
+                                <li>Learn from other members' questions and experiences</li>
+                                <li>Access session recordings if you can't attend live</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Learning Material -->
+                <div id="tab-learning" class="tab-panel hidden">
+                    <div class="panel-card">
+                        <h3 class="panel-title">Learning Material & Resources</h3>
+                        <p class="panel-intro">Access comprehensive guides, meal plans, and educational resources to support your gut healing journey.</p>
+
+                        <div id="learning-content" class="learning-content">
+                            <!-- Resource Cards -->
+                            <div class="resource-card">
+                                <div class="resource-icon">📋</div>
+                                <div class="resource-info">
+                                    <h4>4 Week Reinoculate Meal Plans</h4>
+                                    <p>Complete meal plans designed to support gut reinoculation over 4 weeks.</p>
+                                    <a href="https://drive.google.com/drive/folders/1K01yb7V9Xv-OBxN18v80SjLZZxXkVuog?usp=drive_link"
+                                       target="_blank"
+                                       class="btn-resource">
+                                        View Meal Plans
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="resource-card">
+                                <div class="resource-icon">📖</div>
+                                <div class="resource-info">
+                                    <h4>Fibermaxing with IBS</h4>
+                                    <p>Learn how to safely increase fiber intake while managing IBS symptoms.</p>
+                                    <a href="https://drive.google.com/file/d/19lIe0uXSkD7gpP5CH87qAJgywf0bLYdO/view?usp=drive_link"
+                                       target="_blank"
+                                       class="btn-resource">
+                                        View Guide
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="learning-locked-overlay" class="locked-overlay hidden">
+                            <div class="locked-overlay-content">
+                                <div class="lock-icon-large">🔒</div>
+                                <h3>Unlock Learning Materials</h3>
+                                <p>Get instant access to all meal plans, guides, and educational resources when you upgrade.</p>
+                                <a href="https://www.guthealingacademy.com/offer/#pricing" class="btn-upgrade-primary">Unlock All Resources</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 5: Message Expert -->
                 <div id="tab-messages" class="tab-panel hidden">
                     <div class="panel-card">
                         <!-- Practitioner Header -->
@@ -397,6 +500,27 @@
     <div id="toast" class="toast hidden">
         <span id="toast-message"></span>
     </div>
+
+    <!-- Global Footer -->
+    <footer id="global-footer" class="global-footer">
+        <div class="footer-content">
+            <div class="footer-disclaimer">
+                <p>This program is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. It is not a substitute for professional medical consultation. If you are experiencing severe symptoms, unexplained weight loss, blood in stool, or any symptoms that concern you, please consult a qualified healthcare provider immediately. The Gut Healing Academy does not provide medical diagnoses or treatment recommendations. Results vary based on individual factors and adherence to the program.</p>
+            </div>
+            <div class="footer-links">
+                <a href="https://www.guthealingacademy.com/legal/index.html" target="_blank">Privacy Policy</a>
+                <span class="footer-divider">|</span>
+                <a href="https://www.guthealingacademy.com/legal/terms.html" target="_blank">Terms of Service</a>
+                <span class="footer-divider">|</span>
+                <a href="https://www.guthealingacademy.com/legal/disclaimer.html" target="_blank">Medical Disclaimer</a>
+                <span class="footer-divider">|</span>
+                <a href="https://www.guthealingacademy.com/legal/contact.html" target="_blank">Contact Us</a>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2025 Gut Healing Academy. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

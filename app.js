@@ -668,7 +668,76 @@ function initializeDashboard() {
     // Initialize message search
     initializeMessageSearch();
 
+    // Apply access controls based on user status
+    applyAccessControls();
+
     console.log('Dashboard initialized successfully');
+}
+
+// ============================================
+// ACCESS CONTROL SYSTEM
+// ============================================
+function applyAccessControls() {
+    console.log('Applying access controls for status:', currentMember?.status);
+
+    const userStatus = currentMember?.status;
+
+    // Learning Materials - ALWAYS LOCKED initially per requirements
+    const learningOverlay = document.getElementById('learning-locked-overlay');
+    if (learningOverlay) {
+        learningOverlay.classList.remove('hidden');
+        console.log('Learning materials locked');
+    }
+
+    // Q&A Session controls
+    const qnaJoinSection = document.getElementById('qna-join-section');
+    const qnaLockedMessage = document.getElementById('qna-locked-message');
+
+    // Message Expert controls
+    const messageInput = document.getElementById('message-input');
+    const sendMessageBtn = document.getElementById('send-message-btn');
+    const attachFileBtn = document.getElementById('attach-file-btn');
+
+    if (userStatus === 'trial' || userStatus === 'active') {
+        // Trial and Active users - Everything except learning materials is open
+
+        // Q&A: Fully accessible
+        if (qnaJoinSection) qnaJoinSection.classList.remove('hidden');
+        if (qnaLockedMessage) qnaLockedMessage.classList.add('hidden');
+
+        // Messages: Fully accessible
+        if (messageInput) messageInput.disabled = false;
+        if (sendMessageBtn) {
+            sendMessageBtn.disabled = false;
+            sendMessageBtn.classList.remove('btn-disabled');
+        }
+        if (attachFileBtn) attachFileBtn.disabled = false;
+
+        console.log('Access: Trial/Active - Full access except learning materials');
+
+    } else if (userStatus === 'trial_expired' || !userStatus || userStatus === 'lead') {
+        // Trial expired or no status - Restricted access
+
+        // Q&A: Show info but lock join button
+        if (qnaJoinSection) qnaJoinSection.classList.add('hidden');
+        if (qnaLockedMessage) qnaLockedMessage.classList.remove('hidden');
+
+        // Messages: Lock sending, but keep history visible
+        if (messageInput) {
+            messageInput.disabled = true;
+            messageInput.placeholder = 'Upgrade your membership to send messages';
+        }
+        if (sendMessageBtn) {
+            sendMessageBtn.disabled = true;
+            sendMessageBtn.classList.add('btn-disabled');
+            sendMessageBtn.textContent = 'Upgrade to Send Messages';
+        }
+        if (attachFileBtn) {
+            attachFileBtn.disabled = true;
+        }
+
+        console.log('Access: Trial Expired - Limited access');
+    }
 }
 
 // ============================================
