@@ -1,13 +1,18 @@
 // Gut Healing Academy - Practitioner Dashboard
 // Complete Practitioner Application
+// Version: 3.0.2 - Fixed const declarations
 
 // ============================================
-// CONFIGURATION
+// CONFIGURATION - NO const declarations to prevent redeclaration errors
 // ============================================
-const SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
+window.SUPABASE_URL = window.SUPABASE_URL || 'https://mwabljnngygkmahjgvps.supabase.co';
+window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize Supabase client safely (only once) - NO const!
+if (!window.supabaseClient) {
+    window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+}
+var supabase = window.supabaseClient;
 
 // Global state
 let currentUser = null;
