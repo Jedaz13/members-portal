@@ -395,6 +395,11 @@ async function signInWithGoogle() {
 
 async function signOut() {
     try {
+        // Track logout
+        if (typeof clearUser === 'function') {
+            clearUser();
+        }
+
         showView('loading-view');
         await supabase.auth.signOut();
         currentUser = null;
@@ -635,16 +640,44 @@ function initializeDashboard() {
     console.log('Protocol:', protocol);
 
     // Show trial banner if on trial
+    var trialDaysRemaining = 0;
     if (currentMember?.status === 'trial') {
         const trialStart = currentMember.trial_start_date
             ? new Date(currentMember.trial_start_date)
             : new Date();
         const now = new Date();
         const daysPassed = Math.floor((now - trialStart) / (1000 * 60 * 60 * 24));
-        const daysRemaining = Math.max(0, 7 - daysPassed);
+        trialDaysRemaining = Math.max(0, 7 - daysPassed);
 
-        document.getElementById('trial-days').textContent = `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining`;
+        document.getElementById('trial-days').textContent = `${trialDaysRemaining} day${trialDaysRemaining !== 1 ? 's' : ''} remaining`;
         document.getElementById('trial-banner').classList.remove('hidden');
+
+        // Track trial milestone
+        if (typeof trackTrialMilestone === 'function') {
+            trackTrialMilestone(trialDaysRemaining, currentMember.status);
+        }
+    }
+
+    // Identify user for tracking
+    if (typeof identifyUser === 'function' && currentMember && currentUser) {
+        identifyUser({
+            id: currentUser.id,
+            email: currentUser.email,
+            subscriptionStatus: currentMember.status,
+            trialEndsAt: currentMember.trial_start_date ? new Date(new Date(currentMember.trial_start_date).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() : null,
+            gutPattern: null,
+            protocolName: protocolInfo ? protocolInfo.name : null,
+            signupDate: currentMember.created_at,
+            practitionerId: currentMember.practitioner_id
+        });
+
+        // Track dashboard page view
+        trackPageView({
+            pageType: 'dashboard',
+            pageName: 'Member Dashboard',
+            pagePath: '/dashboard',
+            protocolName: protocolInfo ? protocolInfo.name : null
+        });
     }
 
     // Initialize tabs
@@ -761,6 +794,57 @@ function initializeTabs() {
             btn.classList.add('active');
             const tabId = btn.dataset.tab;
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Track tab view
+            if (typeof trackTabView === 'function') {
+                var tabNames = {
+                    'tracking': 'Today\'s Tracking',
+                    'protocol': 'My Protocol',
+                    'qna': 'Live Q&A',
+                    'learning': 'Learning Material',
+                    'messages': 'Message Expert'
+                };
+                trackTabView(tabNames[tabId] || tabId, tabId);
+            }
+
+            // Track protocol view specifically
+            if (tabId === 'protocol' && typeof trackProtocolView === 'function' && currentMember) {
+                var protocol = currentMember?.protocol || 1;
+                var protocolInfo = PROTOCOLS[protocol];
+                trackProtocolView({
+                    protocolName: protocolInfo ? protocolInfo.name : 'Unknown',
+                    isLocked: false
+                });
+            }
+
+            // Track Q&A view
+            if (tabId === 'qna' && typeof trackFeatureUsage === 'function') {
+                trackFeatureUsage('live_qna', 'viewed');
+            }
+
+            // Track learning material view and check if locked
+            if (tabId === 'learning' && typeof trackResourceView === 'function') {
+                var learningOverlay = document.getElementById('learning-locked-overlay');
+                var isLocked = learningOverlay && !learningOverlay.classList.contains('hidden');
+
+                trackResourceView({
+                    resourceId: 'learning_material_tab',
+                    resourceName: 'Learning Materials',
+                    resourceType: 'guide',
+                    resourceCategory: 'education',
+                    isLocked: isLocked
+                });
+
+                if (isLocked && typeof trackUpgradePromptView === 'function') {
+                    var trialDays = currentMember?.status === 'trial' ?
+                        Math.max(0, Math.ceil((new Date(currentMember.trial_start_date).getTime() + 7*24*60*60*1000 - Date.now()) / (1000*60*60*24))) : 0;
+                    trackUpgradePromptView({
+                        promptLocation: 'resource_locked',
+                        daysRemaining: trialDays,
+                        triggerReason: 'locked_content'
+                    });
+                }
+            }
 
             // Mark expert messages as read when viewing Messages tab
             if (tabId === 'messages') {
@@ -992,10 +1076,28 @@ async function handleTrackingSubmit(e) {
     if (error) {
         console.error('Error saving tracking:', error);
         showToast('Error saving. Please try again.');
+
+        // Track error
+        if (typeof trackError === 'function') {
+            trackError('tracking_submit_error', error.message, 'handleTrackingSubmit');
+        }
     } else {
         showToast('Tracking saved successfully!');
         document.querySelector('.btn-submit').textContent = 'Update Today\'s Tracking';
         loadTrackingHistory();
+
+        // Track successful tracking submission
+        if (typeof trackDailyTracking === 'function' && currentMember) {
+            var protocolInfo = PROTOCOLS[protocol];
+            var completionPercent = Math.round((Object.keys(trackingData).length / PROTOCOLS[protocol].fields.length) * 100);
+
+            trackDailyTracking({
+                protocolName: protocolInfo ? protocolInfo.name : 'Unknown',
+                trackingDay: Math.floor((Date.now() - new Date(currentMember.trial_start_date || currentMember.created_at).getTime()) / (1000 * 60 * 60 * 24)) + 1,
+                completionPercent: completionPercent,
+                symptomTrend: null
+            });
+        }
     }
 }
 
@@ -1350,16 +1452,38 @@ async function sendMessage() {
         if (error) {
             console.error('Error sending message:', error);
             showToast('Error sending message. Please try again.');
+
+            // Track error
+            if (typeof trackError === 'function') {
+                trackError('message_send_error', error.message, 'sendMessage');
+            }
         } else {
             input.value = '';
             attachedFiles = [];
             updateAttachedFilesUI();
             showToast('Message sent!');
             loadMessages();
+
+            // Track successful message sent
+            if (typeof trackMessageSent === 'function' && typeof determineMessageType === 'function') {
+                // Check if this is first message
+                var isFirstMessage = allMessages.length === 0;
+
+                trackMessageSent({
+                    messageType: determineMessageType(message),
+                    hasAttachment: uploadedFiles.length > 0,
+                    isFirstMessage: isFirstMessage
+                });
+            }
         }
     } catch (err) {
         console.error('Error sending message:', err);
         showToast('Error sending message. Please try again.');
+
+        // Track error
+        if (typeof trackError === 'function') {
+            trackError('message_send_exception', err.message, 'sendMessage');
+        }
     } finally {
         sendBtn.disabled = false;
         sendBtn.textContent = 'Send Message';
@@ -1747,6 +1871,69 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
+        }
+    });
+
+    // Track upgrade button clicks
+    document.addEventListener('click', function(e) {
+        // Check if clicked element or parent is an upgrade button
+        var target = e.target.closest('.btn-upgrade, .btn-upgrade-primary, .btn-upgrade-small, #qna-join-btn, .btn-resource');
+
+        if (target) {
+            var href = target.getAttribute('href');
+
+            // Track upgrade button clicks
+            if (target.classList.contains('btn-upgrade') ||
+                target.classList.contains('btn-upgrade-primary') ||
+                target.classList.contains('btn-upgrade-small')) {
+
+                if (typeof trackUpgradePromptClick === 'function' && currentMember) {
+                    var trialDays = currentMember?.status === 'trial' ?
+                        Math.max(0, Math.ceil((new Date(currentMember.trial_start_date).getTime() + 7*24*60*60*1000 - Date.now()) / (1000*60*60*24))) : 0;
+
+                    var location = 'unknown';
+                    if (target.id === 'locked-pathway-upgrade-btn') location = 'protocol_locked';
+                    else if (target.closest('.trial-banner')) location = 'header_banner';
+                    else if (target.closest('.locked-overlay')) location = 'resource_locked';
+                    else if (target.closest('.locked-message')) location = 'qna_locked';
+                    else location = 'general_cta';
+
+                    trackUpgradePromptClick({
+                        promptLocation: location,
+                        daysRemaining: trialDays
+                    });
+                }
+
+                // Track begin checkout if going to pricing
+                if (href && href.includes('offer') && typeof trackBeginCheckout === 'function') {
+                    trackBeginCheckout({
+                        planType: 'unknown',
+                        value: 0,
+                        originalPrice: 0,
+                        discountAmount: 0,
+                        currency: 'USD'
+                    });
+                }
+            }
+
+            // Track Q&A join clicks
+            if (target.id === 'qna-join-btn' && typeof trackFeatureUsage === 'function') {
+                trackFeatureUsage('live_qna', 'join_clicked');
+            }
+
+            // Track resource clicks
+            if (target.classList.contains('btn-resource') && typeof trackResourceClick === 'function') {
+                var resourceCard = target.closest('.resource-card');
+                var resourceName = resourceCard ? resourceCard.querySelector('h4')?.textContent : 'Unknown';
+                var resourceId = href ? href.split('/').pop() : 'unknown';
+
+                trackResourceClick({
+                    resourceId: resourceId,
+                    resourceName: resourceName,
+                    resourceType: href?.includes('drive.google.com/drive') ? 'folder' : 'pdf',
+                    resourceCategory: 'education'
+                });
+            }
         }
     });
 
