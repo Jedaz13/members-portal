@@ -327,6 +327,7 @@ const PROTOCOL_CONTENT = {
 // ============================================
 let currentUser = null;
 let currentMember = null;
+let currentPractitioner = null; // Assigned practitioner info
 let isRouting = false; // Prevent double routing from auth events
 let authProcessed = false; // Track if we've already handled auth for this page load
 let attachedFiles = []; // Files to be uploaded with message
@@ -1102,8 +1103,86 @@ async function loadMessages() {
     // Update expert messages badge
     updateExpertMessagesBadge();
 
+    // Load practitioner info if not already loaded
+    if (!currentPractitioner) {
+        await loadPractitionerInfo();
+    }
+
     // Render messages
     renderMessages(allMessages);
+}
+
+async function loadPractitionerInfo() {
+    if (!currentMember) return;
+
+    try {
+        // Fetch practitioner assignment
+        const { data: assignment, error: assignmentError } = await supabase
+            .from('patient_assignments')
+            .select('practitioner_id')
+            .eq('patient_id', currentMember.id)
+            .eq('status', 'active')
+            .single();
+
+        if (assignmentError || !assignment) {
+            console.log('No practitioner assigned yet');
+            currentPractitioner = null;
+            return;
+        }
+
+        // Fetch practitioner details
+        const { data: practitioner, error: practitionerError } = await supabase
+            .from('users')
+            .select('id, name, avatar_url, credentials')
+            .eq('id', assignment.practitioner_id)
+            .single();
+
+        if (practitionerError || !practitioner) {
+            console.error('Error loading practitioner info:', practitionerError);
+            currentPractitioner = null;
+            return;
+        }
+
+        currentPractitioner = practitioner;
+        updatePractitionerHeader();
+    } catch (error) {
+        console.error('Error in loadPractitionerInfo:', error);
+        currentPractitioner = null;
+    }
+}
+
+function updatePractitionerHeader() {
+    const header = document.getElementById('practitioner-header');
+    const avatar = document.getElementById('practitioner-avatar');
+    const name = document.getElementById('practitioner-name');
+    const title = document.getElementById('message-panel-title');
+    const intro = document.getElementById('message-panel-intro');
+
+    if (!header || !avatar || !name) return;
+
+    if (currentPractitioner) {
+        // Show header with practitioner info
+        header.classList.remove('hidden');
+        avatar.src = currentPractitioner.avatar_url || 'https://via.placeholder.com/48';
+        name.textContent = currentPractitioner.name || 'Your Practitioner';
+
+        // Hide the old panel title and intro
+        if (title) {
+            title.style.display = 'none';
+        }
+        if (intro) {
+            intro.style.display = 'none';
+        }
+    } else {
+        // No practitioner assigned, hide header
+        header.classList.add('hidden');
+        if (title) {
+            title.style.display = 'block';
+        }
+        if (intro) {
+            intro.style.display = 'block';
+        }
+    }
 }
 
 function updateExpertMessagesBadge() {
@@ -1445,10 +1524,14 @@ function renderMessages(messages, searchQuery = '') {
             `;
         }
 
+        const senderName = isExpert
+            ? (currentPractitioner ? currentPractitioner.name : 'Gut Health Expert')
+            : 'You';
+
         html += `
             <div class="message ${isExpert ? 'message-expert' : 'message-member'} ${isHighlighted ? 'highlighted' : ''}" data-id="${msg.id}">
                 <div class="message-header">
-                    <span class="message-sender">${isExpert ? 'Gut Health Expert' : 'You'}</span>
+                    <span class="message-sender">${senderName}</span>
                     <span class="message-time">${time}</span>
                 </div>
                 <div class="message-text">${messageText}</div>
