@@ -1,5 +1,6 @@
 // Gut Healing Academy - Member Portal
 // Complete Dashboard Application
+// Version: 2.0 - Updated 2025-01-18
 
 // ============================================
 // CONFIGURATION
@@ -1631,6 +1632,13 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 // EVENT LISTENERS
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize badge as hidden on page load
+    const badge = document.getElementById('expert-messages-badge');
+    if (badge) {
+        badge.textContent = '';
+        badge.classList.add('hidden');
+    }
+
     // Login button
     document.getElementById('google-login-btn').addEventListener('click', signInWithGoogle);
 
