@@ -1202,20 +1202,27 @@ function updatePractitionerHeader() {
 }
 
 function updateExpertMessagesBadge() {
+    const badge = document.getElementById('expert-messages-badge');
+    if (!badge) return;
+
+    // Hide badge if no practitioner is assigned (trial users, etc)
+    if (!currentPractitioner) {
+        badge.textContent = '';
+        badge.classList.add('hidden');
+        return;
+    }
+
     // Count unread messages from practitioners
     const unreadExpertMessages = allMessages.filter(msg =>
         msg.sender_type === 'practitioner' && !msg.member_read_at
     ).length;
 
-    const badge = document.getElementById('expert-messages-badge');
-    if (badge) {
-        if (unreadExpertMessages > 0) {
-            badge.textContent = unreadExpertMessages;
-            badge.classList.remove('hidden');
-        } else {
-            badge.textContent = '';
-            badge.classList.add('hidden');
-        }
+    if (unreadExpertMessages > 0) {
+        badge.textContent = unreadExpertMessages;
+        badge.classList.remove('hidden');
+    } else {
+        badge.textContent = '';
+        badge.classList.add('hidden');
     }
 }
 
