@@ -1217,6 +1217,17 @@ async function savePatientProtocol() {
     var newProtocol = parseInt(protocolSelect.value);
     var stressComponent = stressCheckbox.checked;
 
+    // Protocol names mapping
+    var protocols = {
+        1: 'Bloating-Dominant Protocol',
+        2: 'Constipation-Dominant Protocol (IBS-C)',
+        3: 'Diarrhea-Dominant Protocol (IBS-D)',
+        4: 'Mixed Pattern Protocol (IBS-M)',
+        5: 'Post-SIBO Recovery Protocol',
+        6: 'Gut-Brain Connection Protocol'
+    };
+    var newProtocolName = protocols[newProtocol];
+
     // Store old values for history
     var previousProtocol = selectedPatient.protocol;
     var previousStressComponent = selectedPatient.has_stress_component;
@@ -1230,6 +1241,7 @@ async function savePatientProtocol() {
             .from('users')
             .update({
                 protocol: newProtocol,
+                protocol_name: newProtocolName,
                 has_stress_component: stressComponent
             })
             .eq('id', selectedPatient.id);
@@ -1264,13 +1276,14 @@ async function savePatientProtocol() {
 
         // Update selectedPatient with new values
         selectedPatient.protocol = newProtocol;
+        selectedPatient.protocol_name = newProtocolName;
         selectedPatient.has_stress_component = stressComponent;
 
         // Refresh patient list in background (updates the table)
         await loadMyPatients();
 
-        // Reload protocol history to show the new change
-        await loadProtocolHistory();
+        // Reload protocol tab to show updated current protocol
+        await loadPatientProtocol();
     } catch (error) {
         console.error('Error saving protocol:', error);
         showToast('Failed to update protocol');
