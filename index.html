@@ -148,7 +148,7 @@
                 <button class="tab-btn" data-tab="protocol">My Protocol</button>
                 <button class="tab-btn" data-tab="messages">
                     Message Expert
-                    <span id="expert-messages-badge" class="tab-badge hidden">0</span>
+                    <span id="expert-messages-badge" class="tab-badge hidden"></span>
                 </button>
             </nav>
 
@@ -203,44 +203,55 @@
                                 <div class="locked-content-card">
                                     <div class="locked-content-overlay">
                                         <div class="locked-content-preview">
-                                            <h4>Your Next Phase Builds From Your Progress</h4>
-                                            <p class="locked-subtitle">This isn't a 6-week course. Your protocol evolves with you until your gut is restored.</p>
+                                            <h4>Everything Included In Your Membership</h4>
 
-                                            <div class="locked-features">
-                                                <div class="locked-feature">
-                                                    <div class="feature-icon">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                                                        </svg>
-                                                    </div>
-                                                    <div class="feature-text">
-                                                        <h5>Adaptive Protocol Updates</h5>
-                                                        <p>As your symptoms change, so does your plan</p>
+                                            <div class="membership-features">
+                                                <div class="membership-feature">
+                                                    <span class="feature-checkmark">✓</span>
+                                                    <div class="feature-details">
+                                                        <strong>Personalized gut healing protocol</strong> based on YOUR assessment results
                                                     </div>
                                                 </div>
-
-                                                <div class="locked-feature">
-                                                    <div class="feature-icon">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                                            <circle cx="12" cy="12" r="3"/>
-                                                        </svg>
-                                                    </div>
-                                                    <div class="feature-text">
-                                                        <h5>Practitioner Protocol Reviews</h5>
-                                                        <p>Expert analysis at each phase transition</p>
+                                                <div class="membership-feature">
+                                                    <span class="feature-checkmark">✓</span>
+                                                    <div class="feature-details">
+                                                        <strong>Weekly check-ins</strong> with protocol adjustments as needed
                                                     </div>
                                                 </div>
-
-                                                <div class="locked-feature">
-                                                    <div class="feature-icon">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                            <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                                        </svg>
+                                                <div class="membership-feature">
+                                                    <span class="feature-checkmark">✓</span>
+                                                    <div class="feature-details">
+                                                        <strong>Unlimited practitioner messaging</strong> (24-48hr response time)
                                                     </div>
-                                                    <div class="feature-text">
-                                                        <h5>Direct Practitioner Messaging</h5>
-                                                        <p>Real guidance from qualified professionals</p>
+                                                </div>
+                                                <div class="membership-feature">
+                                                    <span class="feature-checkmark">✓</span>
+                                                    <div class="feature-details">
+                                                        <strong>Weekly live Q&A session</strong> with recordings
+                                                    </div>
+                                                </div>
+                                                <div class="membership-feature">
+                                                    <span class="feature-checkmark">✓</span>
+                                                    <div class="feature-details">
+                                                        <strong>Peer community</strong> matched by symptom type
+                                                    </div>
+                                                </div>
+                                                <div class="membership-feature">
+                                                    <span class="feature-checkmark">✓</span>
+                                                    <div class="feature-details">
+                                                        <strong>Access to specialist network</strong> (dietitians, mental health, GI support)
+                                                    </div>
+                                                </div>
+                                                <div class="membership-feature">
+                                                    <span class="feature-checkmark">✓</span>
+                                                    <div class="feature-details">
+                                                        <strong>Symptom tracking tools</strong> with pattern recognition
+                                                    </div>
+                                                </div>
+                                                <div class="membership-feature">
+                                                    <span class="feature-checkmark">✓</span>
+                                                    <div class="feature-details">
+                                                        <strong>Complete resource library</strong> (meal plans, recipes, guides, shopping lists)
                                                     </div>
                                                 </div>
                                             </div>
@@ -314,8 +325,18 @@
                 <!-- Tab 3: Message Expert -->
                 <div id="tab-messages" class="tab-panel hidden">
                     <div class="panel-card">
-                        <h3 class="panel-title">Message Your Gut Health Expert</h3>
-                        <p class="panel-intro">Have questions about your protocol? Send a message and get personalized guidance.</p>
+                        <!-- Practitioner Header -->
+                        <div id="practitioner-header" class="practitioner-header hidden">
+                            <button class="back-button" aria-label="Back">←</button>
+                            <img id="practitioner-avatar" class="practitioner-avatar" src="" alt="Practitioner">
+                            <div class="practitioner-info">
+                                <h3 id="practitioner-name" class="practitioner-name">Loading...</h3>
+                                <p class="practitioner-status">Gut Health Expert</p>
+                            </div>
+                        </div>
+
+                        <h3 class="panel-title" id="message-panel-title">Message Your Gut Health Expert</h3>
+                        <p class="panel-intro" id="message-panel-intro">Have questions about your protocol? Send a message and get personalized guidance.</p>
 
                         <!-- Message Compose -->
                         <div class="message-compose">
