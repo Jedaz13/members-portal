@@ -1918,6 +1918,16 @@ a:hover {
     flex-direction: column;
     gap: 20px;
     position: relative;
+    min-height: 400px;
+}
+
+.learning-content.locked {
+    pointer-events: none;
+}
+
+.learning-content.locked .resource-card {
+    pointer-events: none;
+    user-select: none;
 }
 
 .resource-card {
@@ -1993,6 +2003,8 @@ a:hover {
     align-items: center;
     justify-content: center;
     z-index: 10;
+    pointer-events: auto;
+    min-height: 100%;
 }
 
 .locked-overlay-content {
@@ -2221,6 +2233,83 @@ a:hover {
 
     .messages-list {
         max-height: 300px;
+    }
+
+    /* Learning Materials */
+    .learning-content {
+        min-height: 300px;
+    }
+
+    .resource-card {
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .resource-icon {
+        font-size: 32px;
+        text-align: center;
+    }
+
+    .locked-overlay-content {
+        padding: 24px 16px;
+    }
+
+    .lock-icon-large {
+        font-size: 48px;
+    }
+
+    .locked-overlay-content h3 {
+        font-size: 20px;
+    }
+
+    .locked-overlay-content p {
+        font-size: 14px;
+    }
+
+    /* Q&A Section */
+    .qna-session-card {
+        padding: 16px;
+    }
+
+    .qna-icon {
+        font-size: 28px;
+    }
+
+    .qna-session-header h4 {
+        font-size: 18px;
+    }
+
+    .btn-qna-join,
+    .btn-upgrade-small {
+        width: 100%;
+    }
+
+    /* Footer */
+    .global-footer {
+        padding: 32px 16px 20px;
+        margin-top: 40px;
+    }
+
+    .footer-disclaimer p {
+        font-size: 12px;
+    }
+
+    .footer-links {
+        gap: 12px;
+        padding: 16px 0;
+    }
+
+    .footer-links a {
+        font-size: 13px;
+    }
+
+    .footer-divider {
+        display: none;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        text-align: center;
     }
 
     /* Recovery Path */

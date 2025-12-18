@@ -684,9 +684,13 @@ function applyAccessControls() {
 
     // Learning Materials - ALWAYS LOCKED initially per requirements
     const learningOverlay = document.getElementById('learning-locked-overlay');
+    const learningContent = document.getElementById('learning-content');
     if (learningOverlay) {
         learningOverlay.classList.remove('hidden');
         console.log('Learning materials locked');
+    }
+    if (learningContent) {
+        learningContent.classList.add('locked');
     }
 
     // Q&A Session controls
