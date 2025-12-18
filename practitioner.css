@@ -48,9 +48,15 @@
 }
 
 .practitioner-name {
-    font-size: 14px;
+    font-size: 15px;
     color: var(--text);
     font-weight: 500;
+    padding: 8px 16px;
+    background: var(--white);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    min-width: 180px;
+    text-align: center;
 }
 
 /* ============================================
@@ -1123,4 +1129,67 @@
 
 .message-item.sent .message-attachment:hover {
     background: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================
+   AVATAR UPLOAD
+   ============================================ */
+.avatar-upload-section {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.avatar-preview {
+    flex-shrink: 0;
+}
+
+.avatar-preview img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border);
+}
+
+.avatar-upload-controls {
+    flex: 1;
+}
+
+.btn-secondary {
+    background: var(--white);
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--primary);
+    color: var(--white);
+}
+
+.form-hint {
+    font-size: 13px;
+    color: var(--text-light);
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* ============================================
+   PROTOCOL CHANGE SECTION
+   ============================================ */
+.protocol-change-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid var(--border);
+}
+
+.protocol-change-section h4 {
+    margin-bottom: 20px;
+    color: var(--primary);
 }

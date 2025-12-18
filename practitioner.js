@@ -586,6 +586,12 @@ async function loadProfile() {
     document.getElementById('profile-bio').value = currentUser.bio || '';
     document.getElementById('profile-status').value = currentUser.practitioner_status || 'available';
 
+    // Set avatar preview
+    const avatarPreview = document.getElementById('avatar-preview');
+    if (currentUser.avatar_url) {
+        avatarPreview.src = currentUser.avatar_url;
+    }
+
     // Set specializations checkboxes
     const specializations = currentUser.specializations || [];
     document.querySelectorAll('.specialization-checkbox').forEach(checkbox => {
@@ -598,6 +604,68 @@ async function loadProfile() {
         `https://guthealingacademy.com/quiz?ref=${referralCode}` :
         'No referral code set';
     document.getElementById('referral-link').value = referralLink;
+}
+
+async function uploadAvatar() {
+    const fileInput = document.getElementById('profile-avatar');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        showToast('Please select an image file');
+        return;
+    }
+
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        showToast('Image must be less than 2MB');
+        return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+        showToast('Please upload an image file');
+        return;
+    }
+
+    try {
+        // Upload to Supabase Storage
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+
+        const { data, error: uploadError } = await supabase.storage
+            .from('practitioner-assets')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: true
+            });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+            .from('practitioner-assets')
+            .getPublicUrl(filePath);
+
+        const avatarUrl = urlData.publicUrl;
+
+        // Update user record with avatar URL
+        const { error: updateError } = await supabase
+            .from('users')
+            .update({ avatar_url: avatarUrl })
+            .eq('id', currentUser.id);
+
+        if (updateError) throw updateError;
+
+        // Update preview and currentUser
+        document.getElementById('avatar-preview').src = avatarUrl;
+        currentUser.avatar_url = avatarUrl;
+
+        showToast('Profile picture uploaded successfully');
+    } catch (error) {
+        console.error('Error uploading avatar:', error);
+        showToast('Failed to upload image. Please try again.');
+    }
 }
 
 async function saveProfile(event) {
@@ -1006,6 +1074,15 @@ async function loadPatientProtocol() {
 
     const container = document.getElementById('patient-protocol-content');
 
+    var protocols = {
+        1: 'Bloating-Dominant Protocol',
+        2: 'Constipation-Dominant Protocol (IBS-C)',
+        3: 'Diarrhea-Dominant Protocol (IBS-D)',
+        4: 'Mixed Pattern Protocol (IBS-M)',
+        5: 'Post-SIBO Recovery Protocol',
+        6: 'Gut-Brain Connection Protocol'
+    };
+
     container.innerHTML = `
         <div class="overview-section">
             <h4>Current Protocol</h4>
@@ -1023,11 +1100,74 @@ async function loadPatientProtocol() {
                     <div class="info-value">${selectedPatient.has_stress_component ? 'Yes' : 'No'}</div>
                 </div>
             </div>
-            <p style="margin-top: 20px; color: var(--text-light); font-size: 14px;">
-                Protocol modification features coming soon. Contact admin to adjust patient protocols.
-            </p>
+
+            <div class="protocol-change-section">
+                <h4>Change Patient Protocol</h4>
+                <div class="form-group">
+                    <label for="patient-protocol-select">Select New Protocol</label>
+                    <select id="patient-protocol-select" class="form-select">
+                        ${Object.keys(protocols).map(key => `
+                            <option value="${key}" ${selectedPatient.protocol == key ? 'selected' : ''}>
+                                ${key}. ${protocols[key]}
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="patient-stress-component" ${selectedPatient.has_stress_component ? 'checked' : ''}>
+                        <span>Include Stress Component</span>
+                    </label>
+                </div>
+                <button id="save-protocol-btn" class="btn-primary">Save Protocol Changes</button>
+                <p class="form-hint">Changes will be immediately visible to the patient in their dashboard</p>
+            </div>
         </div>
     `;
+
+    // Add event listener for save button
+    document.getElementById('save-protocol-btn')?.addEventListener('click', savePatientProtocol);
+}
+
+async function savePatientProtocol() {
+    if (!selectedPatient) return;
+
+    var protocolSelect = document.getElementById('patient-protocol-select');
+    var stressCheckbox = document.getElementById('patient-stress-component');
+    var saveBtn = document.getElementById('save-protocol-btn');
+
+    var newProtocol = parseInt(protocolSelect.value);
+    var stressComponent = stressCheckbox.checked;
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    try {
+        const { error } = await supabase
+            .from('users')
+            .update({
+                protocol: newProtocol,
+                stress_component: stressComponent
+            })
+            .eq('id', selectedPatient.id);
+
+        if (error) throw error;
+
+        showToast('Protocol updated successfully');
+
+        // Refresh patient data
+        await loadMyPatients();
+        // Re-select the patient to update the view
+        var updatedPatient = currentPatients.find(p => p.id === selectedPatient.id);
+        if (updatedPatient) {
+            selectPatient(updatedPatient);
+        }
+    } catch (error) {
+        console.error('Error saving protocol:', error);
+        showToast('Failed to update protocol');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Protocol Changes';
+    }
 }
 
 async function loadPatientNotes() {
@@ -1258,6 +1398,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Profile form
     document.getElementById('profile-form')?.addEventListener('submit', saveProfile);
+    document.getElementById('upload-avatar-btn')?.addEventListener('click', () => {
+        document.getElementById('profile-avatar').click();
+    });
+    document.getElementById('profile-avatar')?.addEventListener('change', uploadAvatar);
     document.getElementById('copy-referral-btn')?.addEventListener('click', copyReferralLink);
 
     // Claim modal
