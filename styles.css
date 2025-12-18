@@ -1928,6 +1928,12 @@ a:hover {
 .learning-content.locked .resource-card {
     pointer-events: none;
     user-select: none;
+    opacity: 0.3;
+    filter: blur(3px);
+}
+
+.learning-content.locked .btn-resource {
+    visibility: hidden;
 }
 
 .resource-card {
