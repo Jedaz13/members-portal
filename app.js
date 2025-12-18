@@ -1,23 +1,24 @@
 // Gut Healing Academy - Member Portal
 // Complete Dashboard Application
-// Version: 3.0.0 - Cache-busting fix - 2025-01-18
+// Version: 3.0.1 - ACTUAL FIX - No const declarations anywhere - 2025-01-18
 
 // ============================================
-// CONFIGURATION - Using window object to avoid const redeclaration errors
+// CONFIGURATION - NO const declarations to prevent redeclaration errors
 // ============================================
 window.SUPABASE_URL = window.SUPABASE_URL || 'https://mwabljnngygkmahjgvps.supabase.co';
 window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
 
-// Initialize Supabase client safely (only once)
+// Initialize Supabase client safely (only once) - NO const!
 if (!window.supabaseClient) {
     window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 }
-const supabase = window.supabaseClient;
+// Use window.supabaseClient directly instead of const supabase
+var supabase = window.supabaseClient;
 
 // ============================================
 // PROTOCOL CONFIGURATIONS
 // ============================================
-const PROTOCOLS = {
+var PROTOCOLS = {
     1: {
         name: 'Bloating-Dominant Protocol',
         shortName: 'Bloating Protocol',
@@ -81,7 +82,7 @@ const PROTOCOLS = {
 };
 
 // Protocol content placeholders (Week 1)
-const PROTOCOL_CONTENT = {
+var PROTOCOL_CONTENT = {
     1: `
         <div class="protocol-week">
             <h4>Week 1: Bloating-Dominant Protocol</h4>
@@ -341,8 +342,8 @@ let showHighlightedOnly = false; // Filter to show only highlighted messages
 let highlightedMessages = new Set(); // Store highlighted message IDs (in localStorage)
 
 // Constants
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB in bytes
-const ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+var MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB in bytes
+var ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp',
                              'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                              'text/plain'];
 
