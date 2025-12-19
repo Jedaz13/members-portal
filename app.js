@@ -84,8 +84,56 @@ var PROTOCOLS = {
 // Protocol content placeholders (Week 1)
 var PROTOCOL_CONTENT = {
     1: `
+        <!-- Safety Disclaimer -->
+        <div class="protocol-accordion safety-disclaimer">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">⚠️ Important Safety Information</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <p>This programme is educational and not a substitute for medical advice.</p>
+                    <p><strong>Stop and seek medical advice if you have:</strong></p>
+                    <ul>
+                        <li>Blood in stool or black/tarry stools</li>
+                        <li>Unexplained weight loss</li>
+                        <li>Fever or persistent vomiting</li>
+                        <li>Severe or worsening pain</li>
+                        <li>Symptoms waking you at night</li>
+                    </ul>
+                    <p>If you have diabetes, kidney disease, or a history of eating disorders, some protocol steps may need modification—message our expert team before starting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bristol Stool Chart -->
+        <div class="protocol-accordion bristol-chart-accordion">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">📊 Bristol Stool Chart Reference</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <img src="assets/bristol-stool-chart.png" alt="Bristol Stool Chart" class="bristol-chart-image">
+                    <div class="bristol-chart-summary">
+                        <p><strong>Use this when tracking your bowel movements:</strong></p>
+                        <p><strong>Type 1-2:</strong> Hard, lumpy, difficult to pass → Constipation</p>
+                        <p><strong>Type 3-4:</strong> Smooth, sausage-shaped, easy to pass → IDEAL (your goal)</p>
+                        <p><strong>Type 5-6:</strong> Soft, mushy, loose → Trending toward diarrhea</p>
+                        <p><strong>Type 7:</strong> Watery, no solid pieces → Diarrhea</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protocol Introduction -->
+        <div class="protocol-intro">
+            <p>This protocol was selected for you based on your quiz answers. Follow the day-by-day actions and track your progress.</p>
+            <p>If your symptoms change or you need a different approach, use the Message Expert tab—our team will review your history and adjust your protocol.</p>
+        </div>
+
         <div class="protocol-week">
-            <h4>Week 1: Bloating-Dominant Protocol</h4>
+            <h4>Week 1: Bloating Protocol</h4>
             <p class="protocol-focus">Focus: Slow down, de-gas, support digestion</p>
 
             <div class="protocol-day">
@@ -96,6 +144,28 @@ var PROTOCOL_CONTENT = {
                     <li>Put fork down between bites</li>
                     <li>No drinking during meals (only small sips)</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Why the 20-Minute Meal Rule Matters</h6>
+                        <p>Fast eating causes two problems that directly lead to bloating:</p>
+                        <p><strong>1. Air swallowing (aerophagia):</strong> When you eat quickly, you gulp air with every bite. This air gets trapped in your digestive system and has to go somewhere—usually causing that uncomfortable distended feeling.</p>
+                        <p><strong>2. Incomplete chewing:</strong> Large food particles are harder for your stomach to break down. When food isn't properly broken down, it ferments in your gut, producing gas.</p>
+                        <p>This single change often produces noticeable results within 2-3 days.</p>
+
+                        <h6>How to Actually Do It</h6>
+                        <p>Use a timer on your phone—it feels awkward at first, but you're retraining years of rushed eating habits. Put your fork down between bites. Really taste your food.</p>
+                        <p>If 20 minutes feels impossible, start with 15 and work up. The goal is progress, not perfection.</p>
+
+                        <h6>What You Might Notice</h6>
+                        <p>By Day 2, many people report feeling "fuller faster" and having less post-meal discomfort. This is your digestion starting to work properly.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
@@ -104,7 +174,31 @@ var PROTOCOL_CONTENT = {
                     <li>Apple cider vinegar: 1 tbsp in water before meals</li>
                     <li>Ginger tea between meals</li>
                     <li>10-minute walk after lunch and dinner</li>
+                    <li><span class="warning-text">⚠️ If you have reflux, skip ACV—use ginger tea instead</span></li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Why Pre-Meal Primers Work</h6>
+                        <p>Your stomach needs to be "ready" to digest. Bitter and acidic foods before meals send a signal to your body: "Food is coming—start producing digestive enzymes."</p>
+                        <p>Apple cider vinegar (ACV) is acidic and stimulates stomach acid production. For people with LOW stomach acid (common as we age), this can dramatically improve digestion.</p>
+                        <p><strong class="warning-text">⚠️ IMPORTANT:</strong> If you have reflux, heartburn, or GERD, ACV may make it worse. Use ginger tea or lemon water instead—they stimulate digestion without the acidity.</p>
+
+                        <h6>Why Walking Helps</h6>
+                        <p>A 10-minute walk after meals isn't exercise—it's movement that helps food move through your system. Sitting or lying down after eating slows everything down and can trap gas.</p>
+                        <p>You don't need to power walk. A gentle stroll is perfect. This is especially helpful after your largest meal of the day.</p>
+
+                        <h6>The 4-Hour Spacing Rule</h6>
+                        <p>Your gut has a "cleaning wave" called the Migrating Motor Complex (MMC) that sweeps debris through your system. It only works when you're NOT eating.</p>
+                        <p>Every time you snack—even a small bite—you reset the clock. Aim for 4 hours between meals with only water, plain tea, or black coffee in between.</p>
+                        <p>If you have diabetes or feel shaky between meals, modify this—message our expert team for guidance.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
@@ -114,6 +208,47 @@ var PROTOCOL_CONTENT = {
                     <li>Try fennel or peppermint tea after meals</li>
                     <li>Evening: gentle belly massage (clockwise)</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Finding Your Personal Triggers</h6>
+                        <p>By now you have 4-5 days of tracking data. Look for patterns:</p>
+                        <ul>
+                            <li>Which meals caused the worst bloating?</li>
+                            <li>Any specific foods that appeared on your worst days?</li>
+                            <li>Time of day patterns?</li>
+                        </ul>
+                        <p><strong>The most common triggers we see:</strong></p>
+                        <ul>
+                            <li>Onion and garlic (including powders)</li>
+                            <li>Wheat/bread/pasta</li>
+                            <li>Beans/legumes</li>
+                            <li>Dairy (milk, soft cheese, ice cream)</li>
+                            <li>Carbonated drinks</li>
+                        </ul>
+                        <p>You don't need to eliminate everything—just identify YOUR top 3 triggers.</p>
+
+                        <h6>Why Belly Massage Works</h6>
+                        <p>A gentle clockwise massage follows the direction of your digestive tract. It can help move trapped gas and stimulate bowel movements.</p>
+                        <p><strong>How to do it:</strong></p>
+                        <ul>
+                            <li>Lie down or sit comfortably</li>
+                            <li>Use light-medium pressure</li>
+                            <li>Start at your right hip, move up, across, and down to your left hip</li>
+                            <li>Repeat for 2-3 minutes</li>
+                            <li>Best done before bed or when bloated</li>
+                        </ul>
+
+                        <h6>Fennel & Peppermint Tea</h6>
+                        <p>Both have natural carminative (anti-gas) properties. Fennel relaxes the smooth muscles in your digestive tract, allowing trapped gas to pass. Peppermint has a similar effect.</p>
+                        <p>Drink after meals when you're prone to bloating, or when you feel symptoms coming on.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-tips">
@@ -121,208 +256,1038 @@ var PROTOCOL_CONTENT = {
                 <p><strong>The 20-minute meal:</strong> Set a timer. Your meal should take at least 20 minutes.</p>
                 <p><strong>The bloat journal:</strong> Note which foods cause bloating within 2 hours.</p>
             </div>
+
+            <div class="what-to-expect">
+                <h5>What to Expect by Day 7</h5>
+                <ul>
+                    <li>Bloating may reduce 20-40% (not gone, but noticeably better)</li>
+                    <li>Pants fitting better by evening</li>
+                    <li>At least 2-3 days where you "forgot" about bloating</li>
+                </ul>
+                <p>You won't be bloat-free. But if you see ANY positive change, the protocol is working and Week 2 will build on it.</p>
+            </div>
         </div>
     `,
     2: `
+        <!-- Safety Disclaimer -->
+        <div class="protocol-accordion safety-disclaimer">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">⚠️ Important Safety Information</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <p>This programme is educational and not a substitute for medical advice.</p>
+                    <p><strong>Stop and seek medical advice if you have:</strong></p>
+                    <ul>
+                        <li>Blood in stool or black/tarry stools</li>
+                        <li>Unexplained weight loss</li>
+                        <li>Fever or persistent vomiting</li>
+                        <li>Severe or worsening pain</li>
+                        <li>Symptoms waking you at night</li>
+                    </ul>
+                    <p>If you have diabetes, kidney disease, or a history of eating disorders, some protocol steps may need modification—message our expert team before starting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bristol Stool Chart -->
+        <div class="protocol-accordion bristol-chart-accordion">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">📊 Bristol Stool Chart Reference</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <img src="assets/bristol-stool-chart.png" alt="Bristol Stool Chart" class="bristol-chart-image">
+                    <div class="bristol-chart-summary">
+                        <p><strong>Use this when tracking your bowel movements:</strong></p>
+                        <p><strong>Type 1-2:</strong> Hard, lumpy, difficult to pass → Constipation</p>
+                        <p><strong>Type 3-4:</strong> Smooth, sausage-shaped, easy to pass → IDEAL (your goal)</p>
+                        <p><strong>Type 5-6:</strong> Soft, mushy, loose → Trending toward diarrhea</p>
+                        <p><strong>Type 7:</strong> Watery, no solid pieces → Diarrhea</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protocol Introduction -->
+        <div class="protocol-intro">
+            <p>This protocol was selected for you based on your quiz answers. Follow the day-by-day actions and track your progress.</p>
+            <p>If your symptoms change or you need a different approach, use the Message Expert tab—our team will review your history and adjust your protocol.</p>
+        </div>
+
         <div class="protocol-week">
-            <h4>Week 1: Constipation Protocol (IBS-C)</h4>
-            <p class="protocol-focus">Focus: Hydration, movement, morning routine</p>
+            <h4>Week 1: Constipation Protocol</h4>
+            <p class="protocol-focus">Focus: Hydrate, move, establish routine</p>
 
             <div class="protocol-day">
-                <h5>Day 1-2: Morning Routine</h5>
+                <h5>Day 1-2: Foundation</h5>
                 <ul>
-                    <li>Wake up: Drink 16oz warm water with lemon</li>
-                    <li>Wait 20-30 minutes before eating</li>
-                    <li>Sit on toilet same time each morning (even if nothing happens)</li>
-                    <li>Feet elevated on stool (squatty potty position)</li>
+                    <li>16oz warm water immediately on waking</li>
+                    <li>Breakfast within 1 hour of waking</li>
+                    <li>Sit on toilet 5-10 min after breakfast (even without urge)</li>
+                    <li>Use footstool to elevate knees above hips</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Why Warm Water on Waking</h6>
+                        <p>Warm water on an empty stomach triggers your gastrocolic reflex—your body's natural "wake up" signal to your bowels. It's like an internal alarm clock for your digestive system.</p>
+                        <p>Cold water works too, but warm water is gentler and may be more effective for some people. The key is consistency: same time, every day, before anything else.</p>
+
+                        <h6>The Bathroom Routine Matters</h6>
+                        <p>Your body learns patterns. By sitting on the toilet at the same time every day—even without an urge—you're training your colon to expect a bowel movement.</p>
+                        <p>Why after breakfast? Eating triggers the gastrocolic reflex (your gut's "move things along" response). Combining this with your morning water creates a powerful signal.</p>
+
+                        <h6>Proper Positioning</h6>
+                        <p>The modern toilet puts your body in the wrong position for elimination. When your knees are below your hips, your puborectalis muscle creates a kink in your rectum—like a bent garden hose.</p>
+                        <p>Elevating your feet with a stool (even a stack of books) brings your knees above your hips, straightening that "hose" and making elimination much easier.</p>
+                        <p>The difference can be dramatic for people who strain.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
-                <h5>Day 3-4: Add Movement & Fiber</h5>
+                <h5>Day 3-4: Add Fiber + Movement</h5>
                 <ul>
-                    <li>Morning: 5-minute walk or gentle stretching</li>
                     <li>Add 1 tbsp ground flaxseed to breakfast</li>
-                    <li>Drink 8 glasses of water throughout day</li>
-                    <li>Evening: gentle abdominal massage</li>
+                    <li>20-30 min walking daily</li>
+                    <li>Increase water to half body weight in ounces</li>
+                    <li><span class="warning-text">⚠️ Increase fiber slowly every 2-3 days if tolerated</span></li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Soluble vs Insoluble Fiber</h6>
+                        <p>There are two types of fiber, and for constipation, you need to start with the right one:</p>
+                        <p><strong>SOLUBLE fiber</strong> (oatmeal, flaxseed, chia seeds, sweet potato) absorbs water and forms a gel. It makes stool softer and easier to pass.</p>
+                        <p><strong>INSOLUBLE fiber</strong> (raw vegetables, wheat bran, popcorn) adds bulk but doesn't absorb water. If you're dehydrated or already backed up, it can make constipation WORSE.</p>
+                        <p>Start with soluble fiber only. Add insoluble fiber later, once things are moving.</p>
+                        <p><strong class="warning-text">⚠️ IMPORTANT:</strong> Increase fiber slowly—every 2-3 days, not all at once. Too much too fast causes gas, bloating, and can worsen constipation.</p>
+
+                        <h6>Why Movement Matters</h6>
+                        <p>Physical activity stimulates peristalsis—the wave-like contractions that move food through your intestines. Sitting all day slows everything down.</p>
+                        <p>You don't need intense exercise. A 20-30 minute walk is enough. After meals is ideal timing because you're combining movement with your gastrocolic reflex.</p>
+                        <p><strong>Bonus moves that help:</strong></p>
+                        <ul>
+                            <li>Deep squats (hold for 30 seconds)</li>
+                            <li>Knee-to-chest stretches (lying on back)</li>
+                            <li>Abdominal massage (clockwise circles)</li>
+                        </ul>
+
+                        <h6>Hydration is Non-Negotiable</h6>
+                        <p>Fiber needs water to work. Without adequate hydration, fiber can actually make constipation worse—it becomes a dry, hard mass.</p>
+                        <p>Target: Half your body weight in ounces. If you weigh 160 lbs, aim for 80oz (about 2.4 liters). Keep a water bottle with you and refill it throughout the day.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
-                <h5>Day 5-7: Build Consistency</h5>
+                <h5>Day 5-7: Optimize</h5>
                 <ul>
-                    <li>Keep morning routine non-negotiable</li>
-                    <li>Add prunes or kiwi to daily diet</li>
-                    <li>Magnesium citrate before bed (start with 200mg)</li>
+                    <li>Magnesium citrate 200-400mg at bedtime if needed</li>
+                    <li>Knee-to-chest stretches before bed</li>
+                    <li>Clockwise abdominal massage</li>
+                    <li><span class="warning-text">⚠️ Check with doctor if kidney issues before using magnesium</span></li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Why Magnesium Helps</h6>
+                        <p>Magnesium citrate works two ways:</p>
+                        <p><strong>1. Osmotic effect:</strong> It draws water into your intestines, softening stool</p>
+                        <p><strong>2. Muscle relaxation:</strong> It relaxes the smooth muscles of your colon, making it easier to go</p>
+                        <p>Start with 200mg at bedtime. If no effect after 2 nights, increase to 400mg. Some people need up to 600mg, but start low.</p>
+                        <p><strong class="warning-text">⚠️ CAUTION:</strong> If you have kidney disease or take medications that affect fluid balance (diuretics, blood pressure meds), check with your doctor before using magnesium supplements.</p>
+
+                        <h6>Timing Matters</h6>
+                        <p>Take magnesium at bedtime so it works overnight. You'll often notice the effect in the morning—ideally aligning with your bathroom routine.</p>
+                        <p>If magnesium causes loose stools, reduce the dose. You're looking for soft, easy-to-pass stool (Bristol Type 3-4), not diarrhea.</p>
+
+                        <h6>What If It's Not Working?</h6>
+                        <p>If you've been consistent with all interventions for 7 days and haven't seen improvement:</p>
+                        <ul>
+                            <li>Message our expert team—you may need protocol adjustment</li>
+                            <li>Consider if you're truly hydrated (check urine color—pale yellow is good)</li>
+                            <li>Stress can lock up your gut—Protocol 6 techniques may help</li>
+                        </ul>
+                        <p>Progress isn't always linear. Even one more bowel movement per week than before is meaningful.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-tips">
                 <h5>Key Interventions</h5>
-                <p><strong>The morning ritual:</strong> Warm water → Wait → Toilet time. Same time daily.</p>
-                <p><strong>Position matters:</strong> Knees above hips, lean forward slightly, relax.</p>
+                <p><strong>Morning water ritual:</strong> 16oz warm water before anything else</p>
+                <p><strong>Toilet timing:</strong> Same time every day, 5-10 min sit after breakfast</p>
+            </div>
+
+            <div class="what-to-expect">
+                <h5>What to Expect by Day 7</h5>
+                <ul>
+                    <li>Aim for 5+ bathroom visits this week (up from 2-3)</li>
+                    <li>Stool moving from Type 1-2 toward Type 3-4</li>
+                    <li>Less straining, more natural urge</li>
+                </ul>
+                <p>You probably won't be "regular" by Day 7. We're resetting habits that took years to develop. If you go even ONE more time than usual, that's real progress.</p>
             </div>
         </div>
     `,
     3: `
+        <!-- Safety Disclaimer -->
+        <div class="protocol-accordion safety-disclaimer">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">⚠️ Important Safety Information</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <p>This programme is educational and not a substitute for medical advice.</p>
+                    <p><strong>Stop and seek medical advice if you have:</strong></p>
+                    <ul>
+                        <li>Blood in stool or black/tarry stools</li>
+                        <li>Unexplained weight loss</li>
+                        <li>Fever or persistent vomiting</li>
+                        <li>Severe or worsening pain</li>
+                        <li>Symptoms waking you at night</li>
+                    </ul>
+                    <p>If you have diabetes, kidney disease, or a history of eating disorders, some protocol steps may need modification—message our expert team before starting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bristol Stool Chart -->
+        <div class="protocol-accordion bristol-chart-accordion">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">📊 Bristol Stool Chart Reference</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <img src="assets/bristol-stool-chart.png" alt="Bristol Stool Chart" class="bristol-chart-image">
+                    <div class="bristol-chart-summary">
+                        <p><strong>Use this when tracking your bowel movements:</strong></p>
+                        <p><strong>Type 1-2:</strong> Hard, lumpy, difficult to pass → Constipation</p>
+                        <p><strong>Type 3-4:</strong> Smooth, sausage-shaped, easy to pass → IDEAL (your goal)</p>
+                        <p><strong>Type 5-6:</strong> Soft, mushy, loose → Trending toward diarrhea</p>
+                        <p><strong>Type 7:</strong> Watery, no solid pieces → Diarrhea</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protocol Introduction -->
+        <div class="protocol-intro">
+            <p>This protocol was selected for you based on your quiz answers. Follow the day-by-day actions and track your progress.</p>
+            <p>If your symptoms change or you need a different approach, use the Message Expert tab—our team will review your history and adjust your protocol.</p>
+        </div>
+
         <div class="protocol-week">
-            <h4>Week 1: Diarrhea Protocol (IBS-D)</h4>
-            <p class="protocol-focus">Focus: Calm the gut, bind loose stools, reduce triggers</p>
+            <h4>Week 1: Diarrhea Protocol</h4>
+            <p class="protocol-focus">Focus: Calm, bind, reduce triggers</p>
 
             <div class="protocol-day">
-                <h5>Day 1-2: Emergency Calm</h5>
+                <h5>Day 1-2: Eliminate Triggers</h5>
                 <ul>
-                    <li>Remove common triggers: caffeine, dairy, fried foods</li>
-                    <li>Eat smaller, more frequent meals</li>
-                    <li>Start each meal with 5 slow breaths</li>
-                    <li>Avoid ice-cold drinks</li>
+                    <li>Remove: coffee, alcohol, energy drinks, carbonated drinks</li>
+                    <li>Sip water throughout day (not large amounts at once)</li>
+                    <li>Add pinch of salt to water for electrolytes</li>
+                    <li><span class="warning-text">⚠️ Expect caffeine withdrawal (headache 2-3 days)</span></li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Why These Drinks Are Problems</h6>
+                        <p><strong>COFFEE (including decaf):</strong> Caffeine and other compounds in coffee directly stimulate gut contractions. Even decaf can be a trigger—it's not just the caffeine.</p>
+                        <p><strong>ALCOHOL:</strong> Irritates your gut lining and speeds up transit time. Even small amounts can trigger a flare.</p>
+                        <p><strong>CARBONATED DRINKS:</strong> The bubbles create gas and can irritate an already-sensitive gut.</p>
+                        <p><strong>HIGH FRUCTOSE DRINKS (fruit juice, regular soda):</strong> Fructose is poorly absorbed by many people with IBS-D, pulling water into the intestines.</p>
+
+                        <h6>Caffeine Withdrawal is Real</h6>
+                        <p>If you're a regular coffee drinker, expect withdrawal symptoms for 2-3 days:</p>
+                        <ul>
+                            <li>Headache (this is the main one)</li>
+                            <li>Fatigue</li>
+                            <li>Irritability</li>
+                            <li>Difficulty concentrating</li>
+                        </ul>
+                        <p>This is temporary. Stay hydrated and know that pushing through these few days is worth it to identify if caffeine is a major trigger.</p>
+
+                        <h6>Hydration with Diarrhea</h6>
+                        <p>It seems counterintuitive, but you NEED to hydrate even though you're having diarrhea. You're losing fluids and electrolytes.</p>
+                        <ul>
+                            <li>Sip water throughout the day (large amounts at once can trigger urgency)</li>
+                            <li>Add a pinch of salt to water, or drink bone broth</li>
+                            <li>Avoid very cold drinks—room temperature is gentler</li>
+                        </ul>
+                        <p>Watch for signs of dehydration: dark urine, dizziness, dry mouth. If these occur, increase your fluids.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
                 <h5>Day 3-4: Add Binding Foods</h5>
                 <ul>
-                    <li>BRAT-style foods: banana, rice, applesauce, toast</li>
-                    <li>Cooked vegetables only (no raw for now)</li>
-                    <li>Add soluble fiber: oatmeal, peeled potatoes</li>
-                    <li>Bone broth between meals</li>
+                    <li>Include 2+ servings daily: white rice, ripe banana, oatmeal, cooked carrots</li>
+                    <li>Avoid: dairy, fatty foods, raw vegetables, sugar alcohols</li>
+                    <li>Eat 5-6 small meals (opposite of bloating protocol)</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>The BRAT+ Approach</h6>
+                        <p>BRAT (Bananas, Rice, Applesauce, Toast) has been used for decades to manage diarrhea. We expand it to BRAT+:</p>
+                        <ul>
+                            <li>White rice (not brown—less fiber)</li>
+                            <li>Ripe bananas</li>
+                            <li>Cooked carrots</li>
+                            <li>Oatmeal (plain, not flavored)</li>
+                            <li>Potatoes without skin</li>
+                            <li>Plain toast or crackers</li>
+                        </ul>
+                        <p>These foods are "binding"—they absorb water in your intestines and add bulk to loose stools.</p>
+
+                        <h6>Foods to Avoid For Now</h6>
+                        <ul>
+                            <li><strong>DAIRY:</strong> Lactose is hard to digest when your gut is irritated</li>
+                            <li><strong>FATTY/FRIED FOODS:</strong> Fat slows stomach emptying but speeds up colon transit—bad combo</li>
+                            <li><strong>RAW VEGETABLES:</strong> Hard to digest, can worsen symptoms</li>
+                            <li><strong>SUGAR ALCOHOLS:</strong> Check labels for sorbitol, xylitol, maltitol—these are notorious for causing diarrhea</li>
+                            <li><strong>SPICY FOODS:</strong> Irritate the gut lining</li>
+                        </ul>
+
+                        <h6>Why Smaller, More Frequent Meals?</h6>
+                        <p><strong class="warning-text">⚠️ This is OPPOSITE of the bloating protocol!</strong></p>
+                        <p>For IBS-D, large meals overwhelm your system. They trigger strong gastrocolic reflex contractions—the "gotta go NOW" feeling.</p>
+                        <p>Eat 5-6 small meals instead of 3 large ones. Each meal should fit in your two cupped hands. Eat slowly and stop before you feel full.</p>
+                        <p>You're reducing the load on your system with each meal.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
-                <h5>Day 5-7: Nervous System Support</h5>
+                <h5>Day 5-7: Calm Your System</h5>
                 <ul>
-                    <li>10-minute rest after meals (no rushing)</li>
-                    <li>Chamomile or ginger tea</li>
-                    <li>Identify stress-symptom connection</li>
+                    <li>4-7-8 breathing: 2x daily (inhale 4, hold 7, exhale 8)</li>
+                    <li>Cold water splash on face for 30 seconds</li>
+                    <li>Optional: Saccharomyces boulardii 250mg daily</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>The Gut-Brain Connection in IBS-D</h6>
+                        <p>Your gut and brain are directly connected via the vagus nerve. When you're anxious or stressed, your gut goes into "emergency mode"—rushing everything through.</p>
+                        <p>This is why IBS-D often comes with:</p>
+                        <ul>
+                            <li>Anxiety about bathroom access</li>
+                            <li>Symptoms before stressful events</li>
+                            <li>The "nervous stomach" feeling</li>
+                        </ul>
+                        <p>Calming your nervous system calms your gut.</p>
+
+                        <h6>Vagus Nerve Exercises</h6>
+                        <p><strong>4-7-8 Breathing:</strong> Inhale for 4 counts, hold for 7, exhale for 8. The long exhale activates your parasympathetic nervous system ("rest and digest"). Do 4 cycles, twice daily.</p>
+                        <p><strong>Cold water on face:</strong> Triggers the "dive reflex"—an automatic calming response. Splash cold water on your face for 30 seconds, or hold ice cubes.</p>
+                        <p><strong>Gargling:</strong> Vigorously gargle water for 30-60 seconds. The vagus nerve runs through your throat—gargling stimulates it.</p>
+                        <p>These aren't woo-woo—they're evidence-based techniques used in clinical settings.</p>
+
+                        <h6>Saccharomyces Boulardii</h6>
+                        <p>S. boulardii is a beneficial yeast (not bacteria) that's been specifically studied for diarrhea. Unlike bacterial probiotics, it:</p>
+                        <ul>
+                            <li>Survives stomach acid well</li>
+                            <li>Doesn't get affected by antibiotics</li>
+                            <li>Has good evidence for IBS-D specifically</li>
+                        </ul>
+                        <p>Start with 250mg daily with food. Can increase to 500mg if tolerated. It's well-tolerated because it's yeast-based rather than bacterial.</p>
+                        <p>Available at most pharmacies and health food stores.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-tips">
                 <h5>Key Interventions</h5>
-                <p><strong>The calm before eating:</strong> 5 breaths activates "rest and digest" mode.</p>
-                <p><strong>Temperature matters:</strong> Room temperature or warm foods are gentler.</p>
+                <p><strong>Small frequent meals:</strong> Each meal fits in cupped hands</p>
+                <p><strong>Vagus nerve calming:</strong> 4-7-8 breathing shifts you to "rest and digest"</p>
+            </div>
+
+            <div class="what-to-expect">
+                <h5>What to Expect by Day 7</h5>
+                <ul>
+                    <li>Bathroom visits reduced (from 5-6/day toward 3-4/day)</li>
+                    <li>Fewer "emergency" rushes</li>
+                    <li>Stool firming up toward Type 4-5</li>
+                </ul>
+                <p>IBS-D often involves anxiety that feeds symptoms. Even small improvements break this cycle. If you had ONE day where you felt more in control, that's meaningful progress.</p>
             </div>
         </div>
     `,
     4: `
+        <!-- Safety Disclaimer -->
+        <div class="protocol-accordion safety-disclaimer">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">⚠️ Important Safety Information</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <p>This programme is educational and not a substitute for medical advice.</p>
+                    <p><strong>Stop and seek medical advice if you have:</strong></p>
+                    <ul>
+                        <li>Blood in stool or black/tarry stools</li>
+                        <li>Unexplained weight loss</li>
+                        <li>Fever or persistent vomiting</li>
+                        <li>Severe or worsening pain</li>
+                        <li>Symptoms waking you at night</li>
+                    </ul>
+                    <p>If you have diabetes, kidney disease, or a history of eating disorders, some protocol steps may need modification—message our expert team before starting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bristol Stool Chart -->
+        <div class="protocol-accordion bristol-chart-accordion">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">📊 Bristol Stool Chart Reference</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <img src="assets/bristol-stool-chart.png" alt="Bristol Stool Chart" class="bristol-chart-image">
+                    <div class="bristol-chart-summary">
+                        <p><strong>Use this when tracking your bowel movements:</strong></p>
+                        <p><strong>Type 1-2:</strong> Hard, lumpy, difficult to pass → Constipation</p>
+                        <p><strong>Type 3-4:</strong> Smooth, sausage-shaped, easy to pass → IDEAL (your goal)</p>
+                        <p><strong>Type 5-6:</strong> Soft, mushy, loose → Trending toward diarrhea</p>
+                        <p><strong>Type 7:</strong> Watery, no solid pieces → Diarrhea</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protocol Introduction -->
+        <div class="protocol-intro">
+            <p>This protocol was selected for you based on your quiz answers. Follow the day-by-day actions and track your progress.</p>
+            <p>If your symptoms change or you need a different approach, use the Message Expert tab—our team will review your history and adjust your protocol.</p>
+        </div>
+
         <div class="protocol-week">
-            <h4>Week 1: Mixed IBS Protocol (IBS-M)</h4>
-            <p class="protocol-focus">Focus: Stabilize with routine, balance fiber, track patterns</p>
+            <h4>Week 1: Mixed Pattern Protocol</h4>
+            <p class="protocol-focus">Focus: Stabilize, find patterns</p>
 
             <div class="protocol-day">
-                <h5>Day 1-2: Establish Rhythm</h5>
+                <h5>Day 1-2: Establish Consistency</h5>
                 <ul>
-                    <li>Eat at the same times daily (±30 minutes)</li>
-                    <li>3 meals, minimize snacking</li>
-                    <li>Morning warm water ritual</li>
-                    <li>Start tracking: C day, D day, or Normal day</li>
+                    <li>Same wake time daily (even weekends)</li>
+                    <li>Meals at fixed times (±30 min)</li>
+                    <li>Track: C (constipation) / D (diarrhea) / M (mixed) / N (normal)</li>
+                    <li>Stop eating 3 hours before bed</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Why Consistency is Your #1 Intervention</h6>
+                        <p>IBS-M is the most frustrating pattern because you never know what to expect. One day you can't go, the next you can't stop.</p>
+                        <p>Your gut has its own circadian rhythm—an internal clock. When you eat irregularly, sleep erratically, or constantly change your routine, you confuse this clock.</p>
+                        <p>Consistent inputs → more predictable outputs.</p>
+                        <p>This is why timing matters more for IBS-M than any other pattern.</p>
+
+                        <h6>The C/D/M/N Tracking System</h6>
+                        <p>Every day, log your predominant pattern:</p>
+                        <ul>
+                            <li><strong>C</strong> = Constipation (hard/infrequent stools)</li>
+                            <li><strong>D</strong> = Diarrhea (loose/frequent stools)</li>
+                            <li><strong>M</strong> = Mixed (both in same day)</li>
+                            <li><strong>N</strong> = Normal (comfortable, formed stool)</li>
+                        </ul>
+                        <p>After 7 days, you'll see patterns you can't see day-to-day. Maybe stress days are always D days. Maybe weekends (different routine) are C days.</p>
+                        <p>This data is gold for Protocol refinement.</p>
+
+                        <h6>The 3-Hour Rule Before Bed</h6>
+                        <p>Eating too close to bedtime:</p>
+                        <ul>
+                            <li>Disrupts your gut's overnight "rest and repair" time</li>
+                            <li>Can worsen reflux</li>
+                            <li>May contribute to morning urgency or discomfort</li>
+                        </ul>
+                        <p>Give your gut a 3-hour break before sleep. If you need something, stick to water or herbal tea.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
-                <h5>Day 3-4: Balance Approach</h5>
+                <h5>Day 3-4: Middle Ground Foods</h5>
                 <ul>
-                    <li>On C days: Extra water, gentle movement, warm foods</li>
-                    <li>On D days: Binding foods, rest, no caffeine</li>
-                    <li>Avoid extreme fiber changes</li>
-                    <li>Keep food simple and consistent</li>
+                    <li>Stick to: eggs, white rice, potatoes, lean protein, cooked vegetables</li>
+                    <li>Avoid: raw vegetables, beans, dairy, fried foods</li>
+                    <li>Keep portions moderate (not too large)</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>The "Safe" Foundation Foods</h6>
+                        <p>These foods are unlikely to trigger either constipation OR diarrhea:</p>
+                        <p><strong>✅ SAFE:</strong></p>
+                        <ul>
+                            <li>Eggs (any style)</li>
+                            <li>White rice</li>
+                            <li>Potatoes (with or without skin)</li>
+                            <li>Lean chicken or fish</li>
+                            <li>Cooked carrots, zucchini, green beans</li>
+                            <li>Ripe banana (1 per day max)</li>
+                            <li>Oatmeal (small serving)</li>
+                        </ul>
+                        <p><strong>❌ AVOID FOR NOW:</strong></p>
+                        <ul>
+                            <li>Raw vegetables and salads (hard to digest)</li>
+                            <li>Beans and lentils (high fermentation)</li>
+                            <li>Dairy products (common trigger)</li>
+                            <li>Fried or very fatty foods (unpredictable effect)</li>
+                            <li>Spicy foods (gut irritant)</li>
+                            <li>Large portions of anything (overwhelms system)</li>
+                        </ul>
+
+                        <h6>Why "Middle Ground"?</h6>
+                        <p>Extreme foods trigger extreme responses:</p>
+                        <ul>
+                            <li>Very high fiber → may cause D if your gut is sensitive</li>
+                            <li>Very low fiber → may cause C</li>
+                            <li>Very fatty → may cause D</li>
+                            <li>Large meals → may cause D</li>
+                        </ul>
+                        <p>By eating from the middle, you're stabilizing your system. Once stable, we'll carefully reintroduce foods to see what YOUR gut can handle.</p>
+                        <p>This isn't forever—it's a reset.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
-                <h5>Day 5-7: Identify Your Triggers</h5>
+                <h5>Day 5-7: State-Based Adjustments</h5>
                 <ul>
-                    <li>What happened 24-48 hours before a swing?</li>
-                    <li>Note stress, sleep, food changes</li>
-                    <li>Look for your personal pattern</li>
+                    <li>IF mostly C days: add flaxseed, more water, post-meal walks</li>
+                    <li>IF mostly D days: add binding foods, vagus breathing 3x daily</li>
+                    <li>IF mostly N days: document exactly what you ate—this is your template</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Reading Your Data</h6>
+                        <p>Look at your C/D/M/N pattern from Days 1-4. What's the trend?</p>
+
+                        <p><strong>IF MOSTLY C (CONSTIPATION) DAYS:</strong></p>
+                        <p>Your system is sluggish. Add:</p>
+                        <ul>
+                            <li>1 tablespoon ground flaxseed to breakfast</li>
+                            <li>2 extra cups of water</li>
+                            <li>10-minute walks after each meal</li>
+                            <li>Consider psyllium husk supplement</li>
+                        </ul>
+
+                        <p><strong>IF MOSTLY D (DIARRHEA) DAYS:</strong></p>
+                        <p>Your system is overactive. Add:</p>
+                        <ul>
+                            <li>Extra binding foods (more rice, banana)</li>
+                            <li>Remove any raw fruits or vegetables</li>
+                            <li>Vagus nerve breathing 3x daily (not just 2x)</li>
+                            <li>Consider S. boulardii if not already taking</li>
+                        </ul>
+
+                        <p><strong>IF MIXED OR MOSTLY N (NORMAL) DAYS:</strong></p>
+                        <p>You're finding stability. DON'T CHANGE ANYTHING.</p>
+                        <ul>
+                            <li>Document exactly what you ate</li>
+                            <li>Note your meal times</li>
+                            <li>Record your sleep and stress levels</li>
+                            <li>This is your TEMPLATE for what works</li>
+                        </ul>
+
+                        <h6>Why Week 1 is About Data</h6>
+                        <p>IBS-M doesn't have a one-size-fits-all solution. Your triggers are unique. Week 1 is about:</p>
+                        <ul>
+                            <li>Stabilizing with consistency and safe foods</li>
+                            <li>Collecting data on your patterns</li>
+                            <li>Making targeted adjustments based on YOUR data</li>
+                        </ul>
+                        <p>If you can identify even ONE trigger or have ONE more normal day, that's valuable progress we build on in Week 2.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-tips">
                 <h5>Key Interventions</h5>
-                <p><strong>Consistency is king:</strong> Mixed IBS hates surprises. Same times, same foods.</p>
-                <p><strong>Don't overcorrect:</strong> A C day doesn't mean load up on fiber (may trigger D).</p>
+                <p><strong>Pattern tracking:</strong> Your C/D/M/N log reveals triggers you can't see otherwise</p>
+                <p><strong>Consistency IS the intervention:</strong> Predictable inputs → predictable outputs</p>
+            </div>
+
+            <div class="what-to-expect">
+                <h5>What to Expect by Day 7</h5>
+                <ul>
+                    <li>More "N" days in Days 5-7 than Days 1-4</li>
+                    <li>Less extreme swings (maybe still not normal, but not as bad)</li>
+                    <li>Starting to see patterns in your triggers</li>
+                </ul>
+                <p>IBS-M is the hardest pattern to stabilize. Week 1 is about gathering data and finding stability. Even one more normal day is progress.</p>
             </div>
         </div>
     `,
     5: `
+        <!-- Safety Disclaimer -->
+        <div class="protocol-accordion safety-disclaimer">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">⚠️ Important Safety Information</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <p>This programme is educational and not a substitute for medical advice.</p>
+                    <p><strong>Stop and seek medical advice if you have:</strong></p>
+                    <ul>
+                        <li>Blood in stool or black/tarry stools</li>
+                        <li>Unexplained weight loss</li>
+                        <li>Fever or persistent vomiting</li>
+                        <li>Severe or worsening pain</li>
+                        <li>Symptoms waking you at night</li>
+                    </ul>
+                    <p>If you have diabetes, kidney disease, or a history of eating disorders, some protocol steps may need modification—message our expert team before starting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bristol Stool Chart -->
+        <div class="protocol-accordion bristol-chart-accordion">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">📊 Bristol Stool Chart Reference</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <img src="assets/bristol-stool-chart.png" alt="Bristol Stool Chart" class="bristol-chart-image">
+                    <div class="bristol-chart-summary">
+                        <p><strong>Use this when tracking your bowel movements:</strong></p>
+                        <p><strong>Type 1-2:</strong> Hard, lumpy, difficult to pass → Constipation</p>
+                        <p><strong>Type 3-4:</strong> Smooth, sausage-shaped, easy to pass → IDEAL (your goal)</p>
+                        <p><strong>Type 5-6:</strong> Soft, mushy, loose → Trending toward diarrhea</p>
+                        <p><strong>Type 7:</strong> Watery, no solid pieces → Diarrhea</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protocol Introduction -->
+        <div class="protocol-intro">
+            <p>This protocol was selected for you based on your quiz answers. Follow the day-by-day actions and track your progress.</p>
+            <p>If your symptoms change or you need a different approach, use the Message Expert tab—our team will review your history and adjust your protocol.</p>
+        </div>
+
         <div class="protocol-week">
             <h4>Week 1: Post-SIBO Recovery Protocol</h4>
-            <p class="protocol-focus">Focus: Protect the MMC, prevent relapse, rebuild</p>
+            <p class="protocol-focus">Focus: Protect MMC, prevent relapse</p>
 
             <div class="protocol-day">
-                <h5>Day 1-2: Meal Spacing Foundation</h5>
+                <h5>Day 1-2: Protect Your MMC</h5>
                 <ul>
-                    <li>4-5 hours between meals (critical!)</li>
-                    <li>No snacking - let your MMC work</li>
+                    <li>Only 3 meals/day (no snacks, period)</li>
+                    <li>4-5 hours between meals</li>
                     <li>12-14 hour overnight fast</li>
-                    <li>Only water, black coffee, or plain tea between meals</li>
+                    <li>Only water between meals</li>
+                    <li><span class="warning-text">⚠️ If diabetic, modify spacing—message expert first</span></li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>What is the MMC and Why Does It Matter?</h6>
+                        <p>The Migrating Motor Complex (MMC) is your gut's "cleaning wave"—a series of contractions that sweep bacteria and debris out of your small intestine.</p>
+                        <p>In many cases, SIBO happens when this cleaning wave doesn't work properly. Bacteria that should be swept into the large intestine instead accumulate in the small intestine, causing symptoms.</p>
+                        <p>The MMC only activates in a fasting state. Every time you eat—even a small snack—you turn it off for 90+ minutes.</p>
+
+                        <h6>Why Meal Spacing is Non-Negotiable</h6>
+                        <p>For post-SIBO recovery, protecting your MMC is THE most important intervention. This means:</p>
+                        <ul>
+                            <li>Only 3 meals per day (no snacks, period)</li>
+                            <li>Minimum 4-5 hours between meals</li>
+                            <li>12-14 hour overnight fast</li>
+                            <li>Between meals: ONLY water (plain, nothing added)</li>
+                        </ul>
+                        <p>Yes, this is strict. But every snack resets your cleaning wave. For post-SIBO, this is where relapses often start.</p>
+
+                        <h6 class="warning-text">⚠️ Important Exceptions</h6>
+                        <p>If you have diabetes (especially on insulin or sulfonylureas), strict meal spacing can be dangerous. Message our expert team for modified guidance.</p>
+                        <p>If you have a history of eating disorders, restrictive eating patterns can be triggering. Please work with your mental health provider alongside this protocol.</p>
+                        <p>If you feel shaky, light-headed, or unwell between meals, don't push through—eat something and message us.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
-                <h5>Day 3-4: Gentle Prokinetics</h5>
+                <h5>Day 3-4: Low Fermentation Foods</h5>
                 <ul>
-                    <li>Ginger tea or capsule before meals</li>
-                    <li>10-minute walk after each meal</li>
-                    <li>Stay upright for 2 hours after dinner</li>
+                    <li>Allowed: eggs, chicken, fish, white rice, potatoes, cooked zucchini/carrots</li>
+                    <li>Avoid: onion, garlic, beans, wheat, apples, regular dairy</li>
+                    <li>Add vagus exercises: 4-7-8 breathing, gargling, humming</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Why Low Fermentation Matters Post-SIBO</h6>
+                        <p>After SIBO treatment, your gut is in a vulnerable state. The goal is to:</p>
+                        <ul>
+                            <li>Starve any remaining bacteria</li>
+                            <li>Give your gut lining time to heal</li>
+                            <li>Allow your MMC to re-establish normal function</li>
+                        </ul>
+                        <p>High-fermentation foods feed bacteria. Even "healthy" foods like garlic, onions, and beans can be problematic right now.</p>
+
+                        <p><strong>ALLOWED FOODS:</strong></p>
+                        <ul>
+                            <li>Eggs, chicken, fish, beef, firm tofu</li>
+                            <li>White rice, potatoes</li>
+                            <li>Gluten-free bread (small amounts)</li>
+                            <li>Cooked zucchini, carrots, spinach</li>
+                            <li>Strawberries, blueberries, oranges (1 serving/day max)</li>
+                            <li>Hard cheese, lactose-free dairy only</li>
+                        </ul>
+
+                        <p><strong>AVOID COMPLETELY:</strong></p>
+                        <ul>
+                            <li>Onion, garlic, leeks (high in fermentable sugars)</li>
+                            <li>Beans, lentils, chickpeas (major bacterial food)</li>
+                            <li>Wheat, rye, barley (fructans)</li>
+                            <li>Apples, pears, stone fruits (high fructose)</li>
+                            <li>Regular dairy—milk, soft cheese, yogurt (lactose)</li>
+                            <li>Sugar alcohols (check labels)</li>
+                        </ul>
+
+                        <h6>Why Vagus Nerve Exercises?</h6>
+                        <p>Your vagus nerve controls MMC function. Stimulating it can help restore normal motility:</p>
+                        <ul>
+                            <li>4-7-8 breathing (2x daily)</li>
+                            <li>Gargling vigorously for 30-60 seconds</li>
+                            <li>Humming for 2-3 minutes</li>
+                        </ul>
+                        <p>These exercises support your gut's cleaning wave.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
-                <h5>Day 5-7: Monitor & Maintain</h5>
+                <h5>Day 5-7: Gentle Prebiotic</h5>
                 <ul>
-                    <li>Track any symptom return immediately</li>
-                    <li>Slowly expand food variety (one new food/day)</li>
-                    <li>Continue meal spacing long-term</li>
+                    <li>If stable, introduce PHGG:</li>
+                    <li>Day 5: ½ tsp once daily</li>
+                    <li>Day 6: ½ tsp twice daily</li>
+                    <li>Day 7: 1 tsp once daily</li>
+                    <li>Ginger tea between meals to support motility</li>
+                    <li><span class="warning-text">⚠️ If symptoms return, stop PHGG and return to Days 1-4</span></li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>What is PHGG?</h6>
+                        <p>Partially Hydrolyzed Guar Gum (PHGG) is a prebiotic fiber that's been specifically studied for post-SIBO recovery.</p>
+                        <p>Unlike other prebiotics (like inulin or FOS), PHGG:</p>
+                        <ul>
+                            <li>Ferments slowly (less gas and bloating)</li>
+                            <li>Is well-tolerated by most people</li>
+                            <li>Feeds beneficial bacteria without causing SIBO flares</li>
+                        </ul>
+                        <p>It's a "gentle" way to start rebuilding your gut microbiome.</p>
+
+                        <h6>The Slow Introduction Schedule</h6>
+                        <ul>
+                            <li><strong>Day 5:</strong> ½ teaspoon in water, once daily (with a meal)</li>
+                            <li><strong>Day 6:</strong> ½ teaspoon, twice daily</li>
+                            <li><strong>Day 7:</strong> 1 teaspoon, once daily</li>
+                        </ul>
+                        <p>Mix with water and drink with food. If you notice increased bloating, gas, or symptom return, STOP and go back to the Days 1-4 protocol. You may need more time before introducing prebiotics.</p>
+
+                        <h6>Ginger as Prokinetic Support</h6>
+                        <p>Ginger has natural prokinetic properties—it helps stimulate gut motility and supports MMC function.</p>
+                        <p>Drink ginger tea between meals (not with meals, which would break your fast). Fresh ginger steeped in hot water is ideal, but ginger tea bags work too.</p>
+
+                        <h6>What Success Looks Like for Post-SIBO</h6>
+                        <p>Your goal this week is PREVENTION, not symptom improvement. If you had SIBO symptoms before treatment, success means:</p>
+                        <ul>
+                            <li>Symptoms remain "None" or "Mild" all 7 days</li>
+                            <li>No return of the bloating/discomfort you had before</li>
+                            <li>Meal spacing feels manageable</li>
+                        </ul>
+                        <p>You're rebuilding a healthy gut environment. This takes time, but it starts with these foundational habits.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-tips">
                 <h5>Key Interventions</h5>
-                <p><strong>The MMC rule:</strong> Your migrating motor complex (gut's cleaning wave) only works when fasting. Snacking stops it.</p>
-                <p><strong>Early warning signs:</strong> Bloating after meals, old symptoms returning = act fast.</p>
+                <p><strong>Meal spacing is non-negotiable:</strong> Every snack turns off your MMC for 90+ min</p>
+                <p><strong>Ginger tea:</strong> Between meals to support motility</p>
+            </div>
+
+            <div class="what-to-expect">
+                <h5>What to Expect by Day 7</h5>
+                <ul>
+                    <li>Symptoms remain "None" or "Mild" all 7 days</li>
+                    <li>Meal spacing feels manageable (not fighting hunger)</li>
+                    <li>You're preventing relapse, not just managing</li>
+                </ul>
+                <p>If you get through Week 1 without significant symptom return, that's a major win. You're rebuilding—this takes time but starts with these habits.</p>
             </div>
         </div>
     `,
     6: `
+        <!-- Safety Disclaimer -->
+        <div class="protocol-accordion safety-disclaimer">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">⚠️ Important Safety Information</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <p>This programme is educational and not a substitute for medical advice.</p>
+                    <p><strong>Stop and seek medical advice if you have:</strong></p>
+                    <ul>
+                        <li>Blood in stool or black/tarry stools</li>
+                        <li>Unexplained weight loss</li>
+                        <li>Fever or persistent vomiting</li>
+                        <li>Severe or worsening pain</li>
+                        <li>Symptoms waking you at night</li>
+                    </ul>
+                    <p>If you have diabetes, kidney disease, or a history of eating disorders, some protocol steps may need modification—message our expert team before starting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bristol Stool Chart -->
+        <div class="protocol-accordion bristol-chart-accordion">
+            <div class="protocol-accordion-header">
+                <h5 class="protocol-accordion-title">📊 Bristol Stool Chart Reference</h5>
+                <span class="protocol-accordion-icon">▼</span>
+            </div>
+            <div class="protocol-accordion-content">
+                <div class="protocol-accordion-content-inner">
+                    <img src="assets/bristol-stool-chart.png" alt="Bristol Stool Chart" class="bristol-chart-image">
+                    <div class="bristol-chart-summary">
+                        <p><strong>Use this when tracking your bowel movements:</strong></p>
+                        <p><strong>Type 1-2:</strong> Hard, lumpy, difficult to pass → Constipation</p>
+                        <p><strong>Type 3-4:</strong> Smooth, sausage-shaped, easy to pass → IDEAL (your goal)</p>
+                        <p><strong>Type 5-6:</strong> Soft, mushy, loose → Trending toward diarrhea</p>
+                        <p><strong>Type 7:</strong> Watery, no solid pieces → Diarrhea</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Protocol Introduction -->
+        <div class="protocol-intro">
+            <p>This protocol was selected for you based on your quiz answers. Follow the day-by-day actions and track your progress.</p>
+            <p>If your symptoms change or you need a different approach, use the Message Expert tab—our team will review your history and adjust your protocol.</p>
+        </div>
+
         <div class="protocol-week">
             <h4>Week 1: Gut-Brain Protocol</h4>
-            <p class="protocol-focus">Focus: Calm the nervous system, heal the gut-brain axis</p>
+            <p class="protocol-focus">Focus: Calm nervous system, break the stress-gut cycle</p>
 
             <div class="protocol-day">
-                <h5>Day 1-2: Vagus Nerve Basics</h5>
+                <h5>Day 1-2: Find Your Pattern</h5>
                 <ul>
-                    <li>Morning: Splash cold water on face (30 seconds)</li>
-                    <li>3 times daily: 5 slow, deep belly breaths</li>
-                    <li>Before meals: 3 breaths to shift to "rest & digest"</li>
-                    <li>Evening: Humming or gargling for 30 seconds</li>
+                    <li>Track 3x daily: stress level (1-10) + gut symptoms (1-10)</li>
+                    <li>Note what happened in past 2-3 hours</li>
+                    <li>Look for: Does stress spike BEFORE or DURING gut symptoms?</li>
+                    <li><span class="warning-text">⚠️ If you have diagnosed anxiety/depression, coordinate with your mental health provider</span></li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>The Gut-Brain Axis is Real</h6>
+                        <p>Your gut has more nerve cells than your spinal cord—it's often called your "second brain." The vagus nerve creates a direct communication highway between your gut and your brain.</p>
+                        <p>This means:</p>
+                        <ul>
+                            <li>Stress, anxiety, and emotions directly affect your gut</li>
+                            <li>Gut problems can affect your mood and mental state</li>
+                            <li>It's a two-way street</li>
+                        </ul>
+                        <p>Your symptoms are REAL and PHYSICAL—even when they're triggered by stress. This isn't "all in your head."</p>
+
+                        <h6>Why Detailed Tracking?</h6>
+                        <p>Most people say "stress affects my gut" but don't realize HOW directly connected they are. By tracking both stress and symptoms on the same 1-10 scale, you'll see patterns:</p>
+                        <ul>
+                            <li>Does stress spike BEFORE symptoms? (stress → gut)</li>
+                            <li>Do symptoms come WITH stress? (simultaneous)</li>
+                            <li>Is there a delay? (stress in morning → symptoms in afternoon)</li>
+                        </ul>
+                        <p>Track 3x daily: morning, afternoon, evening. Note what happened in the past 2-3 hours and what you ate.</p>
+
+                        <h6 class="warning-text">⚠️ For Those with Diagnosed Anxiety/Depression</h6>
+                        <p>This protocol works alongside mental health treatment, not instead of it. Please:</p>
+                        <ul>
+                            <li>Continue any medications as prescribed</li>
+                            <li>Inform your mental health provider about this program</li>
+                            <li>Use our Message Expert feature if you need guidance on integration</li>
+                        </ul>
+                        <p>The vagus nerve techniques we teach are evidence-based and used in clinical mental health settings.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
-                <h5>Day 3-4: Stress-Gut Connection</h5>
+                <h5>Day 3-4: Vagus Nerve Toolkit</h5>
                 <ul>
-                    <li>Track: Stress level vs. gut symptoms (notice the lag)</li>
-                    <li>Add: 5-minute morning meditation or quiet time</li>
-                    <li>Identify your top 3 stress triggers</li>
+                    <li>Choose 2-3 practices, do 2x daily:</li>
+                    <li>4-7-8 breathing (inhale 4, hold 7, exhale 8)</li>
+                    <li>Cold water on face 30 seconds</li>
+                    <li>Humming for 2-3 minutes</li>
+                    <li>Gargling vigorously 30-60 seconds</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>How Vagus Nerve Activation Works</h6>
+                        <p>Your autonomic nervous system has two modes:</p>
+                        <p><strong>SYMPATHETIC ("fight or flight"):</strong> Heart races, digestion stops, everything tenses up. This is where your gut goes haywire.</p>
+                        <p><strong>PARASYMPATHETIC ("rest and digest"):</strong> Heart slows, digestion activates, muscles relax. This is where healing happens.</p>
+                        <p>The vagus nerve is the main pathway to your parasympathetic system. By stimulating it, you can manually shift from stress mode to calm mode.</p>
+
+                        <h6>The Techniques Explained</h6>
+                        <p><strong>4-7-8 BREATHING:</strong> The long exhale (8 counts) is key—it activates the parasympathetic response. Inhale for 4, hold for 7, exhale for 8. Do 4 cycles.</p>
+                        <p><strong>COLD WATER ON FACE:</strong> Triggers the "dive reflex"—an automatic calming response that slows heart rate and activates the vagus nerve. 30 seconds of cold water on your face, or hold ice cubes.</p>
+                        <p><strong>HUMMING/CHANTING:</strong> The vagus nerve runs through your throat. Vibration from humming directly stimulates it. Hum deeply for 2-3 minutes—you might feel tingling in your chest.</p>
+                        <p><strong>GARGLING:</strong> Vigorous gargling also stimulates the vagus nerve through your throat. Gargle water for 30-60 seconds, 2x daily.</p>
+
+                        <h6>Finding What Works for You</h6>
+                        <p>Try all four techniques, then stick with 2-3 that feel most effective for you. Some people respond better to breath work, others to cold exposure. There's no wrong answer.</p>
+                        <p>Do your chosen techniques twice daily—morning and evening—even when you're not stressed. You're building a skill.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-day">
-                <h5>Day 5-7: Build Your Toolkit</h5>
+                <h5>Day 5-7: Pre-Meal Ritual + Stress Interception</h5>
                 <ul>
-                    <li>Choose 2 vagus practices that feel good to you</li>
-                    <li>Practice them consistently (morning & evening)</li>
-                    <li>Notice: How long after stress do gut symptoms appear?</li>
+                    <li>Before every meal: stop screens → sit → 3 deep breaths → look at food → eat slowly</li>
+                    <li>When stress rises: notice → pause 60 sec → 4 rounds 4-7-8 breathing → hand on stomach</li>
                 </ul>
+
+                <button class="learn-more-toggle">
+                    <span>▼</span>
+                    <span class="learn-more-toggle-text">Learn more about why this works</span>
+                </button>
+
+                <div class="learn-more-content">
+                    <div class="learn-more-content-inner">
+                        <h6>Why a Pre-Meal Ritual?</h6>
+                        <p>Eating while stressed shuts down your digestion. Your body is in "fight or flight" mode—it's not prioritizing breaking down food.</p>
+                        <p>The pre-meal ritual takes 2-3 minutes and shifts your nervous system BEFORE you put food in your body:</p>
+                        <ul>
+                            <li>Stop all screens (phone, TV, computer)</li>
+                            <li>Sit at a table (not standing, not in the car)</li>
+                            <li>Take 3 deep breaths (4-7-8 pattern)</li>
+                            <li>Look at your food and smell it</li>
+                            <li>Begin eating slowly</li>
+                        </ul>
+                        <p>This simple routine tells your body: "We're safe. It's time to digest."</p>
+
+                        <h6>The Stress Interception Technique</h6>
+                        <p>There's a LAG between stress and gut symptoms—usually 30 minutes to 2 hours. If you catch stress early and calm your nervous system, you can prevent the gut symptoms from escalating.</p>
+                        <p>When you notice stress rising:</p>
+                        <ul>
+                            <li><strong>NOTICE</strong> the feeling (name it: "I'm getting stressed")</li>
+                            <li><strong>PAUSE</strong> for 60 seconds (don't react to anything)</li>
+                            <li><strong>DO</strong> 4 rounds of 4-7-8 breathing</li>
+                            <li><strong>PLACE</strong> your hand on your stomach</li>
+                            <li><strong>RESUME</strong> what you were doing</li>
+                        </ul>
+                        <p>The hand on stomach is grounding—it brings your attention to your gut and creates a physical anchor.</p>
+
+                        <h6>Building the Skill</h6>
+                        <p>This week you're building a skill that compounds over time. Your gut-brain connection developed over years—it won't fully rewire in 7 days.</p>
+                        <p>But if you're starting to SEE the stress-symptom pattern and you've interrupted it even once, you're on the right path. Each successful interception builds your capacity for the next one.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="protocol-tips">
                 <h5>Key Interventions</h5>
-                <p><strong>The 24-48 hour rule:</strong> Stress today often shows up in your gut tomorrow. Track the connection.</p>
-                <p><strong>Vagus activation:</strong> Cold water, humming, gargling, slow breathing - all stimulate the vagus nerve and calm your gut.</p>
+                <p><strong>Stress-symptom tracking:</strong> You can't change what you can't see</p>
+                <p><strong>Pre-meal calming:</strong> Eating while stressed shuts down digestion</p>
+            </div>
+
+            <div class="what-to-expect">
+                <h5>What to Expect by Day 7</h5>
+                <ul>
+                    <li>The gap between stress and gut symptoms widens</li>
+                    <li>Vagus practices become habit, not effort</li>
+                    <li>At least 1-2 moments where you "caught" stress before it triggered symptoms</li>
+                </ul>
+                <p>Your gut-brain connection took years to develop. If you're starting to SEE the pattern and you've interrupted it even once, that's meaningful progress.</p>
             </div>
         </div>
     `
@@ -1118,8 +2083,43 @@ function loadProtocolContent(protocol) {
     document.getElementById('protocol-content').innerHTML = content;
     document.getElementById('protocol-title').textContent = `Week 1: ${PROTOCOLS[protocol].shortName}`;
 
+    // Initialize accordion functionality
+    initializeProtocolAccordions();
+
     // Show recovery path section with appropriate content
     showRecoveryPathSection();
+}
+
+// Initialize accordion expand/collapse functionality
+function initializeProtocolAccordions() {
+    // Initialize main accordions (Safety Disclaimer, Bristol Chart)
+    const accordions = document.querySelectorAll('.protocol-accordion-header');
+    accordions.forEach(header => {
+        // Remove existing listeners to prevent duplicates
+        const newHeader = header.cloneNode(true);
+        header.parentNode.replaceChild(newHeader, header);
+
+        newHeader.addEventListener('click', function() {
+            const accordion = this.parentElement;
+            accordion.classList.toggle('active');
+        });
+    });
+
+    // Initialize "Learn More" toggles
+    const learnMoreToggles = document.querySelectorAll('.learn-more-toggle');
+    learnMoreToggles.forEach(toggle => {
+        // Remove existing listeners to prevent duplicates
+        const newToggle = toggle.cloneNode(true);
+        toggle.parentNode.replaceChild(newToggle, toggle);
+
+        newToggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const content = this.nextElementSibling;
+            if (content && content.classList.contains('learn-more-content')) {
+                content.classList.toggle('active');
+            }
+        });
+    });
 }
 
 function showRecoveryPathSection() {
