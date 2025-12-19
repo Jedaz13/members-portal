@@ -983,6 +983,242 @@ a:hover {
 }
 
 /* ============================================
+   ACCORDION/EXPANDABLE SECTIONS
+   ============================================ */
+.protocol-accordion {
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+}
+
+.protocol-accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--background);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    user-select: none;
+}
+
+.protocol-accordion-header:hover {
+    background: #f8f0eb;
+}
+
+.protocol-accordion-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+}
+
+.protocol-accordion-icon {
+    font-size: 18px;
+    color: var(--primary);
+    transition: transform 0.3s ease;
+}
+
+.protocol-accordion.active .protocol-accordion-icon {
+    transform: rotate(180deg);
+}
+
+.protocol-accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.protocol-accordion-content-inner {
+    padding: 0 20px 20px 20px;
+}
+
+.protocol-accordion.active .protocol-accordion-content {
+    max-height: 2000px;
+}
+
+/* Safety Disclaimer specific styling */
+.safety-disclaimer {
+    background: #fff9f0;
+    border-color: rgba(224, 122, 95, 0.3);
+}
+
+.safety-disclaimer .protocol-accordion-header {
+    background: #fff3e6;
+}
+
+.safety-disclaimer .protocol-accordion-title {
+    color: var(--accent);
+}
+
+.safety-disclaimer .protocol-accordion-content-inner ul {
+    margin: 12px 0 12px 20px;
+}
+
+.safety-disclaimer .protocol-accordion-content-inner li {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+/* Bristol Stool Chart specific styling */
+.bristol-chart-accordion .bristol-chart-image {
+    width: 100%;
+    max-width: 600px;
+    margin: 16px auto;
+    display: block;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.bristol-chart-summary {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--background);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+}
+
+.bristol-chart-summary p {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 12px;
+    line-height: 1.6;
+}
+
+.bristol-chart-summary p:last-child {
+    margin-bottom: 0;
+}
+
+/* Learn More sections within protocol days */
+.learn-more-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: transparent;
+    border: 1px solid var(--secondary);
+    border-radius: 6px;
+    color: var(--primary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.learn-more-toggle:hover {
+    background: var(--secondary-light);
+    border-color: var(--primary);
+}
+
+.learn-more-toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.learn-more-toggle.active .learn-more-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.learn-more-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.learn-more-content.active {
+    max-height: 3000px;
+}
+
+.learn-more-content-inner {
+    margin-top: 16px;
+    padding: 20px;
+    background: #f7faf9;
+    border-left: 3px solid var(--primary);
+    border-radius: 6px;
+}
+
+.learn-more-content-inner h6 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.learn-more-content-inner p {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 16px;
+}
+
+.learn-more-content-inner p:last-child {
+    margin-bottom: 0;
+}
+
+.learn-more-content-inner ul {
+    margin: 12px 0 16px 20px;
+}
+
+.learn-more-content-inner li {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+/* Protocol Introduction */
+.protocol-intro {
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--background);
+    border-radius: 8px;
+}
+
+/* What to Expect box */
+.what-to-expect {
+    background: linear-gradient(135deg, #f0f7f5 0%, #f7faf9 100%);
+    border: 1px solid rgba(107, 144, 128, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 24px;
+}
+
+.what-to-expect h5 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.what-to-expect p,
+.what-to-expect ul {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+}
+
+.what-to-expect ul {
+    margin: 12px 0 12px 20px;
+}
+
+.what-to-expect li {
+    margin-bottom: 8px;
+}
+
+/* Warning highlights */
+.warning-text {
+    color: #d97706;
+    font-weight: 500;
+}
+
+/* ============================================
    RECOVERY PATH SECTION
    ============================================ */
 .recovery-path-section {
