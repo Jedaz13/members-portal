@@ -1550,7 +1550,8 @@ async function checkUserStatusAndRoute(user) {
         console.log('Final status for routing:', updatedStatus);
         switch (updatedStatus) {
             case 'trial_expired':
-                showView('trial-expired-view');
+                // Trial expired users get limited dashboard access
+                initializeDashboard();
                 break;
             case 'trial':
             case 'active':
@@ -1647,16 +1648,9 @@ function applyAccessControls() {
 
     const userStatus = currentMember?.status;
 
-    // Learning Materials - ALWAYS LOCKED initially per requirements
+    // Learning Materials controls
     const learningOverlay = document.getElementById('learning-locked-overlay');
     const learningContent = document.getElementById('learning-content');
-    if (learningOverlay) {
-        learningOverlay.classList.remove('hidden');
-        console.log('Learning materials locked');
-    }
-    if (learningContent) {
-        learningContent.classList.add('locked');
-    }
 
     // Q&A Session controls
     const qnaJoinSection = document.getElementById('qna-join-section');
@@ -1667,8 +1661,12 @@ function applyAccessControls() {
     const sendMessageBtn = document.getElementById('send-message-btn');
     const attachFileBtn = document.getElementById('attach-file-btn');
 
-    if (userStatus === 'trial' || userStatus === 'active') {
-        // Trial and Active users - Everything except learning materials is open
+    if (userStatus === 'active') {
+        // Active (paid) users - Full access to everything
+
+        // Learning Materials: UNLOCKED
+        if (learningOverlay) learningOverlay.classList.add('hidden');
+        if (learningContent) learningContent.classList.remove('locked');
 
         // Q&A: Fully accessible
         if (qnaJoinSection) qnaJoinSection.classList.remove('hidden');
@@ -1682,10 +1680,37 @@ function applyAccessControls() {
         }
         if (attachFileBtn) attachFileBtn.disabled = false;
 
-        console.log('Access: Trial/Active - Full access except learning materials');
+        console.log('Access: Active (Paid) - Full access to all features');
+
+    } else if (userStatus === 'trial') {
+        // Trial users - Everything except learning materials
+
+        // Learning Materials: LOCKED (unlock after upgrade)
+        if (learningOverlay) learningOverlay.classList.remove('hidden');
+        if (learningContent) learningContent.classList.add('locked');
+
+        // Q&A: Fully accessible
+        if (qnaJoinSection) qnaJoinSection.classList.remove('hidden');
+        if (qnaLockedMessage) qnaLockedMessage.classList.add('hidden');
+
+        // Messages: Fully accessible
+        if (messageInput) messageInput.disabled = false;
+        if (sendMessageBtn) {
+            sendMessageBtn.disabled = false;
+            sendMessageBtn.classList.remove('btn-disabled');
+        }
+        if (attachFileBtn) attachFileBtn.disabled = false;
+
+        console.log('Access: Trial - Full access except learning materials');
 
     } else if (userStatus === 'trial_expired' || !userStatus || userStatus === 'lead') {
         // Trial expired or no status - Restricted access
+        // Can see: Today's tracking + Current protocol + Message history
+        // Locked: Q&A, Learning Materials, Sending Messages
+
+        // Learning Materials: LOCKED
+        if (learningOverlay) learningOverlay.classList.remove('hidden');
+        if (learningContent) learningContent.classList.add('locked');
 
         // Q&A: Show info but lock join button
         if (qnaJoinSection) qnaJoinSection.classList.add('hidden');
@@ -1705,7 +1730,7 @@ function applyAccessControls() {
             attachFileBtn.disabled = true;
         }
 
-        console.log('Access: Trial Expired - Limited access');
+        console.log('Access: Trial Expired - Limited access (today\'s tracking + protocol + message history only)');
     }
 }
 
@@ -1967,15 +1992,33 @@ async function handleTrackingSubmit(e) {
 async function loadTrackingHistory() {
     if (!currentMember) return;
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const userStatus = currentMember.status;
+    let dateFilter;
 
-    const { data: entries, error } = await supabase
+    // Trial expired users only see today's tracking
+    if (userStatus === 'trial_expired' || userStatus === 'lead') {
+        const today = new Date().toISOString().split('T')[0];
+        dateFilter = today;
+    } else {
+        // Active and trial users see last 7 days
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        dateFilter = sevenDaysAgo.toISOString().split('T')[0];
+    }
+
+    let query = supabase
         .from('tracking_logs')
         .select('*')
-        .eq('user_id', currentMember.id)
-        .gte('date', sevenDaysAgo.toISOString().split('T')[0])
-        .order('date', { ascending: false });
+        .eq('user_id', currentMember.id);
+
+    // Apply date filter based on user status
+    if (userStatus === 'trial_expired' || userStatus === 'lead') {
+        query = query.eq('date', dateFilter);  // Only today
+    } else {
+        query = query.gte('date', dateFilter);  // Last 7 days
+    }
+
+    const { data: entries, error } = await query.order('date', { ascending: false });
 
     const historyList = document.getElementById('history-list');
 
@@ -2157,6 +2200,18 @@ function showRecoveryPathSection() {
         // Example future logic:
         // - Check "Complete 7 days of tracking" when user has 7+ tracking entries
         // - Check other milestones based on practitioner reviews, etc.
+    } else if (currentMember?.status === 'trial_expired' || currentMember?.status === 'lead') {
+        // Trial expired users: show upgrade card to encourage conversion
+        trialCard.classList.remove('hidden');
+        paidCard.classList.add('hidden');
+
+        const upgradeBtn = document.getElementById('locked-pathway-upgrade-btn');
+        if (upgradeBtn && !upgradeBtn.dataset.listenerAdded) {
+            upgradeBtn.addEventListener('click', () => {
+                console.log('Recovery path upgrade button clicked (trial expired)');
+            });
+            upgradeBtn.dataset.listenerAdded = 'true';
+        }
     } else {
         // Unknown status: hide both cards
         trialCard.classList.add('hidden');
