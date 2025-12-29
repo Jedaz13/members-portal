@@ -1613,6 +1613,14 @@ function initializeDashboard() {
         document.getElementById('trial-banner').classList.remove('hidden');
     }
 
+    // Show trial expired banner if trial has expired
+    if (currentMember?.status === 'trial_expired') {
+        const trialExpiredBanner = document.getElementById('trial-expired-banner');
+        if (trialExpiredBanner) {
+            trialExpiredBanner.classList.remove('hidden');
+        }
+    }
+
     // Initialize tabs
     initializeTabs();
 
