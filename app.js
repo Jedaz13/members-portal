@@ -2736,7 +2736,21 @@ async function checkSession() {
     showView('loading-view');
 
     try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Add timeout to prevent hanging on slow network
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Session check timeout')), 5000)
+        );
+
+        const sessionPromise = supabase.auth.getSession();
+
+        const { data: { session }, error } = await Promise.race([
+            sessionPromise,
+            timeoutPromise
+        ]).catch(err => {
+            console.warn('Session check timed out or failed, showing login:', err.message);
+            showView('login-view');
+            return { data: { session: null }, error: err };
+        });
 
         if (error) {
             console.error('Session error:', error.message);
