@@ -1454,6 +1454,14 @@ async function checkUserStatusAndRoute(user, accessToken) {
             return;
         }
 
+        // Check if user has completed the quiz (has a protocol assigned)
+        // The trigger creates users on Google sign-in, but without quiz data
+        if (!member.protocol) {
+            console.log('User exists but has not completed quiz - needs to take quiz');
+            showView('not-found-view');
+            return;
+        }
+
         // Step 1b: Link the auth ID to the user record if different
         // This syncs the Supabase auth ID with the quiz-created user record
         if (member.id !== user.id) {
