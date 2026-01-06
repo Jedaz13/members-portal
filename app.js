@@ -2735,6 +2735,50 @@ async function checkSession() {
     // Show loading while we wait for auth state to be determined
     showView('loading-view');
 
+    // Check if this is an OAuth callback (has code or error in URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const hasOAuthCallback = urlParams.has('code') || urlParams.has('error') ||
+                             hashParams.has('access_token') || hashParams.has('error');
+
+    if (hasOAuthCallback) {
+        console.log('OAuth callback detected, processing...');
+
+        // If we have a code parameter, explicitly exchange it for a session (PKCE flow)
+        const code = urlParams.get('code');
+        if (code) {
+            console.log('Exchanging OAuth code for session...');
+            try {
+                const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                if (error) {
+                    console.error('OAuth code exchange failed:', error.message);
+                    showToast('Sign in failed. Please try again.');
+                    showView('login-view');
+                    // Clean up URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    return;
+                }
+                console.log('OAuth code exchange successful');
+                // onAuthStateChange will handle the rest
+            } catch (err) {
+                console.error('OAuth code exchange error:', err);
+                showToast('Sign in failed. Please try again.');
+                showView('login-view');
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
+        }
+
+        // Set a timeout fallback in case OAuth processing fails silently
+        setTimeout(() => {
+            if (!authProcessed && !isRouting) {
+                console.log('OAuth callback timeout - showing login');
+                showView('login-view');
+            }
+        }, 10000); // 10 second timeout for OAuth processing
+        return;
+    }
+
     try {
         // Add timeout to prevent hanging on slow network
         const timeoutPromise = new Promise((_, reject) =>
