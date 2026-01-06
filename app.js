@@ -1374,7 +1374,7 @@ async function signOut() {
 // ============================================
 // USER STATUS ROUTING - THE CORE BUSINESS LOGIC
 // ============================================
-async function checkUserStatusAndRoute(user) {
+async function checkUserStatusAndRoute(user, accessToken) {
     // Prevent double routing from multiple auth events
     if (isRouting) {
         console.log('Already routing, skipping...');
@@ -1410,7 +1410,7 @@ async function checkUserStatusAndRoute(user) {
                 method: 'GET',
                 headers: {
                     'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Authorization': `Bearer ${accessToken}`,
                     'Content-Type': 'application/json'
                 },
                 signal: controller.signal
@@ -1538,7 +1538,7 @@ async function checkUserStatusAndRoute(user) {
                 method: 'PATCH',
                 headers: {
                     'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Authorization': `Bearer ${accessToken}`,
                     'Content-Type': 'application/json',
                     'Prefer': 'return=minimal'
                 },
@@ -2793,7 +2793,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
             return;
         }
         authProcessed = true;
-        await checkUserStatusAndRoute(session.user);
+        await checkUserStatusAndRoute(session.user, session.access_token);
     }
 });
 
