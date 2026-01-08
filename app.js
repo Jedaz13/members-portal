@@ -2879,6 +2879,187 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Initialize Login Page Features
+    initLoginPageFeatures();
+
     // Initialize
     checkSession();
 });
+
+// ============================================
+// LOGIN PAGE FEATURES
+// ============================================
+
+function initLoginPageFeatures() {
+    // Initialize slideshow
+    initSlideshow();
+
+    // Initialize toggle switch
+    initToggleSwitch();
+
+    // Initialize mobile menu
+    initMobileMenu();
+}
+
+// Slideshow functionality
+function initSlideshow() {
+    const slidesContainer = document.querySelector('.slideshow-slides');
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.slideshow-dots .dot');
+
+    if (!slidesContainer || slides.length === 0) return;
+
+    let currentIndex = 0;
+    let slideInterval;
+    let isPaused = false;
+
+    // Fisher-Yates shuffle for random order
+    function shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+
+    // Create shuffled order for slides
+    const slideOrder = shuffleArray([...Array(slides.length).keys()]);
+
+    // Start from random position in the shuffled order
+    let orderIndex = Math.floor(Math.random() * slideOrder.length);
+    currentIndex = slideOrder[orderIndex];
+
+    // Show specific slide
+    function showSlide(index) {
+        // Hide all slides
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+
+        // Show selected slide
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+        currentIndex = index;
+
+        // Update orderIndex to match
+        orderIndex = slideOrder.indexOf(index);
+    }
+
+    // Go to next slide in shuffled order
+    function nextSlide() {
+        orderIndex = (orderIndex + 1) % slideOrder.length;
+        showSlide(slideOrder[orderIndex]);
+    }
+
+    // Start auto-rotation
+    function startAutoRotation() {
+        if (slideInterval) clearInterval(slideInterval);
+        slideInterval = setInterval(() => {
+            if (!isPaused) {
+                nextSlide();
+            }
+        }, 5000); // 5 seconds
+    }
+
+    // Initialize first slide
+    showSlide(currentIndex);
+
+    // Start auto-rotation
+    startAutoRotation();
+
+    // Pause on hover
+    const slideshowContainer = document.querySelector('.slideshow-container');
+    if (slideshowContainer) {
+        slideshowContainer.addEventListener('mouseenter', () => {
+            isPaused = true;
+        });
+
+        slideshowContainer.addEventListener('mouseleave', () => {
+            isPaused = false;
+        });
+    }
+
+    // Dot navigation
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            showSlide(index);
+            // Reset auto-rotation timer when manually navigating
+            startAutoRotation();
+        });
+    });
+}
+
+// Toggle switch functionality
+function initToggleSwitch() {
+    const toggleContainer = document.querySelector('.login-toggle');
+    const toggleMembers = document.getElementById('toggle-members');
+    const togglePractitioners = document.getElementById('toggle-practitioners');
+    const loginDescription = document.getElementById('login-description');
+
+    if (!toggleContainer || !toggleMembers || !togglePractitioners) return;
+
+    // Store the login type in sessionStorage for use after OAuth redirect
+    let loginType = sessionStorage.getItem('loginType') || 'members';
+
+    // Set initial state
+    updateToggleState(loginType);
+
+    function updateToggleState(type) {
+        loginType = type;
+        sessionStorage.setItem('loginType', type);
+
+        if (type === 'members') {
+            toggleMembers.classList.add('active');
+            togglePractitioners.classList.remove('active');
+            toggleContainer.removeAttribute('data-active');
+            if (loginDescription) {
+                loginDescription.textContent = 'Sign in to access your personalized gut healing dashboard';
+            }
+        } else {
+            togglePractitioners.classList.add('active');
+            toggleMembers.classList.remove('active');
+            toggleContainer.setAttribute('data-active', 'practitioners');
+            if (loginDescription) {
+                loginDescription.textContent = 'Sign in to access your practitioner dashboard';
+            }
+        }
+    }
+
+    toggleMembers.addEventListener('click', () => updateToggleState('members'));
+    togglePractitioners.addEventListener('click', () => updateToggleState('practitioners'));
+}
+
+// Mobile menu functionality
+function initMobileMenu() {
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const closeBtn = document.getElementById('mobile-menu-close');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (!menuBtn || !closeBtn || !mobileMenu) return;
+
+    function openMenu() {
+        mobileMenu.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu() {
+        mobileMenu.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    menuBtn.addEventListener('click', openMenu);
+    closeBtn.addEventListener('click', closeMenu);
+
+    // Close menu when clicking overlay (outside menu content)
+    mobileMenu.addEventListener('click', (e) => {
+        if (e.target === mobileMenu) {
+            closeMenu();
+        }
+    });
+
+    // Close menu when clicking a link
+    const mobileLinks = mobileMenu.querySelectorAll('.mobile-nav-link');
+    mobileLinks.forEach(link => {
+        link.addEventListener('click', closeMenu);
+    });
+}
