@@ -2998,8 +2998,18 @@ function initToggleSwitch() {
 
     if (!toggleContainer || !toggleMembers || !togglePractitioners) return;
 
-    // Store the login type in sessionStorage for use after OAuth redirect
-    let loginType = sessionStorage.getItem('loginType') || 'members';
+    // Check URL parameter first (for redirects from homepage)
+    // Usage: ?type=members or ?type=practitioners
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlType = urlParams.get('type');
+
+    // Priority: URL param > sessionStorage > default ('members')
+    let loginType;
+    if (urlType === 'members' || urlType === 'practitioners') {
+        loginType = urlType;
+    } else {
+        loginType = sessionStorage.getItem('loginType') || 'members';
+    }
 
     // Set initial state
     updateToggleState(loginType);
