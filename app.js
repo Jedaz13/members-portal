@@ -1590,6 +1590,16 @@ function initializeDashboard() {
     console.log('Initializing dashboard...');
     console.log('Current member data:', currentMember);
 
+    // Check if user selected Practitioners login - redirect to practitioner dashboard
+    const loginType = sessionStorage.getItem('loginType');
+    if (loginType === 'practitioners') {
+        console.log('Practitioner login detected, redirecting to practitioner dashboard...');
+        // Clear the loginType so they don't get stuck in a redirect loop
+        sessionStorage.removeItem('loginType');
+        window.location.href = 'practitioner.html';
+        return;
+    }
+
     showView('dashboard-view');
 
     // Set welcome message
