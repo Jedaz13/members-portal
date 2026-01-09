@@ -26,14 +26,13 @@
 
 .practitioner-header .header-brand {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 24px;
 }
 
-.practitioner-header .header-brand h1 {
-    font-size: 20px;
-    color: var(--primary);
-    margin: 0;
+.practitioner-header .header-brand .header-logo-img {
+    height: 36px;
+    width: auto;
 }
 
 .header-role {
@@ -899,8 +898,8 @@
         flex-wrap: wrap;
     }
 
-    .practitioner-header .header-brand h1 {
-        font-size: 16px;
+    .practitioner-header .header-brand .header-logo-img {
+        height: 28px;
     }
 
     .header-role {
