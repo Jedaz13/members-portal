@@ -2963,13 +2963,13 @@ a:hover {
 
 .login-brand {
     margin-bottom: 32px;
+    text-align: center;
 }
 
-.login-brand h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 8px;
+.login-brand-logo {
+    height: 80px;
+    width: auto;
+    display: inline-block;
 }
 
 /* Toggle Switch */
@@ -3233,8 +3233,8 @@ a:hover {
         max-width: 100%;
     }
 
-    .login-brand h1 {
-        font-size: 24px;
+    .login-brand-logo {
+        height: 60px;
     }
 
     .toggle-btn {
@@ -3253,8 +3253,8 @@ a:hover {
         padding: 24px 16px;
     }
 
-    .login-brand h1 {
-        font-size: 22px;
+    .login-brand-logo {
+        height: 50px;
     }
 
     .toggle-btn {
