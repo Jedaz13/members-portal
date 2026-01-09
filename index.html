@@ -13,15 +13,60 @@
 </head>
 <body>
     <!-- Login View -->
-    <div id="login-view" class="view">
-        <div class="container">
-            <div class="card">
-                <div class="brand">
-                    <h1>Gut Healing Academy</h1>
-                    <p class="subtitle">Member Portal</p>
-                </div>
-                <div id="login-section">
-                    <p class="welcome-text">Sign in to access your personalized gut healing dashboard</p>
+    <div id="login-view" class="view login-view">
+        <!-- Login Header -->
+        <header class="login-header">
+            <div class="login-header-content">
+                <a href="https://www.guthealingacademy.com" class="login-header-logo">
+                    Gut Healing Academy
+                </a>
+                <nav class="login-nav desktop-nav">
+                    <a href="https://www.guthealingacademy.com/about" class="login-nav-link">About Us</a>
+                    <a href="https://www.guthealingacademy.com/legal/contact.html" class="login-nav-link">Contact Us</a>
+                </nav>
+                <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="mobile-menu hidden">
+            <div class="mobile-menu-content">
+                <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <nav class="mobile-nav">
+                    <a href="https://www.guthealingacademy.com/about" class="mobile-nav-link">About Us</a>
+                    <a href="https://www.guthealingacademy.com/legal/contact.html" class="mobile-nav-link">Contact Us</a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Split Screen Layout -->
+        <div class="login-split-container">
+            <!-- Left Panel - Login Form -->
+            <div class="login-left-panel">
+                <div class="login-left-content">
+                    <div class="login-brand">
+                        <h1>Gut Healing Academy</h1>
+                    </div>
+
+                    <!-- Toggle Switch -->
+                    <div class="login-toggle-container">
+                        <div class="login-toggle">
+                            <button id="toggle-members" class="toggle-btn active" data-type="members">Members</button>
+                            <button id="toggle-practitioners" class="toggle-btn" data-type="practitioners">Practitioners</button>
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+
+                    <p id="login-description" class="login-description">Sign in to access your personalized gut healing dashboard</p>
+
                     <button id="google-login-btn" class="btn-google">
                         <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -31,7 +76,108 @@
                         </svg>
                         Sign in with Google
                     </button>
+
                     <p class="legal-agreement">By signing in, you agree to our <a href="https://www.guthealingacademy.com/legal/terms.html" target="_blank">Terms of Service</a> and <a href="https://www.guthealingacademy.com/legal/index.html" target="_blank">Privacy Policy</a></p>
+                </div>
+            </div>
+
+            <!-- Right Panel - Slideshow (Desktop Only) -->
+            <div class="login-right-panel">
+                <div class="slideshow-container">
+                    <!-- Slides will be populated by JavaScript -->
+                    <div class="slideshow-slides">
+                        <!-- Slide 1: Paulina -->
+                        <div class="slide" data-index="0">
+                            <div class="slide-content">
+                                <div class="slide-photo">
+                                    <img src="assets/practitioners/paulina.png" alt="MSc Paulina Andrzejewska" loading="lazy">
+                                </div>
+                                <blockquote class="slide-quote">
+                                    "My greatest passion is the gut microbiome and its profound impact on our health and emotional well-being. I focus on diet therapy that addresses root causes — not just symptoms."
+                                </blockquote>
+                                <div class="slide-author">
+                                    <span class="slide-name">MSc Paulina Andrzejewska</span>
+                                    <span class="slide-credentials">Clinical Dietitian | Low FODMAP Specialist</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 2: Rebecca -->
+                        <div class="slide" data-index="1">
+                            <div class="slide-content">
+                                <div class="slide-photo">
+                                    <img src="assets/practitioners/rebecca.png" alt="Rebecca Taylor" loading="lazy">
+                                </div>
+                                <blockquote class="slide-quote">
+                                    "When your gut thrives, so do you. This isn't about restriction — it's about understanding what YOUR body needs to function optimally."
+                                </blockquote>
+                                <div class="slide-author">
+                                    <span class="slide-name">Rebecca Taylor</span>
+                                    <span class="slide-credentials">Registered Clinical Nutritionist (BSc, MS, RNutr)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 3: Suzy -->
+                        <div class="slide" data-index="2">
+                            <div class="slide-content">
+                                <div class="slide-photo">
+                                    <img src="assets/testimonials/suzy.png" alt="Suzy" loading="lazy">
+                                </div>
+                                <blockquote class="slide-quote">
+                                    "My symptoms were complex and my gut history was complicated. After following the protocol, I'm seeing significant improvement. I finally know my triggers and how to eat to feel my best."
+                                </blockquote>
+                                <div class="slide-author">
+                                    <span class="slide-name">Suzy</span>
+                                    <span class="slide-stars">★★★★★</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 4: Amanda -->
+                        <div class="slide" data-index="3">
+                            <div class="slide-content">
+                                <div class="slide-photo">
+                                    <img src="assets/testimonials/amanda.png" alt="Amanda" loading="lazy">
+                                </div>
+                                <blockquote class="slide-quote">
+                                    "After years of being a yo-yo dieter, I finally found something that works. With Becca's knowledge of nutrition, I know I'm on track to keep the results."
+                                </blockquote>
+                                <div class="slide-author">
+                                    <span class="slide-name">Amanda</span>
+                                    <span class="slide-stars">★★★★★</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 5: Cheryl -->
+                        <div class="slide" data-index="4">
+                            <div class="slide-content">
+                                <div class="slide-photo">
+                                    <img src="assets/testimonials/cheryl.png" alt="Cheryl" loading="lazy">
+                                </div>
+                                <blockquote class="slide-quote">
+                                    "I was constantly battling bloating, low energy, and unpredictable digestion. With the protocol, I uncovered things I never knew were affecting me. For the first time in years, I feel lighter and truly in control."
+                                </blockquote>
+                                <div class="slide-author">
+                                    <span class="slide-name">Cheryl</span>
+                                    <span class="slide-stars">★★★★★</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slideshow Navigation Dots -->
+                    <div class="slideshow-dots">
+                        <button class="dot active" data-index="0" aria-label="Go to slide 1"></button>
+                        <button class="dot" data-index="1" aria-label="Go to slide 2"></button>
+                        <button class="dot" data-index="2" aria-label="Go to slide 3"></button>
+                        <button class="dot" data-index="3" aria-label="Go to slide 4"></button>
+                        <button class="dot" data-index="4" aria-label="Go to slide 5"></button>
+                    </div>
+
+                    <!-- Disclaimer -->
+                    <p class="slideshow-disclaimer">Individual results may vary based on adherence and personal factors.</p>
                 </div>
             </div>
         </div>

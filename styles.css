@@ -2780,3 +2780,472 @@ a:hover {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.1);
 }
+
+/* ============================================
+   LOGIN PAGE REDESIGN - SPLIT SCREEN LAYOUT
+   ============================================ */
+
+/* Login View Override */
+.login-view {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background);
+}
+
+/* Login Header */
+.login-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--white);
+    box-shadow: 0 2px 8px var(--shadow);
+    z-index: 100;
+}
+
+.login-header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 100%;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.login-header-logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.login-header-logo:hover {
+    text-decoration: none;
+    color: var(--primary-dark);
+}
+
+.login-nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.login-nav-link {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.login-nav-link:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: var(--text);
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(45, 52, 54, 0.5);
+    z-index: 200;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-menu:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+.mobile-menu-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 280px;
+    background: var(--white);
+    box-shadow: -4px 0 16px var(--shadow);
+    padding: 24px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.mobile-menu:not(.hidden) .mobile-menu-content {
+    transform: translateX(0);
+}
+
+.mobile-menu-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: var(--text);
+}
+
+.mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 60px;
+}
+
+.mobile-nav-link {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.mobile-nav-link:hover {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* Split Screen Container */
+.login-split-container {
+    display: flex;
+    min-height: 100vh;
+    padding-top: 60px; /* Header height */
+}
+
+/* Left Panel - Login Form */
+.login-left-panel {
+    width: 35%;
+    min-width: 380px;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.login-left-content {
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+}
+
+.login-brand {
+    margin-bottom: 32px;
+}
+
+.login-brand h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+/* Toggle Switch */
+.login-toggle-container {
+    margin-bottom: 24px;
+}
+
+.login-toggle {
+    display: inline-flex;
+    position: relative;
+    background: #f0f0f0;
+    border-radius: 30px;
+    padding: 4px;
+}
+
+.toggle-btn {
+    position: relative;
+    z-index: 2;
+    padding: 10px 24px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: color 0.3s ease;
+    border-radius: 26px;
+}
+
+.toggle-btn.active {
+    color: var(--white);
+}
+
+.toggle-slider {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    width: calc(50% - 4px);
+    background: var(--primary);
+    border-radius: 26px;
+    transition: transform 0.3s ease;
+    z-index: 1;
+}
+
+.login-toggle[data-active="practitioners"] .toggle-slider {
+    transform: translateX(100%);
+}
+
+/* Login Description */
+.login-description {
+    font-size: 16px;
+    color: var(--text-light);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+/* Right Panel - Slideshow */
+.login-right-panel {
+    flex: 1;
+    background: linear-gradient(135deg, #E8F0EC 0%, #d4e4da 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+/* Slideshow Container */
+.slideshow-container {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+.slideshow-slides {
+    position: relative;
+    min-height: 450px;
+}
+
+/* Individual Slide */
+.slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.slide.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.slide-content {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 40px 32px;
+    box-shadow: 0 8px 32px rgba(91, 138, 114, 0.15);
+}
+
+/* Slide Photo */
+.slide-photo {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--white);
+    box-shadow: 0 4px 16px var(--shadow);
+    background: var(--secondary-light);
+}
+
+.slide-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Slide Quote */
+.slide-quote {
+    font-size: 16px;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 24px;
+    padding: 0;
+    border: none;
+}
+
+.slide-quote::before,
+.slide-quote::after {
+    content: none;
+}
+
+/* Slide Author */
+.slide-author {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.slide-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.slide-credentials {
+    font-size: 14px;
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.slide-stars {
+    font-size: 18px;
+    color: #F4B942;
+    letter-spacing: 2px;
+}
+
+/* Slideshow Dots */
+.slideshow-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(91, 138, 114, 0.3);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.dot:hover {
+    background: rgba(91, 138, 114, 0.5);
+}
+
+.dot.active {
+    background: var(--primary);
+    transform: scale(1.2);
+}
+
+/* Slideshow Disclaimer */
+.slideshow-disclaimer {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 20px;
+    opacity: 0.8;
+}
+
+/* ============================================
+   LOGIN PAGE - RESPONSIVE STYLES
+   ============================================ */
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+    .login-left-panel {
+        width: 40%;
+        min-width: 340px;
+        padding: 32px;
+    }
+
+    .login-right-panel {
+        padding: 32px;
+    }
+
+    .slide-photo {
+        width: 120px;
+        height: 120px;
+    }
+
+    .slide-content {
+        padding: 32px 24px;
+    }
+
+    .slideshow-slides {
+        min-height: 420px;
+    }
+}
+
+/* Mobile (<768px) */
+@media (max-width: 768px) {
+    /* Header Mobile */
+    .desktop-nav {
+        display: none;
+    }
+
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .login-header-content {
+        padding: 0 16px;
+    }
+
+    /* Split to Single Column */
+    .login-split-container {
+        flex-direction: column;
+    }
+
+    .login-left-panel {
+        width: 100%;
+        min-width: unset;
+        min-height: calc(100vh - 60px);
+        padding: 32px 20px;
+    }
+
+    /* Hide Right Panel (Slideshow) on Mobile */
+    .login-right-panel {
+        display: none;
+    }
+
+    .login-left-content {
+        max-width: 100%;
+    }
+
+    .login-brand h1 {
+        font-size: 24px;
+    }
+
+    .toggle-btn {
+        padding: 8px 18px;
+        font-size: 13px;
+    }
+
+    .login-description {
+        font-size: 15px;
+    }
+}
+
+/* Extra Small Mobile (<380px) */
+@media (max-width: 380px) {
+    .login-left-panel {
+        padding: 24px 16px;
+    }
+
+    .login-brand h1 {
+        font-size: 22px;
+    }
+
+    .toggle-btn {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+}
