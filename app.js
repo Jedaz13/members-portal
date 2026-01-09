@@ -2315,10 +2315,10 @@ async function loadPractitionerInfo() {
             return;
         }
 
-        // Fetch practitioner details
+        // Fetch practitioner details including bio and specializations
         const { data: practitioner, error: practitionerError } = await supabase
             .from('users')
-            .select('id, name, avatar_url, credentials')
+            .select('id, name, avatar_url, credentials, bio, specializations')
             .eq('id', assignment.practitioner_id)
             .maybeSingle();
 
@@ -2339,36 +2339,155 @@ async function loadPractitionerInfo() {
 }
 
 function updatePractitionerHeader() {
-    const header = document.getElementById('practitioner-header');
+    // Update the expandable practitioner card in Message Expert tab
+    const practitionerCard = document.getElementById('practitioner-card');
     const avatar = document.getElementById('practitioner-avatar');
     const name = document.getElementById('practitioner-name');
+    const credentials = document.getElementById('practitioner-credentials');
+    const bio = document.getElementById('practitioner-bio');
+    const specializationsContainer = document.getElementById('practitioner-specializations');
+    const specializationsList = document.getElementById('practitioner-specializations-list');
     const title = document.getElementById('message-panel-title');
     const intro = document.getElementById('message-panel-intro');
 
-    if (!header || !avatar || !name) return;
+    if (!practitionerCard) return;
 
     if (currentPractitioner) {
-        // Show header with practitioner info
-        header.classList.remove('hidden');
-        avatar.src = currentPractitioner.avatar_url || 'https://via.placeholder.com/48';
-        name.textContent = currentPractitioner.name || 'Your Practitioner';
+        // Show the practitioner card
+        practitionerCard.classList.remove('hidden');
+
+        // Set avatar with fallback
+        const avatarUrl = currentPractitioner.avatar_url || 'https://via.placeholder.com/80?text=' + encodeURIComponent((currentPractitioner.name || 'P').charAt(0));
+        if (avatar) avatar.src = avatarUrl;
+
+        // Set name
+        if (name) name.textContent = currentPractitioner.name || 'Your Practitioner';
+
+        // Set credentials (hide if none)
+        if (credentials) {
+            if (currentPractitioner.credentials) {
+                credentials.textContent = currentPractitioner.credentials;
+                credentials.style.display = 'block';
+            } else {
+                credentials.style.display = 'none';
+            }
+        }
+
+        // Set bio with fallback
+        if (bio) {
+            bio.textContent = currentPractitioner.bio || 'Your dedicated gut health practitioner.';
+        }
+
+        // Set specializations
+        if (specializationsContainer && specializationsList) {
+            const specializations = currentPractitioner.specializations || [];
+            if (specializations.length > 0) {
+                specializationsContainer.style.display = 'block';
+                specializationsList.innerHTML = specializations.map(spec => {
+                    // Convert snake_case to readable format
+                    const readableSpec = formatSpecialization(spec);
+                    return `<span class="specialization-tag">${readableSpec}</span>`;
+                }).join('');
+            } else {
+                specializationsContainer.style.display = 'none';
+            }
+        }
 
         // Hide the old panel title and intro
-        if (title) {
-            title.style.display = 'none';
+        if (title) title.style.display = 'none';
+        if (intro) intro.style.display = 'none';
+    } else {
+        // No practitioner assigned, hide the card
+        practitionerCard.classList.add('hidden');
+        if (title) title.style.display = 'block';
+        if (intro) intro.style.display = 'block';
+    }
+
+    // Also update the Protocol tab practitioner card
+    updateProtocolPractitionerCard();
+}
+
+function formatSpecialization(spec) {
+    // Convert snake_case to readable format
+    const specializations = {
+        'bloating': 'Bloating-Dominant',
+        'ibs_c': 'IBS-C',
+        'ibs_d': 'IBS-D',
+        'ibs_m': 'IBS-M',
+        'post_sibo': 'Post-SIBO Recovery',
+        'gut_brain': 'Gut-Brain Connection',
+        'food_sensitivity': 'Food Sensitivity',
+        'leaky_gut': 'Leaky Gut',
+        'dysbiosis': 'Dysbiosis'
+    };
+    return specializations[spec] || spec.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function togglePractitionerCard() {
+    const card = document.getElementById('practitioner-card');
+    const expandedSection = document.getElementById('practitioner-card-expanded');
+
+    if (!card || !expandedSection) return;
+
+    const isExpanded = card.classList.contains('expanded');
+
+    if (isExpanded) {
+        // Collapse
+        card.classList.remove('expanded');
+        expandedSection.classList.add('hidden');
+    } else {
+        // Expand
+        card.classList.add('expanded');
+        expandedSection.classList.remove('hidden');
+    }
+}
+
+function updateProtocolPractitionerCard() {
+    const card = document.getElementById('protocol-practitioner-card');
+    const avatar = document.getElementById('protocol-practitioner-avatar');
+    const name = document.getElementById('protocol-practitioner-name');
+    const credentials = document.getElementById('protocol-practitioner-credentials');
+    const introText = document.getElementById('protocol-practitioner-intro');
+    const messageBtn = document.getElementById('message-practitioner-btn');
+    const messageBtnText = document.getElementById('message-practitioner-btn-text');
+
+    if (!card) return;
+
+    if (currentPractitioner) {
+        // Show the card
+        card.classList.remove('hidden');
+
+        // Set avatar with fallback
+        const avatarUrl = currentPractitioner.avatar_url || 'https://via.placeholder.com/80?text=' + encodeURIComponent((currentPractitioner.name || 'P').charAt(0));
+        if (avatar) avatar.src = avatarUrl;
+
+        // Set name
+        if (name) name.textContent = currentPractitioner.name || 'Your Practitioner';
+
+        // Set credentials (hide if none)
+        if (credentials) {
+            if (currentPractitioner.credentials) {
+                credentials.textContent = currentPractitioner.credentials;
+                credentials.style.display = 'block';
+            } else {
+                credentials.style.display = 'none';
+            }
         }
-        if (intro) {
-            intro.style.display = 'none';
+
+        // Set intro text - use bio or default message
+        if (introText) {
+            const defaultIntro = "I've designed this protocol based on your symptoms and goals. Message me anytime if you have questions.";
+            introText.textContent = currentPractitioner.bio ? `"${currentPractitioner.bio}"` : `"${defaultIntro}"`;
+        }
+
+        // Update button text with practitioner's first name
+        if (messageBtnText && currentPractitioner.name) {
+            const firstName = currentPractitioner.name.split(' ')[0];
+            messageBtnText.textContent = `Message ${firstName}`;
         }
     } else {
-        // No practitioner assigned, hide header
-        header.classList.add('hidden');
-        if (title) {
-            title.style.display = 'block';
-        }
-        if (intro) {
-            intro.style.display = 'block';
-        }
+        // No practitioner assigned, hide the card
+        card.classList.add('hidden');
     }
 }
 
@@ -2898,6 +3017,24 @@ document.addEventListener('DOMContentLoaded', () => {
             sendMessage();
         }
     });
+
+    // Practitioner card toggle (expand/collapse) in Message Expert tab
+    const practitionerCardToggle = document.getElementById('practitioner-card-toggle');
+    if (practitionerCardToggle) {
+        practitionerCardToggle.addEventListener('click', togglePractitionerCard);
+    }
+
+    // Message Practitioner button in Protocol tab - navigate to Message Expert tab
+    const messagePractitionerBtn = document.getElementById('message-practitioner-btn');
+    if (messagePractitionerBtn) {
+        messagePractitionerBtn.addEventListener('click', () => {
+            // Find and click the Message Expert tab button
+            const messagesTabBtn = document.querySelector('[data-tab="messages"]');
+            if (messagesTabBtn) {
+                messagesTabBtn.click();
+            }
+        });
+    }
 
     // Initialize Login Page Features
     initLoginPageFeatures();
