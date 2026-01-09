@@ -1392,6 +1392,527 @@ function setupRealTimeSubscriptions() {
 }
 
 // ============================================
+// FEEDBACK & FEATURE REQUESTS SYSTEM
+// ============================================
+
+// Feedback module state
+var feedbackState = {
+    currentSort: 'votes',
+    currentStatusFilter: '',
+    screenshotFile: null,
+    suggestions: [],
+    mySubmissions: []
+};
+
+// Initialize feedback functionality
+function initFeedback() {
+    // Only run if feedback tab exists
+    if (!document.getElementById('tab-feedback')) return;
+
+    // Character counters
+    var titleInput = document.getElementById('feedback-title');
+    var descInput = document.getElementById('feedback-description');
+    var titleCounter = document.getElementById('title-char-count');
+    var descCounter = document.getElementById('desc-char-count');
+
+    if (titleInput && titleCounter) {
+        titleInput.addEventListener('input', function() {
+            titleCounter.textContent = this.value.length;
+        });
+    }
+
+    if (descInput && descCounter) {
+        descInput.addEventListener('input', function() {
+            descCounter.textContent = this.value.length;
+        });
+    }
+
+    // Type dropdown - show/hide public option
+    var typeSelect = document.getElementById('feedback-type');
+    var publicOption = document.getElementById('public-option');
+
+    if (typeSelect && publicOption) {
+        typeSelect.addEventListener('change', function() {
+            if (this.value === 'feature') {
+                publicOption.classList.remove('hidden');
+            } else {
+                publicOption.classList.add('hidden');
+                document.getElementById('feedback-public').checked = false;
+            }
+        });
+    }
+
+    // Screenshot upload
+    var screenshotInput = document.getElementById('feedback-screenshot');
+    var uploadBtn = document.getElementById('upload-screenshot-btn');
+    var screenshotPreview = document.getElementById('screenshot-preview');
+    var screenshotImg = document.getElementById('screenshot-img');
+    var removeBtn = document.getElementById('remove-screenshot-btn');
+
+    if (uploadBtn && screenshotInput) {
+        uploadBtn.addEventListener('click', function() {
+            screenshotInput.click();
+        });
+
+        screenshotInput.addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Screenshot must be less than 5MB');
+                return;
+            }
+
+            // Validate file type
+            if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+                showToast('Only PNG and JPG images are allowed');
+                return;
+            }
+
+            feedbackState.screenshotFile = file;
+
+            // Show preview
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                screenshotImg.src = e.target.result;
+                screenshotPreview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function() {
+            feedbackState.screenshotFile = null;
+            screenshotInput.value = '';
+            screenshotPreview.classList.add('hidden');
+        });
+    }
+
+    // Form submission
+    var feedbackForm = document.getElementById('feedback-form');
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', handleFeedbackSubmit);
+    }
+
+    // Sort filter buttons
+    var filterBtns = document.querySelectorAll('.suggestions-filters .filter-btn');
+    filterBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            filterBtns.forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            feedbackState.currentSort = this.dataset.sort;
+            renderSuggestions();
+        });
+    });
+
+    // Status filter dropdown
+    var statusFilter = document.getElementById('status-filter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            feedbackState.currentStatusFilter = this.value;
+            renderSuggestions();
+        });
+    }
+
+    // Load initial data
+    loadSuggestions();
+    loadMySubmissions();
+}
+
+// Handle feedback form submission
+async function handleFeedbackSubmit(e) {
+    e.preventDefault();
+
+    if (!currentUser) {
+        showToast('Please sign in to submit feedback');
+        return;
+    }
+
+    var submitBtn = document.getElementById('submit-feedback-btn');
+    var originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    try {
+        var type = document.getElementById('feedback-type').value;
+        var title = document.getElementById('feedback-title').value.trim();
+        var description = document.getElementById('feedback-description').value.trim();
+        var isPublic = type === 'feature' && document.getElementById('feedback-public').checked;
+
+        // Upload screenshot if present
+        var screenshotUrl = null;
+        if (feedbackState.screenshotFile) {
+            showToast('Uploading screenshot...');
+            screenshotUrl = await uploadFeedbackScreenshot(feedbackState.screenshotFile);
+        }
+
+        // Insert feedback
+        var { data, error } = await supabase
+            .from('feedback')
+            .insert({
+                user_id: currentUser.id,
+                type: type,
+                title: title,
+                description: description,
+                screenshot_url: screenshotUrl,
+                is_public: isPublic,
+                status: 'submitted'
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        showToast('Thank you! Your feedback helps us improve.');
+
+        // Clear form
+        document.getElementById('feedback-form').reset();
+        document.getElementById('title-char-count').textContent = '0';
+        document.getElementById('desc-char-count').textContent = '0';
+        document.getElementById('public-option').classList.add('hidden');
+        document.getElementById('screenshot-preview').classList.add('hidden');
+        feedbackState.screenshotFile = null;
+
+        // Reload data
+        loadMySubmissions();
+        if (isPublic) {
+            loadSuggestions();
+        }
+
+    } catch (err) {
+        console.error('Error submitting feedback:', err);
+        showToast('Error submitting feedback. Please try again.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+}
+
+// Upload screenshot to Supabase Storage
+async function uploadFeedbackScreenshot(file) {
+    var timestamp = Date.now();
+    var safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    var filePath = currentUser.id + '/' + timestamp + '_' + safeName;
+
+    var { data, error } = await supabase.storage
+        .from('feedback-screenshots')
+        .upload(filePath, file);
+
+    if (error) {
+        console.error('Screenshot upload error:', error);
+        throw error;
+    }
+
+    var { data: urlData } = supabase.storage
+        .from('feedback-screenshots')
+        .getPublicUrl(filePath);
+
+    return urlData.publicUrl;
+}
+
+// Load public suggestions
+async function loadSuggestions() {
+    var listEl = document.getElementById('suggestions-list');
+    var emptyEl = document.getElementById('suggestions-empty');
+
+    if (!listEl) return;
+
+    listEl.innerHTML = '<div class="suggestions-loading"><div class="spinner-small"></div><p>Loading suggestions...</p></div>';
+    emptyEl.classList.add('hidden');
+
+    try {
+        // Fetch public feature requests with vote counts
+        var { data: suggestions, error } = await supabase
+            .from('feedback')
+            .select('*, users!feedback_user_id_fkey(name)')
+            .eq('is_public', true)
+            .eq('type', 'feature')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Fetch vote counts and user votes
+        var { data: votes, error: votesError } = await supabase
+            .from('feedback_votes')
+            .select('feedback_id, user_id');
+
+        if (votesError) throw votesError;
+
+        // Process suggestions with vote data
+        feedbackState.suggestions = suggestions.map(function(s) {
+            var feedbackVotes = votes.filter(function(v) { return v.feedback_id === s.id; });
+            return {
+                ...s,
+                vote_count: feedbackVotes.length,
+                user_has_voted: currentUser ? feedbackVotes.some(function(v) { return v.user_id === currentUser.id; }) : false,
+                user_name: s.users ? s.users.name : 'Member'
+            };
+        });
+
+        renderSuggestions();
+
+    } catch (err) {
+        console.error('Error loading suggestions:', err);
+        listEl.innerHTML = '<p class="suggestions-empty">Error loading suggestions. Please refresh.</p>';
+    }
+}
+
+// Render suggestions based on current filters
+function renderSuggestions() {
+    var listEl = document.getElementById('suggestions-list');
+    var emptyEl = document.getElementById('suggestions-empty');
+
+    if (!listEl) return;
+
+    var filtered = feedbackState.suggestions.slice();
+
+    // Apply status filter
+    if (feedbackState.currentStatusFilter) {
+        filtered = filtered.filter(function(s) {
+            return s.status === feedbackState.currentStatusFilter;
+        });
+    }
+
+    // Apply sort
+    if (feedbackState.currentSort === 'votes') {
+        filtered.sort(function(a, b) { return b.vote_count - a.vote_count; });
+    } else if (feedbackState.currentSort === 'newest') {
+        filtered.sort(function(a, b) { return new Date(b.created_at) - new Date(a.created_at); });
+    }
+
+    if (filtered.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+    }
+
+    emptyEl.classList.add('hidden');
+    listEl.innerHTML = filtered.map(renderSuggestionCard).join('');
+
+    // Add vote button handlers
+    listEl.querySelectorAll('.vote-button').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            handleVote(this.dataset.feedbackId);
+        });
+    });
+
+    // Add read more handlers
+    listEl.querySelectorAll('.read-more-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var descEl = this.previousElementSibling;
+            descEl.classList.toggle('expanded');
+            this.textContent = descEl.classList.contains('expanded') ? 'Show less' : 'Read more';
+        });
+    });
+}
+
+// Render a single suggestion card
+function renderSuggestionCard(suggestion) {
+    var displayName = suggestion.user_name || 'Member';
+    var firstName = displayName.split(' ')[0];
+    var dateStr = formatFeedbackDate(suggestion.created_at);
+    var statusClass = suggestion.status.replace('_', '-');
+    var statusLabel = formatStatusLabel(suggestion.status);
+    var isLongDesc = suggestion.description.length > 150;
+
+    return '<div class="suggestion-card">' +
+        '<button class="vote-button ' + (suggestion.user_has_voted ? 'voted' : '') + '" data-feedback-id="' + suggestion.id + '">' +
+            '<span class="vote-arrow">▲</span>' +
+            '<span class="vote-count">' + suggestion.vote_count + '</span>' +
+        '</button>' +
+        '<div class="suggestion-content">' +
+            '<h4 class="suggestion-title">' + escapeHtml(suggestion.title) + '</h4>' +
+            '<p class="suggestion-description">' + escapeHtml(suggestion.description) + '</p>' +
+            (isLongDesc ? '<button class="read-more-btn">Read more</button>' : '') +
+            '<div class="suggestion-meta">' +
+                '<span class="status-badge ' + suggestion.status + '">' + statusLabel + '</span>' +
+                '<span class="suggestion-author">Submitted by ' + escapeHtml(firstName) + '</span>' +
+                '<span class="suggestion-date">' + dateStr + '</span>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+}
+
+// Handle voting
+async function handleVote(feedbackId) {
+    if (!currentUser) {
+        showToast('Please sign in to vote');
+        return;
+    }
+
+    var suggestion = feedbackState.suggestions.find(function(s) { return s.id === feedbackId; });
+    if (!suggestion) return;
+
+    // Optimistic update
+    var voteBtn = document.querySelector('.vote-button[data-feedback-id="' + feedbackId + '"]');
+    var countEl = voteBtn.querySelector('.vote-count');
+
+    if (suggestion.user_has_voted) {
+        // Remove vote
+        suggestion.user_has_voted = false;
+        suggestion.vote_count--;
+        voteBtn.classList.remove('voted');
+        countEl.textContent = suggestion.vote_count;
+
+        try {
+            var { error } = await supabase
+                .from('feedback_votes')
+                .delete()
+                .eq('feedback_id', feedbackId)
+                .eq('user_id', currentUser.id);
+
+            if (error) throw error;
+        } catch (err) {
+            // Revert on error
+            suggestion.user_has_voted = true;
+            suggestion.vote_count++;
+            voteBtn.classList.add('voted');
+            countEl.textContent = suggestion.vote_count;
+            showToast('Error removing vote. Please try again.');
+        }
+    } else {
+        // Add vote
+        suggestion.user_has_voted = true;
+        suggestion.vote_count++;
+        voteBtn.classList.add('voted');
+        countEl.textContent = suggestion.vote_count;
+
+        try {
+            var { error } = await supabase
+                .from('feedback_votes')
+                .insert({
+                    feedback_id: feedbackId,
+                    user_id: currentUser.id
+                });
+
+            if (error) throw error;
+        } catch (err) {
+            // Revert on error
+            suggestion.user_has_voted = false;
+            suggestion.vote_count--;
+            voteBtn.classList.remove('voted');
+            countEl.textContent = suggestion.vote_count;
+            showToast('Error adding vote. Please try again.');
+        }
+    }
+}
+
+// Load user's own submissions
+async function loadMySubmissions() {
+    var listEl = document.getElementById('my-submissions-list');
+    var emptyEl = document.getElementById('my-submissions-empty');
+
+    if (!listEl || !currentUser) return;
+
+    listEl.innerHTML = '<div class="submissions-loading"><div class="spinner-small"></div><p>Loading your submissions...</p></div>';
+    emptyEl.classList.add('hidden');
+
+    try {
+        var { data: submissions, error } = await supabase
+            .from('feedback')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Get vote counts for public feature requests
+        var publicIds = submissions.filter(function(s) { return s.is_public; }).map(function(s) { return s.id; });
+        var voteCounts = {};
+
+        if (publicIds.length > 0) {
+            var { data: votes } = await supabase
+                .from('feedback_votes')
+                .select('feedback_id')
+                .in('feedback_id', publicIds);
+
+            if (votes) {
+                votes.forEach(function(v) {
+                    voteCounts[v.feedback_id] = (voteCounts[v.feedback_id] || 0) + 1;
+                });
+            }
+        }
+
+        feedbackState.mySubmissions = submissions.map(function(s) {
+            return {
+                ...s,
+                vote_count: voteCounts[s.id] || 0
+            };
+        });
+
+        renderMySubmissions();
+
+    } catch (err) {
+        console.error('Error loading submissions:', err);
+        listEl.innerHTML = '<p class="submissions-empty">Error loading submissions. Please refresh.</p>';
+    }
+}
+
+// Render user's submissions
+function renderMySubmissions() {
+    var listEl = document.getElementById('my-submissions-list');
+    var emptyEl = document.getElementById('my-submissions-empty');
+
+    if (!listEl) return;
+
+    if (feedbackState.mySubmissions.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+    }
+
+    emptyEl.classList.add('hidden');
+    listEl.innerHTML = feedbackState.mySubmissions.map(renderSubmissionItem).join('');
+}
+
+// Render a single submission item
+function renderSubmissionItem(submission) {
+    var dateStr = formatFeedbackDate(submission.created_at);
+    var statusLabel = formatStatusLabel(submission.status);
+    var showVotes = submission.is_public && submission.type === 'feature';
+
+    return '<div class="submission-item">' +
+        '<div class="submission-info">' +
+            '<div class="submission-title">' + escapeHtml(submission.title) + '</div>' +
+            '<div class="submission-date">' + dateStr + '</div>' +
+        '</div>' +
+        '<div class="submission-badges">' +
+            '<span class="type-badge ' + submission.type + '">' + submission.type + '</span>' +
+            '<span class="status-badge ' + submission.status + '">' + statusLabel + '</span>' +
+            (showVotes ? '<span class="submission-votes"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>' + submission.vote_count + ' votes</span>' : '') +
+        '</div>' +
+    '</div>';
+}
+
+// Format date for display
+function formatFeedbackDate(dateStr) {
+    var date = new Date(dateStr);
+    var now = new Date();
+    var diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return diffDays + ' days ago';
+
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// Format status label for display
+function formatStatusLabel(status) {
+    var labels = {
+        'submitted': 'Submitted',
+        'under_review': 'Under Review',
+        'planned': 'Planned',
+        'in_progress': 'In Progress',
+        'completed': 'Completed',
+        'declined': 'Declined'
+    };
+    return labels[status] || status;
+}
+
+// ============================================
 // TAB NAVIGATION
 // ============================================
 function switchTab(tabName) {
@@ -1418,6 +1939,12 @@ function switchTab(tabName) {
     // Load data for the tab if needed
     if (tabName === 'alerts') {
         loadAlerts();
+    }
+
+    // Load feedback data when viewing Feedback tab
+    if (tabName === 'feedback') {
+        loadSuggestions();
+        loadMySubmissions();
     }
 }
 
@@ -1553,6 +2080,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Save patient notes
     document.getElementById('save-notes-btn')?.addEventListener('click', savePatientNotes);
+
+    // Initialize feedback handlers
+    initFeedback();
 
     // Initialize auth
     initAuth();
