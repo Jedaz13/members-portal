@@ -1591,11 +1591,11 @@ function initializeDashboard() {
     console.log('Current member data:', currentMember);
 
     // Check if user selected Practitioners login - redirect to practitioner dashboard
-    const loginType = sessionStorage.getItem('loginType');
+    const loginType = localStorage.getItem('loginType');
     if (loginType === 'practitioners') {
         console.log('Practitioner login detected, redirecting to practitioner dashboard...');
         // Clear the loginType so they don't get stuck in a redirect loop
-        sessionStorage.removeItem('loginType');
+        localStorage.removeItem('loginType');
         window.location.href = 'practitioner.html';
         return;
     }
@@ -3013,12 +3013,12 @@ function initToggleSwitch() {
     const urlParams = new URLSearchParams(window.location.search);
     const urlType = urlParams.get('type');
 
-    // Priority: URL param > sessionStorage > default ('members')
+    // Priority: URL param > localStorage > default ('members')
     let loginType;
     if (urlType === 'members' || urlType === 'practitioners') {
         loginType = urlType;
     } else {
-        loginType = sessionStorage.getItem('loginType') || 'members';
+        loginType = localStorage.getItem('loginType') || 'members';
     }
 
     // Set initial state
@@ -3026,7 +3026,7 @@ function initToggleSwitch() {
 
     function updateToggleState(type) {
         loginType = type;
-        sessionStorage.setItem('loginType', type);
+        localStorage.setItem('loginType', type);
 
         if (type === 'members') {
             toggleMembers.classList.add('active');
