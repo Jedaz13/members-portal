@@ -467,6 +467,27 @@
                             </div>
                         </div>
 
+                        <!-- Practitioner Guide Card - shows who manages your protocol -->
+                        <div id="protocol-practitioner-card" class="protocol-practitioner-card hidden">
+                            <div class="protocol-practitioner-header">
+                                <p class="protocol-practitioner-label">Your Protocol Guide</p>
+                            </div>
+                            <div class="protocol-practitioner-content">
+                                <img id="protocol-practitioner-avatar" class="protocol-practitioner-avatar" src="" alt="Practitioner">
+                                <div class="protocol-practitioner-info">
+                                    <h4 id="protocol-practitioner-name" class="protocol-practitioner-name">Loading...</h4>
+                                    <p id="protocol-practitioner-credentials" class="protocol-practitioner-credentials"></p>
+                                </div>
+                            </div>
+                            <p id="protocol-practitioner-intro" class="protocol-practitioner-intro"></p>
+                            <button id="message-practitioner-btn" class="btn-message-practitioner">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                <span id="message-practitioner-btn-text">Message Practitioner</span>
+                            </button>
+                        </div>
+
                         <h3 class="panel-title" id="protocol-title">Your Week 1 Protocol</h3>
                         <div id="protocol-content" class="protocol-content">
                             <!-- Protocol content loaded by JS -->
@@ -578,12 +599,28 @@
                 <!-- Tab 5: Message Expert -->
                 <div id="tab-messages" class="tab-panel hidden">
                     <div class="panel-card">
-                        <!-- Practitioner Header -->
-                        <div id="practitioner-header" class="practitioner-header hidden">
-                            <img id="practitioner-avatar" class="practitioner-avatar" src="" alt="Practitioner">
-                            <div class="practitioner-info">
-                                <h3 id="practitioner-name" class="practitioner-name">Loading...</h3>
-                                <p class="practitioner-status">Gut Health Expert</p>
+                        <!-- Expandable Practitioner Card -->
+                        <div id="practitioner-card" class="practitioner-card hidden">
+                            <div class="practitioner-card-header" id="practitioner-card-toggle">
+                                <img id="practitioner-avatar" class="practitioner-card-avatar" src="" alt="Practitioner">
+                                <div class="practitioner-card-info">
+                                    <h3 id="practitioner-name" class="practitioner-card-name">Loading...</h3>
+                                    <p id="practitioner-credentials" class="practitioner-card-credentials"></p>
+                                </div>
+                                <button class="practitioner-card-chevron" aria-label="Expand practitioner info">
+                                    <svg id="practitioner-chevron-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div id="practitioner-card-expanded" class="practitioner-card-expanded hidden">
+                                <div class="practitioner-card-bio">
+                                    <p id="practitioner-bio" class="practitioner-bio-text"></p>
+                                </div>
+                                <div id="practitioner-specializations" class="practitioner-card-specializations">
+                                    <p class="specializations-label">Specializations:</p>
+                                    <div id="practitioner-specializations-list" class="specializations-list"></div>
+                                </div>
                             </div>
                         </div>
 
