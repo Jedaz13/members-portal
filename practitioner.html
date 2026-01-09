@@ -527,7 +527,8 @@
                 <a href="https://www.guthealingacademy.com/legal/contact.html" target="_blank">Contact Us</a>
             </div>
             <div class="footer-copyright">
-                <p>&copy; 2025 Gut Healing Academy. All rights reserved.</p>
+                <p>&copy; <span id="current-year"></span> Gut Healing Academy. All rights reserved.</p>
+                <script>document.getElementById('current-year').textContent = new Date().getFullYear();</script>
             </div>
         </div>
     </footer>
