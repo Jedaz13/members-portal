@@ -1454,6 +1454,16 @@ async function checkUserStatusAndRoute(user, accessToken) {
             return;
         }
 
+        // Check if user selected Practitioners login - redirect to practitioner dashboard
+        // This check happens BEFORE quiz check so practitioners can bypass quiz requirement
+        const loginType = localStorage.getItem('loginType');
+        if (loginType === 'practitioners') {
+            console.log('Practitioner login detected, redirecting to practitioner dashboard...');
+            localStorage.removeItem('loginType');
+            window.location.href = 'practitioner.html';
+            return;
+        }
+
         // Check if user has completed the quiz (has a protocol assigned)
         // The trigger creates users on Google sign-in, but without quiz data
         if (!member.protocol) {
