@@ -2827,6 +2827,19 @@ a:hover {
     color: var(--primary-dark);
 }
 
+.header-logo-img {
+    height: 40px;
+    width: auto;
+    display: block;
+}
+
+.brand-logo-img {
+    height: 60px;
+    width: auto;
+    display: block;
+    margin: 0 auto 16px auto;
+}
+
 .login-nav {
     display: flex;
     align-items: center;
