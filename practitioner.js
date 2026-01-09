@@ -193,7 +193,8 @@ function handleSignOut() {
     currentUnassigned = [];
     currentAlerts = [];
     selectedPatient = null;
-    showView('login-view');
+    // Redirect to main login page instead of showing practitioner login view
+    window.location.href = 'index.html';
 }
 
 // ============================================
