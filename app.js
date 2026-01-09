@@ -1616,6 +1616,11 @@ function initializeDashboard() {
     const name = currentMember?.name || currentUser?.user_metadata?.full_name || 'Member';
     document.getElementById('dashboard-welcome').textContent = `Welcome, ${name}!`;
 
+    // Update user display in header (dropdown menu)
+    if (typeof updateUserDisplay === 'function') {
+        updateUserDisplay();
+    }
+
     // Set protocol - default to 1 if not set
     const protocol = currentMember?.protocol || 1;
     const protocolInfo = PROTOCOLS[protocol];
@@ -3759,4 +3764,319 @@ function formatStatusLabel(status) {
         'declined': 'Declined'
     };
     return labels[status] || status;
+}
+
+// ============================================
+// USER SETTINGS FUNCTIONALITY
+// ============================================
+
+// Initialize settings when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    initUserMenuDropdown();
+    initSettingsModal();
+});
+
+// User dropdown menu toggle
+function initUserMenuDropdown() {
+    var userMenuBtn = document.getElementById('user-menu-btn');
+    var userDropdown = document.getElementById('user-dropdown');
+
+    if (!userMenuBtn || !userDropdown) return;
+
+    // Toggle dropdown on button click
+    userMenuBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        userMenuBtn.classList.toggle('active');
+        userDropdown.classList.toggle('hidden');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+            userMenuBtn.classList.remove('active');
+            userDropdown.classList.add('hidden');
+        }
+    });
+
+    // Close dropdown on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            userMenuBtn.classList.remove('active');
+            userDropdown.classList.add('hidden');
+        }
+    });
+}
+
+// Settings modal functionality
+function initSettingsModal() {
+    var settingsBtn = document.getElementById('settings-btn');
+    var settingsModal = document.getElementById('settings-modal');
+    var closeSettingsBtn = document.getElementById('close-settings-btn');
+    var saveSettingsBtn = document.getElementById('save-settings-btn');
+    var changeAvatarBtn = document.getElementById('change-avatar-btn');
+    var avatarInput = document.getElementById('avatar-input');
+    var bioTextarea = document.getElementById('settings-bio');
+    var bioCharCount = document.getElementById('bio-char-count');
+
+    if (!settingsBtn || !settingsModal) return;
+
+    // Open settings modal
+    settingsBtn.addEventListener('click', function() {
+        // Close dropdown
+        document.getElementById('user-menu-btn').classList.remove('active');
+        document.getElementById('user-dropdown').classList.add('hidden');
+        // Open modal
+        openSettingsModal();
+    });
+
+    // Close settings modal
+    if (closeSettingsBtn) {
+        closeSettingsBtn.addEventListener('click', closeSettingsModal);
+    }
+
+    // Close on overlay click
+    settingsModal.addEventListener('click', function(e) {
+        if (e.target === settingsModal) {
+            closeSettingsModal();
+        }
+    });
+
+    // Close on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !settingsModal.classList.contains('hidden')) {
+            closeSettingsModal();
+        }
+    });
+
+    // Save settings
+    if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', saveUserSettings);
+    }
+
+    // Avatar upload
+    if (changeAvatarBtn && avatarInput) {
+        changeAvatarBtn.addEventListener('click', function() {
+            avatarInput.click();
+        });
+
+        avatarInput.addEventListener('change', handleAvatarUpload);
+    }
+
+    // Bio character counter
+    if (bioTextarea && bioCharCount) {
+        bioTextarea.addEventListener('input', function() {
+            bioCharCount.textContent = bioTextarea.value.length;
+        });
+    }
+}
+
+// Open settings modal and load current settings
+function openSettingsModal() {
+    var modal = document.getElementById('settings-modal');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    loadUserSettings();
+}
+
+// Close settings modal
+function closeSettingsModal() {
+    var modal = document.getElementById('settings-modal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+// Load current user settings into the modal
+async function loadUserSettings() {
+    if (!currentMember) return;
+
+    // Set name (readonly, from Google)
+    var nameInput = document.getElementById('settings-name');
+    if (nameInput) {
+        nameInput.value = currentMember.name || currentUser?.user_metadata?.full_name || '';
+    }
+
+    // Set bio
+    var bioTextarea = document.getElementById('settings-bio');
+    var bioCharCount = document.getElementById('bio-char-count');
+    if (bioTextarea) {
+        bioTextarea.value = currentMember.bio || '';
+        if (bioCharCount) {
+            bioCharCount.textContent = bioTextarea.value.length;
+        }
+    }
+
+    // Set notification toggle
+    var notificationToggle = document.getElementById('email-notifications-toggle');
+    if (notificationToggle) {
+        // Default to true if not set
+        notificationToggle.checked = currentMember.email_notifications !== false;
+    }
+
+    // Set avatar
+    var settingsAvatar = document.getElementById('settings-avatar');
+    if (settingsAvatar) {
+        settingsAvatar.src = currentMember.avatar_url || 'assets/default-avatar.png';
+    }
+
+    // Set subscription info
+    updateSubscriptionDisplay();
+}
+
+// Update subscription status display
+function updateSubscriptionDisplay() {
+    var statusBadge = document.getElementById('subscription-status-badge');
+    var detailsText = document.getElementById('subscription-details');
+
+    if (!currentMember || !statusBadge) return;
+
+    if (currentMember.is_paid) {
+        statusBadge.textContent = 'Active';
+        statusBadge.className = 'subscription-badge subscription-badge-active';
+        detailsText.textContent = 'You have full access to all features';
+    } else if (currentMember.trial_start) {
+        var trialEnd = new Date(currentMember.trial_start);
+        trialEnd.setDate(trialEnd.getDate() + 7);
+        var now = new Date();
+        var daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+
+        if (daysLeft > 0) {
+            statusBadge.textContent = 'Trial';
+            statusBadge.className = 'subscription-badge subscription-badge-trial';
+            detailsText.textContent = daysLeft + ' days remaining in your trial';
+        } else {
+            statusBadge.textContent = 'Expired';
+            statusBadge.className = 'subscription-badge subscription-badge-expired';
+            detailsText.textContent = 'Your trial has ended. Upgrade to continue.';
+        }
+    } else {
+        statusBadge.textContent = 'Free';
+        statusBadge.className = 'subscription-badge subscription-badge-trial';
+        detailsText.textContent = 'Limited access';
+    }
+}
+
+// Save user settings
+async function saveUserSettings() {
+    if (!currentMember) return;
+
+    var saveBtn = document.getElementById('save-settings-btn');
+    var originalText = saveBtn.textContent;
+    saveBtn.textContent = 'Saving...';
+    saveBtn.disabled = true;
+
+    try {
+        var bio = document.getElementById('settings-bio').value.trim();
+        var emailNotifications = document.getElementById('email-notifications-toggle').checked;
+
+        var { error } = await supabase
+            .from('users')
+            .update({
+                bio: bio,
+                email_notifications: emailNotifications
+            })
+            .eq('id', currentMember.id);
+
+        if (error) throw error;
+
+        // Update local state
+        currentMember.bio = bio;
+        currentMember.email_notifications = emailNotifications;
+
+        showToast('Settings saved successfully!');
+        closeSettingsModal();
+
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        showToast('Failed to save settings. Please try again.');
+    } finally {
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+    }
+}
+
+// Handle avatar upload
+async function handleAvatarUpload(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        showToast('Image must be less than 2MB');
+        return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        showToast('Please select an image file');
+        return;
+    }
+
+    var settingsAvatar = document.getElementById('settings-avatar');
+    var changeAvatarBtn = document.getElementById('change-avatar-btn');
+    changeAvatarBtn.disabled = true;
+
+    try {
+        // Generate unique filename
+        var fileExt = file.name.split('.').pop();
+        var fileName = currentMember.id + '-' + Date.now() + '.' + fileExt;
+        var filePath = fileName;
+
+        // Upload to Supabase Storage
+        var { data, error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: true
+            });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        var { data: urlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+        var avatarUrl = urlData.publicUrl;
+
+        // Update user record
+        var { error: updateError } = await supabase
+            .from('users')
+            .update({ avatar_url: avatarUrl })
+            .eq('id', currentMember.id);
+
+        if (updateError) throw updateError;
+
+        // Update UI
+        currentMember.avatar_url = avatarUrl;
+        settingsAvatar.src = avatarUrl;
+        document.getElementById('user-avatar').src = avatarUrl;
+
+        showToast('Profile photo updated!');
+
+    } catch (error) {
+        console.error('Error uploading avatar:', error);
+        showToast('Failed to upload photo. Please try again.');
+    } finally {
+        changeAvatarBtn.disabled = false;
+        e.target.value = ''; // Reset file input
+    }
+}
+
+// Update user display in header (call this after loading member data)
+function updateUserDisplay() {
+    if (!currentMember) return;
+
+    var userNameDisplay = document.getElementById('user-name-display');
+    var userAvatar = document.getElementById('user-avatar');
+
+    if (userNameDisplay) {
+        // Get first name only
+        var fullName = currentMember.name || currentUser?.user_metadata?.full_name || 'Member';
+        var firstName = fullName.split(' ')[0];
+        userNameDisplay.textContent = firstName;
+    }
+
+    if (userAvatar && currentMember.avatar_url) {
+        userAvatar.src = currentMember.avatar_url;
+    }
 }
