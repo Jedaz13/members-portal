@@ -1716,54 +1716,10 @@ function initializeDashboard() {
 }
 
 // ============================================
-// STRIPE UPGRADE LINKS CONFIGURATION
+// UPGRADE LINK CONFIGURATION
 // ============================================
-var STRIPE_CONFIG = {
-    monthlyLink: 'https://buy.stripe.com/plink_1SpPtALZMe5qWSedqAqhSyMR',
-    annualLink: 'https://buy.stripe.com/plink_1SpPu5LZMe5qWSedk0r5cVB7',
-    customerPortalUrl: 'https://billing.stripe.com/p/login/28o9Bq1NL4GBgj67ss'
-};
-
-// Get upgrade URLs based on user's Stripe status
-function getUpgradeUrls() {
-    var hasStripeCustomer = currentMember?.stripe_customer_id;
-
-    if (hasStripeCustomer) {
-        // Existing Stripe customer - link to customer portal
-        return {
-            monthly: STRIPE_CONFIG.customerPortalUrl,
-            annual: STRIPE_CONFIG.customerPortalUrl,
-            isPortal: true
-        };
-    } else {
-        // New customer - link to payment pages
-        return {
-            monthly: STRIPE_CONFIG.monthlyLink,
-            annual: STRIPE_CONFIG.annualLink,
-            isPortal: false
-        };
-    }
-}
-
-// Configure upgrade buttons with correct links
-function configureUpgradeButtons(monthlyBtnId, annualBtnId) {
-    var urls = getUpgradeUrls();
-    var monthlyBtn = document.getElementById(monthlyBtnId);
-    var annualBtn = document.getElementById(annualBtnId);
-
-    if (monthlyBtn) {
-        monthlyBtn.href = urls.monthly;
-        if (urls.isPortal) {
-            monthlyBtn.textContent = 'Manage Subscription';
-        }
-    }
-    if (annualBtn) {
-        annualBtn.href = urls.annual;
-        if (urls.isPortal) {
-            annualBtn.classList.add('hidden');
-        }
-    }
-}
+// All upgrade buttons now link to: https://www.guthealingacademy.com/upgrade/
+// Links are hardcoded in HTML for simplicity
 
 // ============================================
 // ACCESS CONTROL SYSTEM
@@ -1847,9 +1803,6 @@ function applyAccessControls() {
         }
         if (attachFileBtn) attachFileBtn.disabled = true;
 
-        // Configure upgrade buttons for message section
-        configureUpgradeButtons('message-upgrade-monthly', 'message-upgrade-annual');
-
         console.log('Access: Trial - Protocol + Tracking + Q&A view. Locked: Messages, Learning, Questions');
 
     } else if (userStatus === 'trial_expired' || !userStatus || userStatus === 'lead') {
@@ -1880,9 +1833,6 @@ function applyAccessControls() {
         if (attachFileBtn) {
             attachFileBtn.disabled = true;
         }
-
-        // Configure upgrade buttons
-        configureUpgradeButtons('message-upgrade-monthly', 'message-upgrade-annual');
 
         console.log('Access: Trial Expired - Limited access (today\'s tracking + protocol + message history only)');
     }
@@ -2109,9 +2059,6 @@ async function initializeQASession() {
 
     // Initialize question submission system
     initializeQAQuestions();
-
-    // Configure upgrade buttons for Q&A section
-    configureUpgradeButtons('qa-upgrade-monthly', 'qa-upgrade-annual');
 
     console.log('Q&A session initialized');
 }
