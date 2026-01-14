@@ -515,7 +515,20 @@
                             </button>
                         </div>
 
-                        <h3 class="panel-title" id="protocol-title">Your Week 1 Protocol</h3>
+                        <!-- Protocol Header Section -->
+                        <div class="protocol-header-section">
+                            <h3 class="panel-title" id="protocol-title">Your Personalized Gut Protocol</h3>
+                            <p class="protocol-subtitle" id="protocol-subtitle">Loading...</p>
+                            <p class="protocol-focus" id="protocol-focus"></p>
+                        </div>
+
+                        <!-- Protocol Introduction -->
+                        <div class="protocol-intro-card" id="protocol-intro-card">
+                            <p class="protocol-intro-text">
+                                This protocol was selected based on your quiz answers. Follow the daily steps and track your progress. Your practitioner can adjust this based on your results.
+                            </p>
+                        </div>
+
                         <div id="protocol-content" class="protocol-content">
                             <!-- Protocol content loaded by JS -->
                             <p>Loading your personalized protocol...</p>
@@ -591,15 +604,48 @@
                                 <p class="qna-note">The link will be active 15 minutes before the session starts.</p>
                             </div>
 
-                            <!-- TODO: Trial Access Gating
-                                 For trial users, show session info but add note:
-                                 "Live participation available with active membership"
-                                 RSVP should still work for trial users to build engagement -->
-                            <!-- TODO: STRIPE UPGRADE LINK - Q&A locked message -->
+                            <!-- Locked message for trial_expired users -->
                             <div id="qna-locked-message" class="locked-message hidden">
                                 <div class="lock-icon">🔒</div>
                                 <p class="lock-text">Upgrade your membership to join live Q&A sessions</p>
-                                <a href="https://www.guthealingacademy.com/offer/#pricing" class="btn-upgrade-small">Upgrade Now</a>
+                                <a href="#" id="qna-locked-upgrade-btn" class="btn-upgrade-small">Upgrade Now</a>
+                            </div>
+                        </div>
+
+                        <!-- Question Submission Section -->
+                        <div id="qa-question-section" class="qa-question-section">
+                            <h4>Have a Question for Rebecca?</h4>
+                            <p class="qa-question-intro">Submit your question before the session and get it answered live!</p>
+
+                            <div class="qa-question-form">
+                                <textarea
+                                    id="qa-question-input"
+                                    class="qa-question-textarea"
+                                    placeholder="Type your question here..."
+                                    maxlength="500"
+                                    rows="3"
+                                ></textarea>
+                                <div id="qa-char-counter" class="qa-char-counter">0/500</div>
+                                <button id="qa-submit-btn" class="btn-submit-question" disabled>Submit Question</button>
+                            </div>
+
+                            <!-- User's Submitted Questions for this Session -->
+                            <div id="qa-my-questions" class="qa-my-questions hidden">
+                                <h5>Your Questions for This Session</h5>
+                                <div id="qa-my-questions-list"></div>
+                            </div>
+
+                            <!-- Lock Overlay for Trial Users -->
+                            <div id="qa-question-locked" class="qa-question-locked hidden">
+                                <div class="qa-lock-content">
+                                    <div class="lock-icon-large">🔒</div>
+                                    <h4>Upgrade to submit questions to Rebecca</h4>
+                                    <p>Get your questions answered during live sessions</p>
+                                    <div class="upgrade-buttons">
+                                        <a href="#" id="qa-upgrade-monthly" class="btn-upgrade-primary">$47/month</a>
+                                        <a href="#" id="qa-upgrade-annual" class="btn-upgrade-secondary">$297/year (Save $267)</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -607,7 +653,7 @@
                         <div class="qna-benefits">
                             <h4>What to Expect:</h4>
                             <ul class="qna-benefits-list">
-                                <li>Ask questions about your specific protocol</li>
+                                <li id="qna-benefit-ask">Ask questions about your specific protocol</li>
                                 <li>Get real-time guidance from gut health experts</li>
                                 <li>Learn from other members' questions and experiences</li>
                                 <li>Access session recordings if you can't attend live</li>
@@ -695,28 +741,44 @@
                         <h3 class="panel-title" id="message-panel-title">Message Your Gut Health Expert</h3>
                         <p class="panel-intro" id="message-panel-intro">Have questions about your protocol? Send a message and get personalized guidance.</p>
 
-                        <!-- Message Compose -->
-                        <div class="message-compose">
-                            <textarea id="message-input" placeholder="Type your message here..." rows="4"></textarea>
+                        <!-- Message Compose Section with Lock Overlay for Trial Users -->
+                        <div class="message-compose-wrapper">
+                            <div class="message-compose" id="message-compose-section">
+                                <textarea id="message-input" placeholder="Type your message here..." rows="4"></textarea>
 
-                            <!-- File Attachment -->
-                            <div class="attachment-section">
-                                <input type="file" id="file-input" class="file-input-hidden"
-                                       accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.txt"
-                                       multiple>
-                                <button type="button" id="attach-file-btn" class="btn-attach">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                                    </svg>
-                                    Attach Files
-                                </button>
-                                <span class="file-size-hint">Max 20MB • PDF, Images, Documents</span>
+                                <!-- File Attachment -->
+                                <div class="attachment-section">
+                                    <input type="file" id="file-input" class="file-input-hidden"
+                                           accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.txt"
+                                           multiple>
+                                    <button type="button" id="attach-file-btn" class="btn-attach">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                                        </svg>
+                                        Attach Files
+                                    </button>
+                                    <span class="file-size-hint">Max 20MB • PDF, Images, Documents</span>
+                                </div>
+
+                                <!-- Attached Files Preview -->
+                                <div id="attached-files" class="attached-files hidden"></div>
+
+                                <button id="send-message-btn" class="btn-primary">Send Message</button>
                             </div>
 
-                            <!-- Attached Files Preview -->
-                            <div id="attached-files" class="attached-files hidden"></div>
-
-                            <button id="send-message-btn" class="btn-primary">Send Message</button>
+                            <!-- Lock Overlay for Trial Users -->
+                            <div id="message-compose-locked" class="message-compose-locked hidden">
+                                <div class="message-lock-content">
+                                    <div class="lock-icon-large">🔒</div>
+                                    <h4>Upgrade to message your practitioner directly</h4>
+                                    <p>Get personalized guidance and protocol adjustments</p>
+                                    <div id="message-upgrade-buttons" class="upgrade-buttons">
+                                        <!-- Buttons populated by JS based on stripe_customer_id -->
+                                        <a href="#" id="message-upgrade-monthly" class="btn-upgrade-primary">$47/month</a>
+                                        <a href="#" id="message-upgrade-annual" class="btn-upgrade-secondary">$297/year (Save $267)</a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Message History -->

@@ -932,6 +932,49 @@ a:hover {
 }
 
 /* ============================================
+   PROTOCOL HEADER SECTION
+   ============================================ */
+.protocol-header-section {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.protocol-header-section .panel-title {
+    margin-bottom: 8px;
+}
+
+.protocol-subtitle {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--primary);
+    margin: 0 0 6px 0;
+}
+
+.protocol-header-section .protocol-focus {
+    font-size: 14px;
+    color: var(--text-light);
+    font-style: italic;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.protocol-intro-card {
+    background: linear-gradient(135deg, #f0f7f4 0%, #e8f0ec 100%);
+    border: 1px solid #c8ddd2;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.protocol-intro-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ============================================
    PROTOCOL CONTENT
    ============================================ */
 .protocol-content {
@@ -2773,6 +2816,306 @@ a:hover {
     color: var(--text-light);
     margin-bottom: 24px;
     line-height: 1.6;
+}
+
+/* ============================================
+   MESSAGE COMPOSE LOCK OVERLAY (Trial Users)
+   ============================================ */
+.message-compose-wrapper {
+    position: relative;
+}
+
+.message-compose-locked {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(253, 248, 245, 0.95);
+    backdrop-filter: blur(6px);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border: 2px dashed var(--border);
+    min-height: 280px;
+}
+
+.message-compose-locked.hidden {
+    display: none;
+}
+
+.message-lock-content {
+    text-align: center;
+    padding: 32px 24px;
+    max-width: 360px;
+}
+
+.message-lock-content h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 16px 0 8px 0;
+    line-height: 1.4;
+}
+
+.message-lock-content p {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.upgrade-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-upgrade-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background-color: var(--white);
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    min-width: 200px;
+}
+
+.btn-upgrade-secondary:hover {
+    background-color: var(--primary);
+    color: var(--white);
+    text-decoration: none;
+}
+
+/* ============================================
+   Q&A QUESTION SUBMISSION SECTION
+   ============================================ */
+.qa-question-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+    border: 1px solid var(--border);
+    position: relative;
+}
+
+.qa-question-section h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.qa-question-intro {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 16px;
+}
+
+.qa-question-textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qa-question-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.15);
+}
+
+.qa-question-textarea:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.qa-char-counter {
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 6px;
+}
+
+.qa-char-counter.warning {
+    color: var(--warning);
+}
+
+.qa-char-counter.error {
+    color: #e74c3c;
+}
+
+.btn-submit-question {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    background-color: var(--accent);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 16px;
+}
+
+.btn-submit-question:hover:not(:disabled) {
+    background-color: var(--accent-dark);
+    transform: translateY(-1px);
+}
+
+.btn-submit-question:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Question Lock Overlay for Trial Users */
+.qa-question-locked {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(253, 248, 245, 0.95);
+    backdrop-filter: blur(6px);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.qa-question-locked.hidden {
+    display: none;
+}
+
+.qa-lock-content {
+    text-align: center;
+    padding: 24px;
+}
+
+.qa-lock-content h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 12px 0 8px 0;
+}
+
+.qa-lock-content p {
+    font-size: 14px;
+    color: var(--text-light);
+    margin-bottom: 16px;
+}
+
+/* User's Submitted Questions */
+.qa-my-questions {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.qa-my-questions h5 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+}
+
+.qa-question-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.qa-question-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 8px;
+    padding-right: 30px;
+}
+
+.qa-question-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-light);
+}
+
+.qa-question-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.qa-question-status.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.qa-question-status.answered {
+    background: #d4edda;
+    color: #155724;
+}
+
+.qa-question-status.skipped {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.btn-delete-question {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-delete-question:hover {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* Locked benefit item styling */
+.qna-benefits-list li.locked-benefit {
+    color: var(--text-light);
+}
+
+.qna-benefits-list li.locked-benefit::before {
+    content: "🔒";
+    color: var(--text-light);
 }
 
 /* ============================================

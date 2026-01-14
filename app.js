@@ -169,7 +169,7 @@ var PROTOCOL_CONTENT = {
         </div>
 
         <div class="protocol-week">
-            <h4>Week 1: Bloating Protocol</h4>
+            <h4>Your Daily Protocol Steps</h4>
             <p class="protocol-focus">Focus: Slow down, de-gas, support digestion</p>
 
             <div class="protocol-day">
@@ -354,7 +354,7 @@ var PROTOCOL_CONTENT = {
         </div>
 
         <div class="protocol-week">
-            <h4>Week 1: Constipation Protocol</h4>
+            <h4>Your Daily Protocol Steps</h4>
             <p class="protocol-focus">Focus: Hydrate, move, establish routine</p>
 
             <div class="protocol-day">
@@ -535,7 +535,7 @@ var PROTOCOL_CONTENT = {
         </div>
 
         <div class="protocol-week">
-            <h4>Week 1: Diarrhea Protocol</h4>
+            <h4>Your Daily Protocol Steps</h4>
             <p class="protocol-focus">Focus: Calm, bind, reduce triggers</p>
 
             <div class="protocol-day">
@@ -738,7 +738,7 @@ var PROTOCOL_CONTENT = {
         </div>
 
         <div class="protocol-week">
-            <h4>Week 1: Mixed Pattern Protocol</h4>
+            <h4>Your Daily Protocol Steps</h4>
             <p class="protocol-focus">Focus: Stabilize, find patterns</p>
 
             <div class="protocol-day">
@@ -961,7 +961,7 @@ var PROTOCOL_CONTENT = {
         </div>
 
         <div class="protocol-week">
-            <h4>Week 1: Post-SIBO Recovery Protocol</h4>
+            <h4>Your Daily Protocol Steps</h4>
             <p class="protocol-focus">Focus: Protect MMC, prevent relapse</p>
 
             <div class="protocol-day">
@@ -1179,7 +1179,7 @@ var PROTOCOL_CONTENT = {
         </div>
 
         <div class="protocol-week">
-            <h4>Week 1: Gut-Brain Protocol</h4>
+            <h4>Your Daily Protocol Steps</h4>
             <p class="protocol-focus">Focus: Calm nervous system, break the stress-gut cycle</p>
 
             <div class="protocol-day">
@@ -1716,6 +1716,56 @@ function initializeDashboard() {
 }
 
 // ============================================
+// STRIPE UPGRADE LINKS CONFIGURATION
+// ============================================
+var STRIPE_CONFIG = {
+    monthlyLink: 'https://buy.stripe.com/plink_1SpPtALZMe5qWSedqAqhSyMR',
+    annualLink: 'https://buy.stripe.com/plink_1SpPu5LZMe5qWSedk0r5cVB7',
+    customerPortalUrl: 'https://billing.stripe.com/p/login/28o9Bq1NL4GBgj67ss'
+};
+
+// Get upgrade URLs based on user's Stripe status
+function getUpgradeUrls() {
+    var hasStripeCustomer = currentMember?.stripe_customer_id;
+
+    if (hasStripeCustomer) {
+        // Existing Stripe customer - link to customer portal
+        return {
+            monthly: STRIPE_CONFIG.customerPortalUrl,
+            annual: STRIPE_CONFIG.customerPortalUrl,
+            isPortal: true
+        };
+    } else {
+        // New customer - link to payment pages
+        return {
+            monthly: STRIPE_CONFIG.monthlyLink,
+            annual: STRIPE_CONFIG.annualLink,
+            isPortal: false
+        };
+    }
+}
+
+// Configure upgrade buttons with correct links
+function configureUpgradeButtons(monthlyBtnId, annualBtnId) {
+    var urls = getUpgradeUrls();
+    var monthlyBtn = document.getElementById(monthlyBtnId);
+    var annualBtn = document.getElementById(annualBtnId);
+
+    if (monthlyBtn) {
+        monthlyBtn.href = urls.monthly;
+        if (urls.isPortal) {
+            monthlyBtn.textContent = 'Manage Subscription';
+        }
+    }
+    if (annualBtn) {
+        annualBtn.href = urls.annual;
+        if (urls.isPortal) {
+            annualBtn.classList.add('hidden');
+        }
+    }
+}
+
+// ============================================
 // ACCESS CONTROL SYSTEM
 // ============================================
 function applyAccessControls() {
@@ -1730,11 +1780,16 @@ function applyAccessControls() {
     // Q&A Session controls
     const qnaJoinSection = document.getElementById('qna-join-section');
     const qnaLockedMessage = document.getElementById('qna-locked-message');
+    const qnaQuestionSection = document.getElementById('qa-question-section');
+    const qnaQuestionLocked = document.getElementById('qa-question-locked');
+    const qnaBenefitsList = document.querySelector('.qna-benefits-list');
 
     // Message Expert controls
     const messageInput = document.getElementById('message-input');
     const sendMessageBtn = document.getElementById('send-message-btn');
     const attachFileBtn = document.getElementById('attach-file-btn');
+    const messageComposeSection = document.getElementById('message-compose-section');
+    const messageComposeLocked = document.getElementById('message-compose-locked');
 
     if (userStatus === 'active') {
         // Active (paid) users - Full access to everything
@@ -1743,11 +1798,15 @@ function applyAccessControls() {
         if (learningOverlay) learningOverlay.classList.add('hidden');
         if (learningContent) learningContent.classList.remove('locked');
 
-        // Q&A: Fully accessible
+        // Q&A: Fully accessible + Question submission enabled
         if (qnaJoinSection) qnaJoinSection.classList.remove('hidden');
         if (qnaLockedMessage) qnaLockedMessage.classList.add('hidden');
+        if (qnaQuestionSection) qnaQuestionSection.classList.remove('locked');
+        if (qnaQuestionLocked) qnaQuestionLocked.classList.add('hidden');
 
         // Messages: Fully accessible
+        if (messageComposeSection) messageComposeSection.classList.remove('locked');
+        if (messageComposeLocked) messageComposeLocked.classList.add('hidden');
         if (messageInput) messageInput.disabled = false;
         if (sendMessageBtn) {
             sendMessageBtn.disabled = false;
@@ -1758,25 +1817,40 @@ function applyAccessControls() {
         console.log('Access: Active (Paid) - Full access to all features');
 
     } else if (userStatus === 'trial') {
-        // Trial users - Everything except learning materials
+        // Trial users - Limited access: Learning materials LOCKED, Messages LOCKED, Q&A questions LOCKED
 
         // Learning Materials: LOCKED (unlock after upgrade)
         if (learningOverlay) learningOverlay.classList.remove('hidden');
         if (learningContent) learningContent.classList.add('locked');
 
-        // Q&A: Fully accessible
+        // Q&A: Can view session info and RSVP, but question submission is LOCKED
         if (qnaJoinSection) qnaJoinSection.classList.remove('hidden');
         if (qnaLockedMessage) qnaLockedMessage.classList.add('hidden');
+        if (qnaQuestionLocked) qnaQuestionLocked.classList.remove('hidden');
 
-        // Messages: Fully accessible
-        if (messageInput) messageInput.disabled = false;
-        if (sendMessageBtn) {
-            sendMessageBtn.disabled = false;
-            sendMessageBtn.classList.remove('btn-disabled');
+        // Update "What to Expect" - lock the question submission benefit
+        if (qnaBenefitsList) {
+            var askQuestionItem = qnaBenefitsList.querySelector('li:first-child');
+            if (askQuestionItem && !askQuestionItem.classList.contains('locked-benefit')) {
+                askQuestionItem.classList.add('locked-benefit');
+                askQuestionItem.textContent = 'Ask questions (Paid members)';
+            }
         }
-        if (attachFileBtn) attachFileBtn.disabled = false;
 
-        console.log('Access: Trial - Full access except learning materials');
+        // Messages: LOCKED for trial users - show upgrade overlay
+        if (messageComposeLocked) messageComposeLocked.classList.remove('hidden');
+        if (messageComposeSection) messageComposeSection.classList.add('locked');
+        if (messageInput) messageInput.disabled = true;
+        if (sendMessageBtn) {
+            sendMessageBtn.disabled = true;
+            sendMessageBtn.classList.add('btn-disabled');
+        }
+        if (attachFileBtn) attachFileBtn.disabled = true;
+
+        // Configure upgrade buttons for message section
+        configureUpgradeButtons('message-upgrade-monthly', 'message-upgrade-annual');
+
+        console.log('Access: Trial - Protocol + Tracking + Q&A view. Locked: Messages, Learning, Questions');
 
     } else if (userStatus === 'trial_expired' || !userStatus || userStatus === 'lead') {
         // Trial expired or no status - Restricted access
@@ -1790,8 +1864,11 @@ function applyAccessControls() {
         // Q&A: Show info but lock join button
         if (qnaJoinSection) qnaJoinSection.classList.add('hidden');
         if (qnaLockedMessage) qnaLockedMessage.classList.remove('hidden');
+        if (qnaQuestionLocked) qnaQuestionLocked.classList.remove('hidden');
 
-        // Messages: Lock sending, but keep history visible
+        // Messages: LOCKED - show upgrade overlay
+        if (messageComposeLocked) messageComposeLocked.classList.remove('hidden');
+        if (messageComposeSection) messageComposeSection.classList.add('locked');
         if (messageInput) {
             messageInput.disabled = true;
             messageInput.placeholder = 'Upgrade your membership to send messages';
@@ -1799,11 +1876,13 @@ function applyAccessControls() {
         if (sendMessageBtn) {
             sendMessageBtn.disabled = true;
             sendMessageBtn.classList.add('btn-disabled');
-            sendMessageBtn.textContent = 'Upgrade to Send Messages';
         }
         if (attachFileBtn) {
             attachFileBtn.disabled = true;
         }
+
+        // Configure upgrade buttons
+        configureUpgradeButtons('message-upgrade-monthly', 'message-upgrade-annual');
 
         console.log('Access: Trial Expired - Limited access (today\'s tracking + protocol + message history only)');
     }
@@ -2028,7 +2107,213 @@ async function initializeQASession() {
         rsvpBtn.addEventListener('click', handleRSVPClick);
     }
 
+    // Initialize question submission system
+    initializeQAQuestions();
+
+    // Configure upgrade buttons for Q&A section
+    configureUpgradeButtons('qa-upgrade-monthly', 'qa-upgrade-annual');
+
     console.log('Q&A session initialized');
+}
+
+// ============================================
+// Q&A QUESTION SUBMISSION SYSTEM
+// ============================================
+
+// Initialize question submission form
+function initializeQAQuestions() {
+    var questionInput = document.getElementById('qa-question-input');
+    var charCounter = document.getElementById('qa-char-counter');
+    var submitBtn = document.getElementById('qa-submit-btn');
+
+    if (!questionInput || !submitBtn) return;
+
+    // Character counter
+    questionInput.addEventListener('input', function() {
+        var length = this.value.length;
+        charCounter.textContent = length + '/500';
+
+        // Update counter color
+        charCounter.classList.remove('warning', 'error');
+        if (length >= 450) {
+            charCounter.classList.add('error');
+        } else if (length >= 400) {
+            charCounter.classList.add('warning');
+        }
+
+        // Enable/disable submit button
+        submitBtn.disabled = length === 0 || length > 500;
+    });
+
+    // Submit button click handler
+    submitBtn.addEventListener('click', submitQuestion);
+
+    // Load user's existing questions for this session
+    loadUserQuestions();
+}
+
+// Load user's questions for the current session
+async function loadUserQuestions() {
+    if (!currentMember) return;
+
+    try {
+        var { data: questions, error } = await supabase
+            .from('qa_questions')
+            .select('*')
+            .eq('user_id', currentMember.id)
+            .eq('session_date', QA_SESSION_CONFIG.date)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.log('Error loading user questions:', error);
+            return;
+        }
+
+        renderUserQuestions(questions || []);
+    } catch (error) {
+        console.log('Error loading user questions:', error);
+    }
+}
+
+// Render user's submitted questions
+function renderUserQuestions(questions) {
+    var container = document.getElementById('qa-my-questions');
+    var list = document.getElementById('qa-my-questions-list');
+
+    if (!container || !list) return;
+
+    if (questions.length === 0) {
+        container.classList.add('hidden');
+        return;
+    }
+
+    container.classList.remove('hidden');
+
+    list.innerHTML = questions.map(function(q) {
+        var statusClass = q.status;
+        var statusLabel = q.status.charAt(0).toUpperCase() + q.status.slice(1);
+        var timeAgo = formatTimeAgo(new Date(q.created_at));
+
+        // Only show delete button for pending questions
+        var deleteBtn = q.status === 'pending'
+            ? '<button class="btn-delete-question" onclick="deleteQuestion(\'' + q.id + '\')" title="Delete question">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+              '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
+              '</svg></button>'
+            : '';
+
+        return '<div class="qa-question-item">' +
+            '<p class="qa-question-text">' + escapeHtml(q.question) + '</p>' +
+            '<div class="qa-question-meta">' +
+            '<span class="qa-question-status ' + statusClass + '">' + statusLabel + '</span>' +
+            '<span>' + timeAgo + '</span>' +
+            '</div>' +
+            deleteBtn +
+            '</div>';
+    }).join('');
+}
+
+// Submit a new question
+async function submitQuestion() {
+    var questionInput = document.getElementById('qa-question-input');
+    var submitBtn = document.getElementById('qa-submit-btn');
+
+    if (!currentMember || !questionInput) return;
+
+    var questionText = questionInput.value.trim();
+    if (!questionText || questionText.length > 500) return;
+
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+
+    try {
+        var { data, error } = await supabase
+            .from('qa_questions')
+            .insert({
+                user_id: currentMember.id,
+                user_email: currentMember.email,
+                user_name: currentMember.name,
+                protocol_type: currentMember.protocol,
+                question: questionText,
+                session_date: QA_SESSION_CONFIG.date,
+                status: 'pending'
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.log('Error submitting question:', error);
+            showToast('Failed to submit question. Please try again.', 'error');
+            submitBtn.textContent = 'Submit Question';
+            submitBtn.disabled = false;
+            return;
+        }
+
+        // Clear the form
+        questionInput.value = '';
+        document.getElementById('qa-char-counter').textContent = '0/500';
+        submitBtn.textContent = 'Submit Question';
+
+        // Reload questions list
+        loadUserQuestions();
+
+        showToast('Question submitted successfully!', 'success');
+        console.log('Question submitted:', data.id);
+
+    } catch (error) {
+        console.log('Error submitting question:', error);
+        showToast('Failed to submit question. Please try again.', 'error');
+        submitBtn.textContent = 'Submit Question';
+        submitBtn.disabled = false;
+    }
+}
+
+// Delete a pending question
+async function deleteQuestion(questionId) {
+    if (!confirm('Are you sure you want to delete this question?')) return;
+
+    try {
+        var { error } = await supabase
+            .from('qa_questions')
+            .delete()
+            .eq('id', questionId)
+            .eq('user_id', currentMember.id)
+            .eq('status', 'pending');
+
+        if (error) {
+            console.log('Error deleting question:', error);
+            showToast('Failed to delete question.', 'error');
+            return;
+        }
+
+        // Reload questions list
+        loadUserQuestions();
+        showToast('Question deleted.', 'success');
+
+    } catch (error) {
+        console.log('Error deleting question:', error);
+        showToast('Failed to delete question.', 'error');
+    }
+}
+
+// Helper: Format time ago
+function formatTimeAgo(date) {
+    var seconds = Math.floor((new Date() - date) / 1000);
+
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+    if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+    if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago';
+
+    return date.toLocaleDateString();
+}
+
+// Helper: Escape HTML for safe rendering
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // ============================================
@@ -2427,10 +2712,47 @@ function createEntrySummary(data, protocol) {
 // ============================================
 // TAB 2: PROTOCOL CONTENT
 // ============================================
+
+// Protocol subtitle mapping based on protocol_type
+var PROTOCOL_SUBTITLES = {
+    1: 'Bloating-Dominant Protocol',
+    2: 'Constipation-Dominant Protocol (IBS-C)',
+    3: 'Diarrhea-Dominant Protocol (IBS-D)',
+    4: 'Mixed Pattern Protocol (IBS-M)',
+    5: 'Post-SIBO Recovery Protocol',
+    6: 'Gut-Brain Connection Protocol'
+};
+
+// Protocol focus text mapping
+var PROTOCOL_FOCUS_TEXT = {
+    1: 'Focus: Reduce triggers, improve digestion pace, calm bloating patterns',
+    2: 'Focus: Hydration, fiber balance, morning routines',
+    3: 'Focus: Calm, bind, reduce triggers',
+    4: 'Focus: Stabilize patterns, meal timing, symptom balance',
+    5: 'Focus: Meal spacing, MMC support, prevent recurrence',
+    6: 'Focus: Nervous system regulation, stress-gut connection'
+};
+
 function loadProtocolContent(protocol) {
     const content = PROTOCOL_CONTENT[protocol] || '<p>Protocol content coming soon...</p>';
     document.getElementById('protocol-content').innerHTML = content;
-    document.getElementById('protocol-title').textContent = `Week 1: ${PROTOCOLS[protocol].shortName}`;
+
+    // Update protocol header with personalized language
+    var titleEl = document.getElementById('protocol-title');
+    var subtitleEl = document.getElementById('protocol-subtitle');
+    var focusEl = document.getElementById('protocol-focus');
+
+    if (titleEl) {
+        titleEl.textContent = 'Your Personalized Gut Protocol';
+    }
+
+    if (subtitleEl) {
+        subtitleEl.textContent = PROTOCOL_SUBTITLES[protocol] || 'Your Protocol';
+    }
+
+    if (focusEl) {
+        focusEl.textContent = PROTOCOL_FOCUS_TEXT[protocol] || '';
+    }
 
     // Initialize accordion functionality
     initializeProtocolAccordions();
