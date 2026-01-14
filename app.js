@@ -1823,7 +1823,7 @@ var QA_SESSION_CONFIG = {
         name: 'Rebecca Taylor',
         credentials: 'RNutr, Registered Clinical Nutritionist',
         bio: 'Rebecca specialises in gut health and digestive wellness, helping clients overcome bloating, IBS, and other digestive issues through evidence-based nutrition strategies.',
-        avatar_url: 'assets/practitioners/rebecca-taylor.jpg',
+        avatar_url: null,  // Will trigger ui-avatars fallback
         specializations: ['bloating', 'ibs_d', 'ibs_c', 'food_sensitivity']
     }
 };
