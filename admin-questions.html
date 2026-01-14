@@ -669,6 +669,15 @@
 
                 if (error) {
                     console.error('Error loading questions:', error);
+                    renderQuestions([]);
+                    updateStats([]);
+                    // Show error message in UI
+                    var container = document.getElementById('questions-list');
+                    container.innerHTML = '<div class="empty-state">' +
+                        '<div class="empty-state-icon">⚠️</div>' +
+                        '<h3 class="empty-state-title">Error Loading Questions</h3>' +
+                        '<p class="empty-state-text">' + escapeHtml(error.message || 'Failed to load questions. Please check the console for details.') + '</p>' +
+                        '</div>';
                     return;
                 }
 
@@ -677,6 +686,13 @@
 
             } catch (error) {
                 console.error('Error loading questions:', error);
+                // Show error message in UI
+                var container = document.getElementById('questions-list');
+                container.innerHTML = '<div class="empty-state">' +
+                    '<div class="empty-state-icon">⚠️</div>' +
+                    '<h3 class="empty-state-title">Error Loading Questions</h3>' +
+                    '<p class="empty-state-text">An unexpected error occurred. Please try again.</p>' +
+                    '</div>';
             } finally {
                 refreshBtn.classList.remove('loading');
             }
@@ -739,24 +755,36 @@
         // QUESTION ACTIONS
         // ============================================
         async function markQuestion(questionId, newStatus) {
+            // Find the button that was clicked and disable it during update
+            var buttons = document.querySelectorAll('.btn-mark-answered, .btn-mark-skipped');
+            buttons.forEach(function(btn) { btn.disabled = true; });
+
             try {
-                var { error } = await supabase
+                console.log('Updating question:', questionId, 'to status:', newStatus);
+
+                var { data, error } = await supabase
                     .from('qa_questions')
                     .update({ status: newStatus })
-                    .eq('id', questionId);
+                    .eq('id', questionId)
+                    .select();
 
                 if (error) {
                     console.error('Error updating question:', error);
-                    alert('Failed to update question status.');
+                    alert('Failed to update question status: ' + (error.message || 'Unknown error') + '\n\nMake sure the admin RLS policy migration has been run in Supabase.');
                     return;
                 }
 
+                console.log('Update successful:', data);
+
                 // Reload questions
-                loadQuestions();
+                await loadQuestions();
 
             } catch (error) {
                 console.error('Error updating question:', error);
-                alert('Failed to update question status.');
+                alert('Failed to update question status. Please check the console for details.');
+            } finally {
+                // Re-enable buttons
+                buttons.forEach(function(btn) { btn.disabled = false; });
             }
         }
 
