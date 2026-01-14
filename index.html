@@ -224,30 +224,53 @@
                     Upgrade now to continue your gut healing journey with full access to all protocols,
                     tracking, and expert support.
                 </p>
+                <!--
+                    STRIPE PRICING LINKS - UPGRADE OPTIONS
+                    ======================================
+                    TODO: Update to new $1 trial pricing model:
+
+                    NEW PRICING STRUCTURE:
+                    - Monthly: $1 for 7-day trial → $47/month after
+                    - Annual:  $1 for 7-day trial → $297/year (save 47%)
+
+                    Current links point to: https://www.guthealingacademy.com/offer/#pricing
+                    When Stripe checkout is ready, replace with direct Stripe checkout links.
+
+                    Example Stripe checkout URL format:
+                    https://checkout.stripe.com/pay/cs_live_xxxxx
+
+                    Consider:
+                    - Track source of upgrade (trial_expired_view) for analytics
+                    - Add UTM parameters: ?utm_source=app&utm_medium=trial_expired
+                -->
                 <div class="upgrade-options">
                     <div class="upgrade-card">
                         <h3>Monthly</h3>
                         <div class="price">$47<span>/month</span></div>
+                        <!-- TODO: Update to show "$1 to start, then $47/month" -->
                         <ul class="features">
                             <li>Full protocol access</li>
                             <li>Daily tracking</li>
                             <li>Expert messaging</li>
                             <li>Cancel anytime</li>
                         </ul>
+                        <!-- TODO: Replace with Stripe checkout link for monthly plan -->
                         <a href="https://www.guthealingacademy.com/offer/#pricing" class="btn-primary">Choose Monthly</a>
                     </div>
                     <div class="upgrade-card featured">
                         <div class="badge">Best Value</div>
-                        <h3>6 Months</h3>
-                        <div class="price">$197<span>/6 months</span></div>
-                        <p class="savings">Save $85!</p>
+                        <h3>Annual</h3>
+                        <div class="price">$297<span>/year</span></div>
+                        <!-- TODO: Update to show "$1 to start, then $297/year" -->
+                        <p class="savings">Save 47%!</p>
                         <ul class="features">
                             <li>Full protocol access</li>
                             <li>Daily tracking</li>
                             <li>Expert messaging</li>
                             <li>Bonus: 1-on-1 call</li>
                         </ul>
-                        <a href="https://www.guthealingacademy.com/offer/#pricing" class="btn-primary">Choose 6 Months</a>
+                        <!-- TODO: Replace with Stripe checkout link for annual plan -->
+                        <a href="https://www.guthealingacademy.com/offer/#pricing" class="btn-primary">Choose Annual</a>
                     </div>
                 </div>
                 <button id="trial-expired-logout" class="btn-text">Sign out</button>
@@ -276,6 +299,7 @@
                         <h2 id="dashboard-welcome">Welcome back!</h2>
                         <p id="dashboard-protocol" class="protocol-name">Your Protocol: Loading...</p>
                     </div>
+                    <!-- TODO: STRIPE UPGRADE LINK - Trial banner (visible during active trial) -->
                     <div id="trial-banner" class="trial-banner hidden">
                         <div class="trial-info">
                             <span class="trial-label">Trial:</span>
@@ -283,6 +307,7 @@
                         </div>
                         <a href="https://www.guthealingacademy.com/offer/#pricing" class="btn-upgrade">Upgrade Now</a>
                     </div>
+                    <!-- TODO: STRIPE UPGRADE LINK - Trial expired banner -->
                     <div id="trial-expired-banner" class="trial-expired-banner hidden">
                         <div class="trial-expired-info">
                             <span class="trial-expired-icon">⏰</span>
@@ -414,6 +439,7 @@
                                 </div>
 
                                 <!-- Upgrade CTA -->
+                                <!-- TODO: STRIPE UPGRADE LINK - Protocol locked pathway -->
                                 <div class="upgrade-cta-section">
                                     <a href="https://www.guthealingacademy.com/offer/#pricing" class="btn-upgrade-primary" id="locked-pathway-upgrade-btn">
                                         Unlock Your Full Recovery Path
@@ -519,6 +545,40 @@
                                     <span class="qna-label">🕐 Time:</span>
                                     <span class="qna-value">4:00 PM GMT</span>
                                 </div>
+                                <div class="qna-detail-item">
+                                    <span class="qna-label">📋 Topic:</span>
+                                    <span class="qna-value qna-topic">Why Cutting Foods for Bloating Often Backfires</span>
+                                </div>
+                            </div>
+
+                            <!-- Session Host Card -->
+                            <div id="qna-host-card" class="qna-host-card">
+                                <p class="qna-host-label">Hosted by</p>
+                                <div class="qna-host-content">
+                                    <img id="qna-host-avatar" class="qna-host-avatar" src="" alt="Session Host">
+                                    <div class="qna-host-info">
+                                        <h4 id="qna-host-name" class="qna-host-name">Loading...</h4>
+                                        <p id="qna-host-credentials" class="qna-host-credentials"></p>
+                                    </div>
+                                </div>
+                                <p id="qna-host-bio" class="qna-host-bio"></p>
+                                <div id="qna-host-specializations" class="qna-host-specializations hidden">
+                                    <p class="specializations-label">Specializations:</p>
+                                    <div id="qna-host-specializations-list" class="specializations-list"></div>
+                                </div>
+                            </div>
+
+                            <!-- RSVP Section -->
+                            <div id="qna-rsvp-section" class="qna-rsvp-section">
+                                <div class="qna-rsvp-count">
+                                    <span id="qna-rsvp-number">7</span> people are joining this session
+                                </div>
+                                <button id="qna-rsvp-btn" class="btn-qna-rsvp">
+                                    I'm Joining!
+                                </button>
+                                <button id="qna-rsvp-btn-confirmed" class="btn-qna-rsvp-confirmed hidden">
+                                    You're In!
+                                </button>
                             </div>
 
                             <div id="qna-join-section" class="qna-join-section">
@@ -531,6 +591,11 @@
                                 <p class="qna-note">The link will be active 15 minutes before the session starts.</p>
                             </div>
 
+                            <!-- TODO: Trial Access Gating
+                                 For trial users, show session info but add note:
+                                 "Live participation available with active membership"
+                                 RSVP should still work for trial users to build engagement -->
+                            <!-- TODO: STRIPE UPGRADE LINK - Q&A locked message -->
                             <div id="qna-locked-message" class="locked-message hidden">
                                 <div class="lock-icon">🔒</div>
                                 <p class="lock-text">Upgrade your membership to join live Q&A sessions</p>
@@ -586,6 +651,8 @@
                             </div>
                         </div>
 
+                        <!-- TODO: STRIPE UPGRADE LINK - Learning materials locked overlay -->
+                        <!-- TODO: Trial Access Gating - Show titles only during trial, full lock for trial_expired -->
                         <div id="learning-locked-overlay" class="locked-overlay hidden">
                             <div class="locked-overlay-content">
                                 <div class="lock-icon-large">🔒</div>

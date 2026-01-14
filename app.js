@@ -81,6 +81,42 @@ var PROTOCOLS = {
     }
 };
 
+// ============================================
+// TRIAL ACCESS GATING CONFIGURATION (Future Implementation)
+// ============================================
+// This defines what content is accessible during trial vs paid membership
+// The $1 trial model gives 7 days of limited access to build engagement
+//
+// ACCESS_LEVELS configuration:
+//
+// TRIAL_ACCESS (first 7 days after signup):
+// - protocol: 'full'         - Show complete protocol (not week-gated, just "Your Protocol" as ongoing guidance)
+// - tracking: 'full'         - Full daily tracking access (this creates investment and habit)
+// - liveQA: 'view_only'      - Can see session info and RSVP, but note: "Live participation available with active membership"
+// - pastRecordings: 'limited' - 1 recording unlocked, others show lock icon with "Unlock with membership"
+// - messageExpert: 'preview'  - See practitioner profile, but messaging disabled with "Messaging available with active membership"
+// - learningMaterial: 'titles_only' - Show titles only, content locked with upgrade CTA
+//
+// PAID_ACCESS (active subscription):
+// - protocol: 'full'
+// - tracking: 'full'
+// - liveQA: 'full'
+// - pastRecordings: 'full'
+// - messageExpert: 'full'
+// - learningMaterial: 'full'
+//
+// Implementation Notes:
+// - Check user subscription status via currentMember.status
+// - Status values: 'lead', 'trial', 'active', 'trial_expired', 'cancelled'
+// - Trial period is 7 days from trial_start_date
+// - When implementing, check each feature area and apply appropriate gating
+// - Use existing locked-message pattern (lock icon + upgrade CTA) for consistency
+//
+// TODO: Implement actual gating logic in applyAccessControls() function
+// TODO: Add trial-specific messaging for each gated feature
+// TODO: Track trial engagement metrics to optimize conversion
+// ============================================
+
 // Protocol content placeholders (Week 1)
 var PROTOCOL_CONTENT = {
     1: `
@@ -1670,6 +1706,9 @@ function initializeDashboard() {
     // Initialize message search
     initializeMessageSearch();
 
+    // Initialize Q&A session (host info and RSVP)
+    initializeQASession();
+
     // Apply access controls based on user status
     applyAccessControls();
 
@@ -1768,6 +1807,225 @@ function applyAccessControls() {
 
         console.log('Access: Trial Expired - Limited access (today\'s tracking + protocol + message history only)');
     }
+}
+
+// ============================================
+// LIVE Q&A SESSION HOST & RSVP SYSTEM
+// ============================================
+
+// Configuration for current Q&A session
+var QA_SESSION_CONFIG = {
+    date: '2025-01-16',  // Current session date (YYYY-MM-DD format)
+    hostId: 'abcaa567-8e12-4038-a300-9fc8c24d785a',  // Rebecca Taylor's user ID
+    baseRsvpCount: 7  // Starting count so early users don't see empty state
+};
+
+// Load Q&A session host information
+async function loadQASessionHost() {
+    try {
+        // Fetch host practitioner details from users table
+        var { data: host, error } = await supabase
+            .from('users')
+            .select('id, name, avatar_url, credentials, bio, specializations')
+            .eq('id', QA_SESSION_CONFIG.hostId)
+            .maybeSingle();
+
+        if (error) {
+            console.log('Error fetching Q&A host:', error);
+            return;
+        }
+
+        if (!host) {
+            console.log('Q&A host not found');
+            return;
+        }
+
+        // Update host card elements
+        var hostCard = document.getElementById('qna-host-card');
+        var hostAvatar = document.getElementById('qna-host-avatar');
+        var hostName = document.getElementById('qna-host-name');
+        var hostCredentials = document.getElementById('qna-host-credentials');
+        var hostBio = document.getElementById('qna-host-bio');
+        var hostSpecializations = document.getElementById('qna-host-specializations');
+        var hostSpecializationsList = document.getElementById('qna-host-specializations-list');
+
+        if (!hostCard) return;
+
+        // Set avatar with fallback
+        var avatarUrl = host.avatar_url || 'https://via.placeholder.com/64?text=' + encodeURIComponent((host.name || 'H').charAt(0));
+        if (hostAvatar) hostAvatar.src = avatarUrl;
+
+        // Set name
+        if (hostName) hostName.textContent = host.name || 'Gut Health Expert';
+
+        // Set credentials
+        if (hostCredentials) {
+            if (host.credentials) {
+                hostCredentials.textContent = host.credentials;
+                hostCredentials.style.display = 'block';
+            } else {
+                hostCredentials.style.display = 'none';
+            }
+        }
+
+        // Set bio
+        if (hostBio) {
+            if (host.bio) {
+                hostBio.textContent = host.bio;
+                hostBio.style.display = 'block';
+            } else {
+                hostBio.style.display = 'none';
+            }
+        }
+
+        // Set specializations
+        if (hostSpecializations && hostSpecializationsList) {
+            var specializations = host.specializations || [];
+            if (specializations.length > 0) {
+                hostSpecializations.classList.remove('hidden');
+                hostSpecializationsList.innerHTML = specializations.map(function(spec) {
+                    var readableSpec = formatSpecialization(spec);
+                    return '<span class="specialization-tag">' + readableSpec + '</span>';
+                }).join('');
+            } else {
+                hostSpecializations.classList.add('hidden');
+            }
+        }
+
+        console.log('Q&A session host loaded:', host.name);
+    } catch (error) {
+        console.log('Error loading Q&A host:', error);
+    }
+}
+
+// Load RSVP count for current session
+async function loadRSVPCount() {
+    try {
+        var { count, error } = await supabase
+            .from('live_qa_rsvps')
+            .select('*', { count: 'exact', head: true })
+            .eq('session_date', QA_SESSION_CONFIG.date);
+
+        if (error) {
+            console.log('Error fetching RSVP count:', error);
+            return;
+        }
+
+        // Add base count to actual count
+        var totalCount = (count || 0) + QA_SESSION_CONFIG.baseRsvpCount;
+
+        var countElement = document.getElementById('qna-rsvp-number');
+        if (countElement) {
+            countElement.textContent = totalCount;
+        }
+
+        console.log('RSVP count loaded:', totalCount);
+    } catch (error) {
+        console.log('Error loading RSVP count:', error);
+    }
+}
+
+// Check if current user has already RSVP'd
+async function checkUserRSVP() {
+    if (!currentMember) return false;
+
+    try {
+        var { data, error } = await supabase
+            .from('live_qa_rsvps')
+            .select('id')
+            .eq('session_date', QA_SESSION_CONFIG.date)
+            .eq('user_id', currentMember.id)
+            .maybeSingle();
+
+        if (error) {
+            console.log('Error checking user RSVP:', error);
+            return false;
+        }
+
+        if (data) {
+            // User has already RSVP'd - show confirmed state
+            showRSVPConfirmedState();
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.log('Error checking user RSVP:', error);
+        return false;
+    }
+}
+
+// Show the confirmed RSVP state
+function showRSVPConfirmedState() {
+    var rsvpBtn = document.getElementById('qna-rsvp-btn');
+    var rsvpBtnConfirmed = document.getElementById('qna-rsvp-btn-confirmed');
+
+    if (rsvpBtn) rsvpBtn.classList.add('hidden');
+    if (rsvpBtnConfirmed) rsvpBtnConfirmed.classList.remove('hidden');
+}
+
+// Handle RSVP button click
+async function handleRSVPClick() {
+    if (!currentMember) {
+        console.log('User not logged in');
+        return;
+    }
+
+    var rsvpBtn = document.getElementById('qna-rsvp-btn');
+    var countElement = document.getElementById('qna-rsvp-number');
+
+    // Optimistic UI update - immediately show confirmed state
+    showRSVPConfirmedState();
+
+    // Increment displayed count immediately
+    if (countElement) {
+        var currentCount = parseInt(countElement.textContent) || QA_SESSION_CONFIG.baseRsvpCount;
+        countElement.textContent = currentCount + 1;
+    }
+
+    // Insert RSVP in background
+    try {
+        var { error } = await supabase
+            .from('live_qa_rsvps')
+            .insert({
+                session_date: QA_SESSION_CONFIG.date,
+                user_id: currentMember.id
+            });
+
+        if (error) {
+            // If error is duplicate key, user already RSVP'd - no visible change needed
+            if (error.code === '23505') {
+                console.log('User already RSVP\'d (duplicate prevented)');
+            } else {
+                console.log('Error inserting RSVP:', error);
+                // Could revert UI here, but better UX to leave it as confirmed
+            }
+        } else {
+            console.log('RSVP saved successfully');
+        }
+    } catch (error) {
+        console.log('Error saving RSVP:', error);
+    }
+}
+
+// Initialize Q&A session features
+async function initializeQASession() {
+    // Load host information
+    await loadQASessionHost();
+
+    // Load RSVP count
+    await loadRSVPCount();
+
+    // Check if user already RSVP'd
+    await checkUserRSVP();
+
+    // Set up RSVP button click handler
+    var rsvpBtn = document.getElementById('qna-rsvp-btn');
+    if (rsvpBtn) {
+        rsvpBtn.addEventListener('click', handleRSVPClick);
+    }
+
+    console.log('Q&A session initialized');
 }
 
 // ============================================

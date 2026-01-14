@@ -2477,6 +2477,176 @@ a:hover {
     font-size: 16px;
 }
 
+/* Q&A Session Topic */
+.qna-topic {
+    font-style: italic;
+    font-weight: 500 !important;
+}
+
+/* Q&A Session Host Card */
+.qna-host-card {
+    background: linear-gradient(135deg, #E8F0EC 0%, #f5f9f7 100%);
+    border: 1px solid #c8ddd2;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.qna-host-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 12px 0;
+}
+
+.qna-host-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.qna-host-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--white);
+    box-shadow: 0 2px 8px var(--shadow);
+    flex-shrink: 0;
+}
+
+.qna-host-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.qna-host-name {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.3;
+}
+
+.qna-host-credentials {
+    font-size: 13px;
+    color: var(--primary);
+    margin: 2px 0 0 0;
+    font-weight: 500;
+}
+
+.qna-host-bio {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+    margin: 0;
+    font-style: italic;
+}
+
+.qna-host-specializations {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(107, 144, 128, 0.2);
+}
+
+/* RSVP Section */
+.qna-rsvp-section {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.qna-rsvp-count {
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.qna-rsvp-count #qna-rsvp-number {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.btn-qna-rsvp {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 32px;
+    background-color: var(--accent);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-qna-rsvp:hover {
+    background-color: var(--accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+}
+
+.btn-qna-rsvp-confirmed {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 32px;
+    background-color: var(--success);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: default;
+}
+
+.btn-qna-rsvp-confirmed::after {
+    content: " ✓";
+    margin-left: 4px;
+}
+
+/* Mobile responsiveness for Q&A host card */
+@media (max-width: 480px) {
+    .qna-host-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .qna-host-avatar {
+        width: 72px;
+        height: 72px;
+    }
+
+    .qna-host-info {
+        text-align: center;
+    }
+
+    .qna-host-specializations .specializations-list {
+        justify-content: center;
+    }
+
+    .qna-rsvp-section {
+        padding: 16px;
+    }
+
+    .btn-qna-rsvp,
+    .btn-qna-rsvp-confirmed {
+        width: 100%;
+        padding: 16px 24px;
+    }
+}
+
 /* ============================================
    LEARNING MATERIAL TAB
    ============================================ */
