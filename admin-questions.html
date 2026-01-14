@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Q&A Questions - Admin | Gut Healing Academy</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Admin Questions Page Specific Styles */
+        .admin-header {
+            background: linear-gradient(135deg, #6B9080 0%, #5a7a6b 100%);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .admin-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-logo {
+            height: 36px;
+        }
+
+        .admin-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .admin-header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-user-name {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+        }
+
+        .admin-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .admin-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .admin-filter-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .admin-select {
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+            min-width: 180px;
+        }
+
+        .admin-stats {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .admin-stats-pending {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .admin-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-refresh {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-refresh:hover {
+            background: #f5f5f5;
+            border-color: var(--primary);
+        }
+
+        .btn-refresh.loading svg {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .auto-refresh-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .auto-refresh-toggle input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .questions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 8px var(--shadow);
+            border-left: 4px solid var(--warning);
+            transition: all 0.2s ease;
+        }
+
+        .question-card.answered {
+            border-left-color: var(--success);
+            opacity: 0.8;
+        }
+
+        .question-card.skipped {
+            border-left-color: var(--text-light);
+            opacity: 0.6;
+        }
+
+        .question-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .question-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .question-user-name {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        .question-protocol-tag {
+            display: inline-flex;
+            padding: 3px 10px;
+            background: #E8F0EC;
+            color: var(--primary-dark);
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .question-status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .question-status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .question-status-badge.answered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .question-status-badge.skipped {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .question-text {
+            font-size: 15px;
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .question-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .question-time {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-mark-answered {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-mark-answered:hover {
+            background: #219653;
+            transform: translateY(-1px);
+        }
+
+        .btn-mark-skipped {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--text-light);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-mark-skipped:hover {
+            background: #4a5568;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .empty-state-text {
+            font-size: 15px;
+            color: var(--text-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .admin-filter-section {
+                width: 100%;
+            }
+
+            .admin-select {
+                flex: 1;
+            }
+
+            .question-card-header {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .question-card-footer {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .question-actions {
+                width: 100%;
+            }
+
+            .question-actions button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login View -->
+    <div id="login-view" class="view">
+        <div class="container">
+            <div class="card">
+                <div class="brand">
+                    <img src="assets/Logo.png" alt="Gut Healing Academy" class="brand-logo-img">
+                    <p class="subtitle">Admin - Q&A Questions</p>
+                </div>
+                <div id="login-section">
+                    <p class="welcome-text">Sign in to view submitted questions</p>
+                    <button id="google-login-btn" class="btn-google">
+                        <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        Sign in with Google
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading View -->
+    <div id="loading-view" class="view hidden">
+        <div class="container">
+            <div class="card">
+                <div class="spinner"></div>
+                <p class="loading-text">Loading questions...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Access Denied View -->
+    <div id="access-denied-view" class="view hidden">
+        <div class="container">
+            <div class="card">
+                <div class="brand">
+                    <img src="assets/Logo.png" alt="Gut Healing Academy" class="brand-logo-img">
+                </div>
+                <div class="status-icon">🔒</div>
+                <h2 class="status-title">Access Denied</h2>
+                <p class="status-message">
+                    This page is for authorized admins only.
+                </p>
+                <a href="index.html" class="btn-primary">Go to Member Portal</a>
+                <button id="access-denied-logout" class="btn-text">Sign out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard View -->
+    <div id="dashboard-view" class="view hidden">
+        <header class="admin-header">
+            <div class="admin-header-content">
+                <div class="admin-header-left">
+                    <img src="assets/Logo.png" alt="Gut Healing Academy" class="admin-logo">
+                    <span class="admin-title">Live Q&A Questions</span>
+                </div>
+                <div class="admin-header-right">
+                    <span id="admin-user-name" class="admin-user-name">Loading...</span>
+                    <button id="admin-logout" class="btn-logout-small">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="admin-main">
+            <div class="admin-controls">
+                <div class="admin-filter-section">
+                    <label class="admin-filter-label">Session Date:</label>
+                    <select id="session-date-filter" class="admin-select">
+                        <!-- Populated by JS -->
+                    </select>
+                    <span id="questions-stats" class="admin-stats">
+                        <span id="total-count">0</span> questions
+                        (<span id="pending-count" class="admin-stats-pending">0</span> pending)
+                    </span>
+                </div>
+
+                <div class="admin-actions">
+                    <label class="auto-refresh-toggle">
+                        <input type="checkbox" id="auto-refresh-toggle">
+                        Auto-refresh
+                    </label>
+                    <button id="refresh-btn" class="btn-refresh">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6M1 20v-6h6"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="questions-list" class="questions-list">
+                <!-- Questions loaded by JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        var SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabase.co';
+        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
+        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Authorized admin emails
+        var ADMIN_EMAILS = [
+            'gedaskvedaras7@gmail.com'
+            // Add more admin emails here
+        ];
+
+        // Protocol names for display
+        var PROTOCOL_NAMES = {
+            1: 'Bloating',
+            2: 'IBS-C',
+            3: 'IBS-D',
+            4: 'IBS-M',
+            5: 'Post-SIBO',
+            6: 'Gut-Brain'
+        };
+
+        // Current session date (default to today or next session)
+        var currentSessionDate = '2025-01-16';
+        var autoRefreshInterval = null;
+        var currentUser = null;
+
+        // ============================================
+        // VIEW MANAGEMENT
+        // ============================================
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+        }
+
+        // ============================================
+        // AUTHENTICATION
+        // ============================================
+        async function initializeAuth() {
+            showView('loading-view');
+
+            // Check for existing session
+            var { data: { session } } = await supabase.auth.getSession();
+
+            if (session) {
+                await handleAuthenticatedUser(session.user);
+            } else {
+                showView('login-view');
+            }
+
+            // Listen for auth changes
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    await handleAuthenticatedUser(session.user);
+                } else if (event === 'SIGNED_OUT') {
+                    showView('login-view');
+                }
+            });
+        }
+
+        async function handleAuthenticatedUser(user) {
+            // Check if user email is in admin list
+            if (!ADMIN_EMAILS.includes(user.email)) {
+                console.log('User not authorized:', user.email);
+                showView('access-denied-view');
+                return;
+            }
+
+            currentUser = user;
+            document.getElementById('admin-user-name').textContent = user.email;
+
+            // Initialize dashboard
+            await initializeDashboard();
+            showView('dashboard-view');
+        }
+
+        async function signInWithGoogle() {
+            var { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin + '/admin-questions.html' }
+            });
+
+            if (error) {
+                console.error('Login error:', error);
+                alert('Failed to sign in. Please try again.');
+            }
+        }
+
+        async function signOut() {
+            await supabase.auth.signOut();
+            showView('login-view');
+        }
+
+        // ============================================
+        // DASHBOARD INITIALIZATION
+        // ============================================
+        async function initializeDashboard() {
+            // Populate session date filter
+            populateSessionDates();
+
+            // Load questions
+            await loadQuestions();
+
+            // Set up event listeners
+            document.getElementById('session-date-filter').addEventListener('change', function() {
+                currentSessionDate = this.value;
+                loadQuestions();
+            });
+
+            document.getElementById('refresh-btn').addEventListener('click', loadQuestions);
+
+            document.getElementById('auto-refresh-toggle').addEventListener('change', function() {
+                if (this.checked) {
+                    autoRefreshInterval = setInterval(loadQuestions, 30000); // 30 seconds
+                } else {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            });
+        }
+
+        function populateSessionDates() {
+            var select = document.getElementById('session-date-filter');
+            var today = new Date();
+
+            // Generate dates for next 4 weeks (assuming weekly sessions)
+            var dates = [];
+            for (var i = -2; i < 4; i++) {
+                var date = new Date(today);
+                date.setDate(today.getDate() + (i * 7));
+                // Find next Thursday (or current session day)
+                var day = date.getDay();
+                var diff = 4 - day; // 4 = Thursday
+                if (diff < 0) diff += 7;
+                date.setDate(date.getDate() + diff);
+                dates.push(date.toISOString().split('T')[0]);
+            }
+
+            // Add current hardcoded session date if not in list
+            if (!dates.includes('2025-01-16')) {
+                dates.unshift('2025-01-16');
+            }
+
+            // Remove duplicates and sort
+            dates = [...new Set(dates)].sort().reverse();
+
+            select.innerHTML = dates.map(function(d) {
+                var dateObj = new Date(d + 'T00:00:00');
+                var formatted = dateObj.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                var selected = d === currentSessionDate ? 'selected' : '';
+                return '<option value="' + d + '" ' + selected + '>' + formatted + '</option>';
+            }).join('');
+        }
+
+        // ============================================
+        // QUESTIONS LOADING & RENDERING
+        // ============================================
+        async function loadQuestions() {
+            var refreshBtn = document.getElementById('refresh-btn');
+            refreshBtn.classList.add('loading');
+
+            try {
+                var { data: questions, error } = await supabase
+                    .from('qa_questions')
+                    .select('*')
+                    .eq('session_date', currentSessionDate)
+                    .order('status', { ascending: true }) // pending first
+                    .order('created_at', { ascending: true }); // oldest first within status
+
+                if (error) {
+                    console.error('Error loading questions:', error);
+                    return;
+                }
+
+                renderQuestions(questions || []);
+                updateStats(questions || []);
+
+            } catch (error) {
+                console.error('Error loading questions:', error);
+            } finally {
+                refreshBtn.classList.remove('loading');
+            }
+        }
+
+        function renderQuestions(questions) {
+            var container = document.getElementById('questions-list');
+
+            if (questions.length === 0) {
+                container.innerHTML = '<div class="empty-state">' +
+                    '<div class="empty-state-icon">📭</div>' +
+                    '<h3 class="empty-state-title">No Questions Yet</h3>' +
+                    '<p class="empty-state-text">Questions will appear here when members submit them.</p>' +
+                    '</div>';
+                return;
+            }
+
+            container.innerHTML = questions.map(function(q) {
+                var protocolName = PROTOCOL_NAMES[q.protocol_type] || 'Unknown';
+                var statusClass = q.status;
+                var statusLabel = q.status.charAt(0).toUpperCase() + q.status.slice(1);
+                var timeFormatted = formatTime(new Date(q.created_at));
+                var userName = q.user_name || 'Anonymous';
+
+                // Action buttons (only for pending questions)
+                var actionButtons = q.status === 'pending'
+                    ? '<button class="btn-mark-answered" onclick="markQuestion(\'' + q.id + '\', \'answered\')">' +
+                      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">' +
+                      '<polyline points="20 6 9 17 4 12"/>' +
+                      '</svg>Mark Answered</button>' +
+                      '<button class="btn-mark-skipped" onclick="markQuestion(\'' + q.id + '\', \'skipped\')">Skip</button>'
+                    : '';
+
+                return '<div class="question-card ' + statusClass + '">' +
+                    '<div class="question-card-header">' +
+                    '<div class="question-user-info">' +
+                    '<span class="question-user-name">' + escapeHtml(userName) + '</span>' +
+                    '<span class="question-protocol-tag">' + protocolName + '</span>' +
+                    '</div>' +
+                    '<span class="question-status-badge ' + statusClass + '">' + statusLabel + '</span>' +
+                    '</div>' +
+                    '<p class="question-text">' + escapeHtml(q.question) + '</p>' +
+                    '<div class="question-card-footer">' +
+                    '<span class="question-time">Submitted ' + timeFormatted + '</span>' +
+                    '<div class="question-actions">' + actionButtons + '</div>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function updateStats(questions) {
+            var total = questions.length;
+            var pending = questions.filter(function(q) { return q.status === 'pending'; }).length;
+
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('pending-count').textContent = pending;
+        }
+
+        // ============================================
+        // QUESTION ACTIONS
+        // ============================================
+        async function markQuestion(questionId, newStatus) {
+            try {
+                var { error } = await supabase
+                    .from('qa_questions')
+                    .update({ status: newStatus })
+                    .eq('id', questionId);
+
+                if (error) {
+                    console.error('Error updating question:', error);
+                    alert('Failed to update question status.');
+                    return;
+                }
+
+                // Reload questions
+                loadQuestions();
+
+            } catch (error) {
+                console.error('Error updating question:', error);
+                alert('Failed to update question status.');
+            }
+        }
+
+        // ============================================
+        // HELPERS
+        // ============================================
+        function formatTime(date) {
+            var now = new Date();
+            var diffMs = now - date;
+            var diffMins = Math.floor(diffMs / 60000);
+            var diffHours = Math.floor(diffMs / 3600000);
+            var diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return diffMins + ' min ago';
+            if (diffHours < 24) return diffHours + 'h ago';
+            if (diffDays < 7) return diffDays + 'd ago';
+
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Login button
+            var loginBtn = document.getElementById('google-login-btn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', signInWithGoogle);
+            }
+
+            // Logout buttons
+            var logoutBtn = document.getElementById('admin-logout');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', signOut);
+            }
+
+            var accessDeniedLogout = document.getElementById('access-denied-logout');
+            if (accessDeniedLogout) {
+                accessDeniedLogout.addEventListener('click', signOut);
+            }
+
+            // Initialize auth
+            initializeAuth();
+        });
+    </script>
+</body>
+</html>
