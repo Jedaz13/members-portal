@@ -1817,85 +1817,88 @@ function applyAccessControls() {
 var QA_SESSION_CONFIG = {
     date: '2025-01-16',  // Current session date (YYYY-MM-DD format)
     hostId: 'abcaa567-8e12-4038-a300-9fc8c24d785a',  // Rebecca Taylor's user ID
-    baseRsvpCount: 7  // Starting count so early users don't see empty state
+    baseRsvpCount: 7,  // Starting count so early users don't see empty state
+    // Default host info (used when database profile is incomplete)
+    defaultHost: {
+        name: 'Rebecca Taylor',
+        credentials: 'RNutr, Registered Clinical Nutritionist',
+        bio: 'Rebecca specialises in gut health and digestive wellness, helping clients overcome bloating, IBS, and other digestive issues through evidence-based nutrition strategies.',
+        avatar_url: 'assets/practitioners/rebecca-taylor.jpg',
+        specializations: ['bloating', 'ibs_d', 'ibs_c', 'food_sensitivity']
+    }
 };
 
 // Load Q&A session host information
 async function loadQASessionHost() {
+    // Get DOM elements
+    var hostCard = document.getElementById('qna-host-card');
+    var hostAvatar = document.getElementById('qna-host-avatar');
+    var hostName = document.getElementById('qna-host-name');
+    var hostCredentials = document.getElementById('qna-host-credentials');
+    var hostBio = document.getElementById('qna-host-bio');
+    var hostSpecializations = document.getElementById('qna-host-specializations');
+    var hostSpecializationsList = document.getElementById('qna-host-specializations-list');
+
+    if (!hostCard) return;
+
+    // Start with default values
+    var displayHost = { ...QA_SESSION_CONFIG.defaultHost };
+
     try {
-        // Fetch host practitioner details from users table
+        // Try to fetch host practitioner details from users table
         var { data: host, error } = await supabase
             .from('users')
             .select('id, name, avatar_url, credentials, bio, specializations')
             .eq('id', QA_SESSION_CONFIG.hostId)
             .maybeSingle();
 
-        if (error) {
-            console.log('Error fetching Q&A host:', error);
-            return;
-        }
-
-        if (!host) {
-            console.log('Q&A host not found');
-            return;
-        }
-
-        // Update host card elements
-        var hostCard = document.getElementById('qna-host-card');
-        var hostAvatar = document.getElementById('qna-host-avatar');
-        var hostName = document.getElementById('qna-host-name');
-        var hostCredentials = document.getElementById('qna-host-credentials');
-        var hostBio = document.getElementById('qna-host-bio');
-        var hostSpecializations = document.getElementById('qna-host-specializations');
-        var hostSpecializationsList = document.getElementById('qna-host-specializations-list');
-
-        if (!hostCard) return;
-
-        // Set avatar with fallback
-        var avatarUrl = host.avatar_url || 'https://via.placeholder.com/64?text=' + encodeURIComponent((host.name || 'H').charAt(0));
-        if (hostAvatar) hostAvatar.src = avatarUrl;
-
-        // Set name
-        if (hostName) hostName.textContent = host.name || 'Gut Health Expert';
-
-        // Set credentials
-        if (hostCredentials) {
-            if (host.credentials) {
-                hostCredentials.textContent = host.credentials;
-                hostCredentials.style.display = 'block';
-            } else {
-                hostCredentials.style.display = 'none';
+        if (!error && host) {
+            // Override defaults with any database values that exist
+            if (host.name) displayHost.name = host.name;
+            if (host.avatar_url) displayHost.avatar_url = host.avatar_url;
+            if (host.credentials) displayHost.credentials = host.credentials;
+            if (host.bio) displayHost.bio = host.bio;
+            if (host.specializations && host.specializations.length > 0) {
+                displayHost.specializations = host.specializations;
             }
         }
-
-        // Set bio
-        if (hostBio) {
-            if (host.bio) {
-                hostBio.textContent = host.bio;
-                hostBio.style.display = 'block';
-            } else {
-                hostBio.style.display = 'none';
-            }
-        }
-
-        // Set specializations
-        if (hostSpecializations && hostSpecializationsList) {
-            var specializations = host.specializations || [];
-            if (specializations.length > 0) {
-                hostSpecializations.classList.remove('hidden');
-                hostSpecializationsList.innerHTML = specializations.map(function(spec) {
-                    var readableSpec = formatSpecialization(spec);
-                    return '<span class="specialization-tag">' + readableSpec + '</span>';
-                }).join('');
-            } else {
-                hostSpecializations.classList.add('hidden');
-            }
-        }
-
-        console.log('Q&A session host loaded:', host.name);
     } catch (error) {
-        console.log('Error loading Q&A host:', error);
+        console.log('Error fetching Q&A host, using defaults:', error);
     }
+
+    // Set avatar - use default placeholder if no image
+    var avatarUrl = displayHost.avatar_url;
+    if (!avatarUrl || avatarUrl.includes('placeholder')) {
+        // Use a nice default avatar with initials
+        avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(displayHost.name) + '&background=6B9080&color=fff&size=128&font-size=0.4';
+    }
+    if (hostAvatar) hostAvatar.src = avatarUrl;
+
+    // Set name
+    if (hostName) hostName.textContent = displayHost.name;
+
+    // Set credentials
+    if (hostCredentials) {
+        hostCredentials.textContent = displayHost.credentials;
+        hostCredentials.style.display = 'block';
+    }
+
+    // Set bio
+    if (hostBio) {
+        hostBio.textContent = displayHost.bio;
+        hostBio.style.display = 'block';
+    }
+
+    // Set specializations
+    if (hostSpecializations && hostSpecializationsList && displayHost.specializations.length > 0) {
+        hostSpecializations.classList.remove('hidden');
+        hostSpecializationsList.innerHTML = displayHost.specializations.map(function(spec) {
+            var readableSpec = formatSpecialization(spec);
+            return '<span class="specialization-tag">' + readableSpec + '</span>';
+        }).join('');
+    }
+
+    console.log('Q&A session host loaded:', displayHost.name);
 }
 
 // Load RSVP count for current session
