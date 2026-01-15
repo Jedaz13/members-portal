@@ -1407,6 +1407,153 @@ async function signOut() {
     }
 }
 
+// Email/Password Sign In
+async function signInWithEmail(email, password) {
+    try {
+        showView('loading-view');
+
+        var { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            console.error('Email sign in error:', error.message);
+            showView('login-view');
+
+            // Provide user-friendly error messages
+            if (error.message.includes('Invalid login credentials')) {
+                showToast('Invalid email or password. Please try again.');
+            } else if (error.message.includes('Email not confirmed')) {
+                showToast('Please check your email and confirm your account first.');
+            } else {
+                showToast('Sign in failed: ' + error.message);
+            }
+            return;
+        }
+
+        if (data.session) {
+            console.log('Email sign in successful');
+            await checkUserStatusAndRoute(data.user, data.session.access_token);
+        }
+    } catch (err) {
+        console.error('Sign in error:', err);
+        showView('login-view');
+        showToast('Sign in failed. Please try again.');
+    }
+}
+
+// Forgot Password - Send Reset Email
+async function sendPasswordResetEmail(email) {
+    try {
+        var { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + '/reset-password.html'
+        });
+
+        if (error) {
+            console.error('Password reset error:', error.message);
+            showToast('Failed to send reset email. Please try again.');
+            return false;
+        }
+
+        return true;
+    } catch (err) {
+        console.error('Password reset error:', err);
+        showToast('Failed to send reset email. Please try again.');
+        return false;
+    }
+}
+
+// Initialize Email Login Form
+function initializeEmailLogin() {
+    var emailLoginForm = document.getElementById('email-login-form');
+    var forgotPasswordLink = document.getElementById('forgot-password-link');
+    var forgotPasswordModal = document.getElementById('forgot-password-modal');
+    var closeForgotModal = document.getElementById('close-forgot-modal');
+    var forgotPasswordForm = document.getElementById('forgot-password-form');
+    var forgotFormSection = document.getElementById('forgot-form-section');
+    var forgotSuccessSection = document.getElementById('forgot-success-section');
+
+    // Email login form submission
+    if (emailLoginForm) {
+        emailLoginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var email = document.getElementById('login-email').value.trim();
+            var password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showToast('Please enter both email and password.');
+                return;
+            }
+
+            signInWithEmail(email, password);
+        });
+    }
+
+    // Forgot password link click
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Pre-fill email if already entered
+            var loginEmail = document.getElementById('login-email').value.trim();
+            if (loginEmail) {
+                document.getElementById('forgot-email').value = loginEmail;
+            }
+            forgotPasswordModal.classList.remove('hidden');
+        });
+    }
+
+    // Close forgot password modal
+    if (closeForgotModal) {
+        closeForgotModal.addEventListener('click', function() {
+            forgotPasswordModal.classList.add('hidden');
+            // Reset modal state
+            forgotFormSection.classList.remove('hidden');
+            forgotSuccessSection.classList.add('hidden');
+            document.getElementById('forgot-email').value = '';
+        });
+    }
+
+    // Close modal on overlay click
+    if (forgotPasswordModal) {
+        forgotPasswordModal.addEventListener('click', function(e) {
+            if (e.target === forgotPasswordModal) {
+                forgotPasswordModal.classList.add('hidden');
+                forgotFormSection.classList.remove('hidden');
+                forgotSuccessSection.classList.add('hidden');
+            }
+        });
+    }
+
+    // Forgot password form submission
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var email = document.getElementById('forgot-email').value.trim();
+
+            if (!email) {
+                showToast('Please enter your email address.');
+                return;
+            }
+
+            var sendBtn = document.getElementById('send-reset-btn');
+            var originalText = sendBtn.textContent;
+            sendBtn.textContent = 'Sending...';
+            sendBtn.disabled = true;
+
+            var success = await sendPasswordResetEmail(email);
+
+            sendBtn.textContent = originalText;
+            sendBtn.disabled = false;
+
+            if (success) {
+                forgotFormSection.classList.add('hidden');
+                forgotSuccessSection.classList.remove('hidden');
+            }
+        });
+    }
+}
+
 // ============================================
 // USER STATUS ROUTING - THE CORE BUSINESS LOGIC
 // ============================================
@@ -1538,26 +1685,30 @@ async function checkUserStatusAndRoute(user, accessToken) {
         let updatedStatus = member.status || 'lead';
         console.log('Current status:', updatedStatus);
 
-        // If status is "lead" or null, upgrade to "trial"
+        // IMPORTANT: Block non-payers
+        // Users with status='lead' or NULL should NOT have portal access
+        // They need to pay first to get 'trial' or 'active' status
         if (!member.status || member.status === 'lead') {
-            console.log('Upgrading user from lead to trial...');
-            const { error: updateError } = await supabase
-                .from('users')
-                .update({
-                    status: 'trial',
-                    trial_start_date: new Date().toISOString(),
-                    last_login_at: new Date().toISOString()
-                })
-                .eq('email', user.email);
+            console.log('User is a lead (non-payer) - redirecting to offer page');
+            // Sign them out first
+            await supabase.auth.signOut();
+            currentUser = null;
+            currentMember = null;
+            // Redirect to the offer page
+            window.location.href = 'https://www.guthealingacademy.com/offer/';
+            return;
+        }
 
-            if (updateError) {
-                console.error('Error upgrading to trial:', updateError);
-            } else {
-                updatedStatus = 'trial';
-                currentMember.status = 'trial';
-                currentMember.trial_start_date = new Date().toISOString();
-                console.log('User upgraded from lead to trial');
-            }
+        // Handle cancelled users - redirect to offer page to resubscribe
+        if (member.status === 'cancelled') {
+            console.log('User membership is cancelled - redirecting to offer page');
+            // Sign them out first
+            await supabase.auth.signOut();
+            currentUser = null;
+            currentMember = null;
+            // Redirect to the offer page
+            window.location.href = 'https://www.guthealingacademy.com/offer/';
+            return;
         }
 
         // If status is "trial", check if expired
@@ -1603,21 +1754,23 @@ async function checkUserStatusAndRoute(user, accessToken) {
         // Step 3: Route based on final status
         console.log('Final status for routing:', updatedStatus);
         switch (updatedStatus) {
-            case 'trial_expired':
-                // Trial expired users get limited dashboard access
-                initializeDashboard();
-                break;
             case 'trial':
             case 'active':
+                // Paying users - full/limited dashboard access
                 initializeDashboard();
                 break;
-            case 'lead':
-                // If still lead (update failed), try dashboard anyway
+            case 'trial_expired':
+                // Trial expired users get limited dashboard access with upgrade prompts
                 initializeDashboard();
                 break;
             default:
-                // Any other status (cancelled, etc.) - show trial expired for now
-                showView('trial-expired-view');
+                // Any other status (lead, cancelled, etc.) - redirect to offer page
+                // This is a safety fallback - should have been caught earlier
+                console.log('Unexpected status:', updatedStatus, '- redirecting to offer page');
+                await supabase.auth.signOut();
+                currentUser = null;
+                currentMember = null;
+                window.location.href = 'https://www.guthealingacademy.com/offer/';
         }
 
     } catch (err) {
@@ -3595,6 +3748,9 @@ function initLoginPageFeatures() {
 
     // Initialize mobile menu
     initMobileMenu();
+
+    // Initialize email/password login form
+    initializeEmailLogin();
 }
 
 // Slideshow functionality

@@ -337,6 +337,212 @@ a:hover {
 }
 
 /* ============================================
+   EMAIL/PASSWORD LOGIN FORM
+   ============================================ */
+.email-login-form {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.email-login-form .form-group {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.email-login-form .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.email-login-form .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--white);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.email-login-form .form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.15);
+}
+
+.email-login-form .form-input::placeholder {
+    color: var(--text-light);
+    opacity: 0.7;
+}
+
+.btn-full-width {
+    width: 100%;
+}
+
+.forgot-password-link {
+    display: block;
+    text-align: center;
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.forgot-password-link:hover {
+    text-decoration: underline;
+    color: var(--primary-dark);
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.login-divider span {
+    padding: 0 16px;
+}
+
+/* Error message styling */
+.form-error {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.form-input.error {
+    border-color: #e74c3c;
+}
+
+/* ============================================
+   FORGOT PASSWORD MODAL
+   ============================================ */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: var(--text);
+}
+
+.modal-body p {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.modal-body .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.modal-body .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.modal-body .form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--white);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-body .form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.15);
+}
+
+.modal-success {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.modal-success .success-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.modal-success h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.modal-success p {
+    color: var(--text-light);
+    font-size: 14px;
+}
+
+/* ============================================
    UPGRADE OPTIONS (Trial Expired Page)
    ============================================ */
 .upgrade-options {
@@ -458,6 +664,37 @@ a:hover {
 .header-brand h1 {
     font-size: 18px;
     font-weight: 700;
+    color: var(--primary);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-profile {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--background);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-profile:hover {
+    background: var(--secondary-light);
+    border-color: var(--secondary);
+    text-decoration: none;
+}
+
+.btn-profile svg {
     color: var(--primary);
 }
 
