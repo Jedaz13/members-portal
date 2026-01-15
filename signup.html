@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Account - Gut Healing Academy</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Signup Page Specific Styles */
+        .signup-view {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .signup-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .signup-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 48px 40px;
+            box-shadow: 0 4px 24px var(--shadow);
+            max-width: 440px;
+            width: 100%;
+        }
+
+        .signup-brand {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .signup-brand img {
+            height: 50px;
+            width: auto;
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .signup-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .signup-header p {
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        .signup-form .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .signup-form .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .signup-form .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--text);
+            background: var(--white);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .signup-form .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.15);
+        }
+
+        .signup-form .form-input::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+
+        .signup-form .form-input.error {
+            border-color: #e74c3c;
+        }
+
+        .form-error-text {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .password-requirements {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .password-requirements p {
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .password-requirements ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .password-requirements li {
+            margin: 2px 0;
+        }
+
+        .signup-submit {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .signup-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .signup-footer p {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .signup-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .signup-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Success state */
+        .signup-success {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .signup-success .success-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+
+        .signup-success h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+
+        .signup-success p {
+            color: var(--text-light);
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        /* Loading state */
+        .signup-loading {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .signup-loading .spinner {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 480px) {
+            .signup-card {
+                padding: 32px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-view">
+        <!-- Header -->
+        <header class="login-header">
+            <div class="login-header-content">
+                <a href="https://www.guthealingacademy.com" class="login-header-logo">
+                    <img src="assets/Logo.png" alt="Gut Healing Academy" class="header-logo-img">
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="signup-container">
+            <div class="signup-card">
+                <!-- Loading State -->
+                <div id="signup-loading" class="signup-loading hidden">
+                    <div class="spinner"></div>
+                    <p>Creating your account...</p>
+                </div>
+
+                <!-- Sign Up Form -->
+                <div id="signup-form-section">
+                    <div class="signup-brand">
+                        <img src="assets/Logo.png" alt="Gut Healing Academy">
+                    </div>
+
+                    <div class="signup-header">
+                        <h1>Create Your Account</h1>
+                        <p>Set up your login to access your personalized gut healing dashboard</p>
+                    </div>
+
+                    <form id="signup-form" class="signup-form">
+                        <div class="form-group">
+                            <label for="signup-email" class="form-label">Email Address</label>
+                            <input type="email" id="signup-email" class="form-input" placeholder="you@example.com" required>
+                            <p id="email-error" class="form-error-text hidden"></p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="signup-password" class="form-label">Create Password</label>
+                            <input type="password" id="signup-password" class="form-input" placeholder="Create a secure password" required>
+                            <div class="password-requirements">
+                                <p>Password must have:</p>
+                                <ul>
+                                    <li>At least 8 characters</li>
+                                </ul>
+                            </div>
+                            <p id="password-error" class="form-error-text hidden"></p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="signup-confirm-password" class="form-label">Confirm Password</label>
+                            <input type="password" id="signup-confirm-password" class="form-input" placeholder="Confirm your password" required>
+                            <p id="confirm-password-error" class="form-error-text hidden"></p>
+                        </div>
+
+                        <button type="submit" id="signup-submit-btn" class="btn-primary signup-submit">Create Account</button>
+                    </form>
+
+                    <div class="signup-footer">
+                        <p>Already have an account? <a href="index.html">Sign in</a></p>
+                    </div>
+                </div>
+
+                <!-- Success State -->
+                <div id="signup-success-section" class="signup-success hidden">
+                    <div class="success-icon">&#127881;</div>
+                    <h2>Account Created!</h2>
+                    <p>Your account has been created successfully. Redirecting you to your dashboard...</p>
+                    <div class="spinner"></div>
+                </div>
+
+                <!-- Error State - Account Already Exists -->
+                <div id="signup-exists-section" class="signup-success hidden">
+                    <div class="success-icon">&#128100;</div>
+                    <h2>Account Already Exists</h2>
+                    <p>An account with this email already exists. Please sign in instead.</p>
+                    <a href="index.html" class="btn-primary">Go to Sign In</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="global-footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="https://www.guthealingacademy.com/legal/index.html" target="_blank">Privacy Policy</a>
+                    <span class="footer-divider">|</span>
+                    <a href="https://www.guthealingacademy.com/legal/terms.html" target="_blank">Terms of Service</a>
+                    <span class="footer-divider">|</span>
+                    <a href="https://www.guthealingacademy.com/legal/contact.html" target="_blank">Contact Us</a>
+                </div>
+                <div class="footer-copyright">
+                    <p>&copy; <span id="current-year"></span> Gut Healing Academy. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Set current year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Get email from URL parameters
+        function getEmailFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('email') || '';
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Clear all errors
+        function clearErrors() {
+            document.querySelectorAll('.form-error-text').forEach(el => {
+                el.classList.add('hidden');
+                el.textContent = '';
+            });
+            document.querySelectorAll('.form-input').forEach(el => {
+                el.classList.remove('error');
+            });
+        }
+
+        // Show error for a field
+        function showFieldError(fieldId, errorId, message) {
+            const field = document.getElementById(fieldId);
+            const error = document.getElementById(errorId);
+            if (field) field.classList.add('error');
+            if (error) {
+                error.textContent = message;
+                error.classList.remove('hidden');
+            }
+        }
+
+        // Validate password
+        function validatePassword(password) {
+            if (password.length < 8) {
+                return 'Password must be at least 8 characters long';
+            }
+            return null;
+        }
+
+        // Handle signup form submission
+        async function handleSignup(e) {
+            e.preventDefault();
+            clearErrors();
+
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+            // Validate email
+            if (!email) {
+                showFieldError('signup-email', 'email-error', 'Please enter your email address');
+                return;
+            }
+
+            // Validate password
+            const passwordError = validatePassword(password);
+            if (passwordError) {
+                showFieldError('signup-password', 'password-error', passwordError);
+                return;
+            }
+
+            // Validate password confirmation
+            if (password !== confirmPassword) {
+                showFieldError('signup-confirm-password', 'confirm-password-error', 'Passwords do not match');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('signup-form-section').classList.add('hidden');
+            document.getElementById('signup-loading').classList.remove('hidden');
+
+            try {
+                // Create account with Supabase
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        emailRedirectTo: window.location.origin + '/index.html'
+                    }
+                });
+
+                if (error) {
+                    console.error('Signup error:', error.message);
+                    document.getElementById('signup-loading').classList.add('hidden');
+
+                    if (error.message.includes('already registered') || error.message.includes('already exists')) {
+                        document.getElementById('signup-exists-section').classList.remove('hidden');
+                    } else {
+                        document.getElementById('signup-form-section').classList.remove('hidden');
+                        showToast('Failed to create account: ' + error.message);
+                    }
+                    return;
+                }
+
+                // Check if user was created
+                if (data.user) {
+                    console.log('Account created successfully');
+
+                    // Show success state
+                    document.getElementById('signup-loading').classList.add('hidden');
+                    document.getElementById('signup-success-section').classList.remove('hidden');
+
+                    // If session exists (email confirmation disabled), redirect immediately
+                    if (data.session) {
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 2000);
+                    } else {
+                        // Email confirmation required - update success message
+                        document.getElementById('signup-success-section').innerHTML = `
+                            <div class="success-icon">&#9993;</div>
+                            <h2>Check Your Email</h2>
+                            <p>We've sent a confirmation link to <strong>${email}</strong>. Please check your inbox and click the link to activate your account.</p>
+                            <a href="index.html" class="btn-primary" style="margin-top: 16px;">Go to Sign In</a>
+                        `;
+                    }
+                }
+            } catch (err) {
+                console.error('Signup error:', err);
+                document.getElementById('signup-loading').classList.add('hidden');
+                document.getElementById('signup-form-section').classList.remove('hidden');
+                showToast('An error occurred. Please try again.');
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Pre-fill email from URL if provided
+            const email = getEmailFromURL();
+            if (email) {
+                document.getElementById('signup-email').value = email;
+            }
+
+            // Handle form submission
+            document.getElementById('signup-form').addEventListener('submit', handleSignup);
+
+            // Check if user is already logged in
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    // Already logged in, redirect to dashboard
+                    window.location.href = 'index.html';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

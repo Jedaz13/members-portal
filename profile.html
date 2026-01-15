@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile & Settings - Gut Healing Academy</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Profile Page Specific Styles */
+        .profile-view {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--background);
+        }
+
+        .profile-header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .profile-header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .profile-container {
+            flex: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 24px 20px 60px;
+        }
+
+        .profile-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 32px;
+        }
+
+        .profile-section {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-badge.trial {
+            background: #fef3cd;
+            color: #856404;
+        }
+
+        .status-badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.trial_expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .trial-remaining {
+            font-size: 13px;
+            color: var(--accent);
+            margin-left: 8px;
+        }
+
+        /* Manage Subscription */
+        .manage-subscription-section {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .manage-subscription-section p {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .btn-billing {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-billing:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-billing:disabled {
+            background: var(--text-light);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .no-stripe-message {
+            color: var(--text-light);
+            font-size: 14px;
+            padding: 16px;
+            background: var(--background);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        /* Notification Toggles */
+        .notification-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-info {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .notification-description {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            flex-shrink: 0;
+            margin-left: 16px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--white);
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        /* Trial Upgrade Card */
+        .upgrade-section {
+            background: linear-gradient(135deg, var(--accent) 0%, #d95b4a 100%);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+            color: var(--white);
+            text-align: center;
+        }
+
+        .upgrade-section .lock-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+
+        .upgrade-section h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .upgrade-section p {
+            font-size: 15px;
+            opacity: 0.95;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .upgrade-section .upgrade-benefits {
+            text-align: left;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+
+        .upgrade-section .upgrade-benefits li {
+            padding: 6px 0;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .upgrade-section .btn-upgrade-white {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: var(--white);
+            color: var(--accent);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .upgrade-section .btn-upgrade-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Danger Zone */
+        .danger-zone {
+            border: 1px solid #e74c3c;
+            background: #fdf7f7;
+        }
+
+        .danger-zone .section-title {
+            color: #e74c3c;
+            border-bottom-color: #f5c6cb;
+        }
+
+        .danger-zone p {
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .btn-danger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: transparent;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-danger:hover {
+            background: #e74c3c;
+            color: var(--white);
+        }
+
+        /* Loading State */
+        .profile-loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .profile-loading .spinner {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            .profile-container {
+                padding: 16px;
+            }
+
+            .profile-section {
+                padding: 20px 16px;
+            }
+
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .notification-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .toggle-switch {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-view">
+        <!-- Header -->
+        <header class="profile-header">
+            <div class="profile-header-content">
+                <div class="profile-header-left">
+                    <a href="index.html" class="back-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                        Back to Dashboard
+                    </a>
+                </div>
+                <img src="assets/Logo.png" alt="Gut Healing Academy" class="header-logo-img" style="height: 32px;">
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="profile-container">
+            <!-- Loading State -->
+            <div id="profile-loading" class="profile-loading">
+                <div class="spinner"></div>
+                <p>Loading your profile...</p>
+            </div>
+
+            <!-- Profile Content (hidden until loaded) -->
+            <div id="profile-content" class="hidden">
+                <h1 class="profile-title">Profile & Settings</h1>
+
+                <!-- Trial Upgrade Section (for trial users only) -->
+                <div id="upgrade-section" class="upgrade-section hidden">
+                    <div class="lock-icon">&#128275;</div>
+                    <h3>Upgrade to Full Access</h3>
+                    <p id="trial-remaining-text">Your trial ends in X days.</p>
+                    <p>Upgrade now to unlock:</p>
+                    <ul class="upgrade-benefits">
+                        <li>&#8226; Message your practitioner directly</li>
+                        <li>&#8226; Submit questions for Live Q&A</li>
+                        <li>&#8226; Access all learning materials</li>
+                    </ul>
+                    <a href="https://www.guthealingacademy.com/upgrade/" class="btn-upgrade-white">
+                        Upgrade Now &#8594;
+                    </a>
+                </div>
+
+                <!-- Account Information -->
+                <section class="profile-section">
+                    <h2 class="section-title">Account Information</h2>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span id="user-email" class="info-value">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Current Plan</span>
+                        <span id="user-plan" class="info-value">Loading...</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Membership Status</span>
+                        <div>
+                            <span id="user-status" class="status-badge">Loading...</span>
+                            <span id="trial-remaining" class="trial-remaining hidden"></span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Member Since</span>
+                        <span id="member-since" class="info-value">Loading...</span>
+                    </div>
+                </section>
+
+                <!-- Manage Subscription (for users with stripe_customer_id) -->
+                <section id="manage-subscription-section" class="profile-section hidden">
+                    <h2 class="section-title">Manage Subscription</h2>
+                    <div class="manage-subscription-section">
+                        <p>Update your payment method, view billing history, or change your plan.</p>
+                        <button id="manage-billing-btn" class="btn-billing">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                            Manage Billing
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Contact Support (for users without stripe_customer_id) -->
+                <section id="contact-support-section" class="profile-section hidden">
+                    <h2 class="section-title">Manage Subscription</h2>
+                    <div class="no-stripe-message">
+                        <p>To manage your billing or subscription, please contact our support team.</p>
+                        <p style="margin-top: 8px;"><a href="https://www.guthealingacademy.com/legal/contact.html" target="_blank">Contact Support</a></p>
+                    </div>
+                </section>
+
+                <!-- Notification Preferences -->
+                <section class="profile-section">
+                    <h2 class="section-title">Notification Preferences</h2>
+
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <div class="notification-title">Practitioner Message Notifications</div>
+                            <div class="notification-description">Get an email when your practitioner responds to your message</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="email-notifications-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="notification-item">
+                        <div class="notification-info">
+                            <div class="notification-title">Live Q&A Session Reminders</div>
+                            <div class="notification-description">Get reminders about upcoming Live Q&A sessions</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="qa-notifications-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Danger Zone (for active users) -->
+                <section id="danger-zone-section" class="profile-section danger-zone hidden">
+                    <h2 class="section-title">Danger Zone</h2>
+                    <p>If you wish to cancel your membership, you can do so through the Stripe billing portal.</p>
+                    <button id="cancel-membership-btn" class="btn-danger">
+                        Cancel Membership
+                    </button>
+                </section>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="global-footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="https://www.guthealingacademy.com/legal/index.html" target="_blank">Privacy Policy</a>
+                    <span class="footer-divider">|</span>
+                    <a href="https://www.guthealingacademy.com/legal/terms.html" target="_blank">Terms of Service</a>
+                    <span class="footer-divider">|</span>
+                    <a href="https://www.guthealingacademy.com/legal/contact.html" target="_blank">Contact Us</a>
+                </div>
+                <div class="footer-copyright">
+                    <p>&copy; <span id="current-year"></span> Gut Healing Academy. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Set current year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Global state
+        let currentUser = null;
+        let currentMember = null;
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Calculate trial days remaining
+        function getTrialDaysRemaining(trialStartDate) {
+            if (!trialStartDate) return 0;
+            const start = new Date(trialStartDate);
+            const now = new Date();
+            const daysPassed = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            return Math.max(0, 7 - daysPassed);
+        }
+
+        // Get plan display name
+        function getPlanDisplayName(subscriptionType) {
+            switch (subscriptionType) {
+                case 'monthly':
+                    return 'Monthly Plan - $47/month';
+                case 'annual':
+                    return 'Annual Plan - $297/year';
+                case '6month':
+                    return '6-Month Plan';
+                default:
+                    return 'Trial';
+            }
+        }
+
+        // Get status display
+        function getStatusDisplay(status) {
+            switch (status) {
+                case 'trial':
+                    return { text: 'Trial Member', class: 'trial' };
+                case 'active':
+                    return { text: 'Active Member', class: 'active' };
+                case 'trial_expired':
+                    return { text: 'Trial Expired', class: 'trial_expired' };
+                default:
+                    return { text: status || 'Unknown', class: '' };
+            }
+        }
+
+        // Load user profile
+        async function loadProfile() {
+            try {
+                // Get current session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+                if (sessionError || !session) {
+                    console.log('No session found, redirecting to login');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                currentUser = session.user;
+
+                // Fetch user data from database
+                const { data: member, error: memberError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .ilike('email', currentUser.email)
+                    .single();
+
+                if (memberError || !member) {
+                    console.error('Error fetching member:', memberError);
+                    showToast('Error loading profile. Please try again.');
+                    return;
+                }
+
+                currentMember = member;
+
+                // Check if user has valid status
+                if (!member.status || member.status === 'lead' || member.status === 'cancelled') {
+                    // Non-payer, redirect to offer
+                    window.location.href = 'https://www.guthealingacademy.com/offer/';
+                    return;
+                }
+
+                // Populate profile data
+                populateProfile();
+
+            } catch (err) {
+                console.error('Error loading profile:', err);
+                showToast('Error loading profile. Please try again.');
+            }
+        }
+
+        // Populate profile UI
+        function populateProfile() {
+            // Hide loading, show content
+            document.getElementById('profile-loading').classList.add('hidden');
+            document.getElementById('profile-content').classList.remove('hidden');
+
+            // Email
+            document.getElementById('user-email').textContent = currentMember.email || currentUser.email;
+
+            // Plan
+            document.getElementById('user-plan').textContent = getPlanDisplayName(currentMember.subscription_type);
+
+            // Status
+            const statusInfo = getStatusDisplay(currentMember.status);
+            const statusBadge = document.getElementById('user-status');
+            statusBadge.textContent = statusInfo.text;
+            statusBadge.className = 'status-badge ' + statusInfo.class;
+
+            // Trial remaining (if trial)
+            if (currentMember.status === 'trial') {
+                const daysRemaining = getTrialDaysRemaining(currentMember.trial_start_date);
+                const trialRemainingEl = document.getElementById('trial-remaining');
+                trialRemainingEl.textContent = daysRemaining + ' day' + (daysRemaining !== 1 ? 's' : '') + ' remaining';
+                trialRemainingEl.classList.remove('hidden');
+
+                // Show upgrade section
+                document.getElementById('upgrade-section').classList.remove('hidden');
+                document.getElementById('trial-remaining-text').textContent =
+                    'Your trial ends in ' + daysRemaining + ' day' + (daysRemaining !== 1 ? 's' : '') + '.';
+            }
+
+            // Member since
+            const memberSince = currentMember.subscription_started_at || currentMember.trial_start_date || currentMember.created_at;
+            document.getElementById('member-since').textContent = formatDate(memberSince);
+
+            // Manage subscription section
+            if (currentMember.stripe_customer_id) {
+                document.getElementById('manage-subscription-section').classList.remove('hidden');
+
+                // Show danger zone for active users
+                if (currentMember.status === 'active') {
+                    document.getElementById('danger-zone-section').classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('contact-support-section').classList.remove('hidden');
+            }
+
+            // Notification toggles
+            document.getElementById('email-notifications-toggle').checked =
+                currentMember.email_notifications !== false; // default true
+            document.getElementById('qa-notifications-toggle').checked =
+                currentMember.qa_notifications !== false; // default true
+        }
+
+        // Open Stripe Customer Portal
+        async function openStripePortal() {
+            const btn = document.getElementById('manage-billing-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;margin:0;border-width:2px;"></div> Loading...';
+            btn.disabled = true;
+
+            try {
+                // Call Supabase Edge Function to create portal session
+                const { data: { session } } = await supabase.auth.getSession();
+
+                const response = await fetch(SUPABASE_URL + '/functions/v1/create-portal-session', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + session.access_token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        stripe_customer_id: currentMember.stripe_customer_id,
+                        return_url: window.location.href
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create portal session');
+                }
+
+                const { url } = await response.json();
+
+                if (url) {
+                    window.location.href = url;
+                } else {
+                    throw new Error('No portal URL returned');
+                }
+            } catch (err) {
+                console.error('Error opening Stripe portal:', err);
+                showToast('Unable to open billing portal. Please try again or contact support.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Update notification preference
+        async function updateNotificationPreference(field, value) {
+            try {
+                const { error } = await supabase
+                    .from('users')
+                    .update({ [field]: value })
+                    .eq('email', currentMember.email);
+
+                if (error) {
+                    throw error;
+                }
+
+                // Update local state
+                currentMember[field] = value;
+                showToast('Preferences updated');
+            } catch (err) {
+                console.error('Error updating preference:', err);
+                showToast('Failed to update preference. Please try again.');
+                // Revert toggle
+                document.getElementById(field.replace('_', '-') + '-toggle').checked = !value;
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load profile
+            await loadProfile();
+
+            // Manage billing button
+            document.getElementById('manage-billing-btn')?.addEventListener('click', openStripePortal);
+
+            // Cancel membership button (opens Stripe portal)
+            document.getElementById('cancel-membership-btn')?.addEventListener('click', openStripePortal);
+
+            // Notification toggles
+            document.getElementById('email-notifications-toggle')?.addEventListener('change', (e) => {
+                updateNotificationPreference('email_notifications', e.target.checked);
+            });
+
+            document.getElementById('qa-notifications-toggle')?.addEventListener('change', (e) => {
+                updateNotificationPreference('qa_notifications', e.target.checked);
+            });
+        });
+    </script>
+</body>
+</html>
