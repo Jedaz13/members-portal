@@ -315,7 +315,7 @@
         // Initialize Supabase
         const SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Get email from URL parameters
         function getEmailFromURL() {
@@ -398,7 +398,7 @@
 
             try {
                 // Create account with Supabase
-                const { data, error } = await supabase.auth.signUp({
+                const { data, error } = await supabaseClient.auth.signUp({
                     email: email,
                     password: password,
                     options: {
@@ -462,7 +462,7 @@
             document.getElementById('signup-form').addEventListener('submit', handleSignup);
 
             // Check if user is already logged in
-            supabase.auth.getSession().then(({ data: { session } }) => {
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
                 if (session) {
                     // Already logged in, redirect to dashboard
                     window.location.href = 'index.html';
