@@ -136,6 +136,6 @@ INSERT INTO live_qa_sessions (
     'GMT',
     'Why Cutting Foods for Bloating Often Backfires',
     'abcaa567-8e12-4038-a300-9fc8c24d785a',  -- Rebecca Taylor's user ID
-    'https://us05web.zoom.us/j/86523812381?pwd=NMb1KICk2pz4C6FaW8kuluOU582qnz.1',
+    'https://us05web.zoom.us/j/84554916315?pwd=mgMsFhs8NMpz3FqaktOKyabi0gEOlD.1',
     'scheduled'
 ) ON CONFLICT (session_date) DO NOTHING;
