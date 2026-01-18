@@ -131,7 +131,7 @@ INSERT INTO live_qa_sessions (
     zoom_link,
     status
 ) VALUES (
-    '2025-01-16',
+    '2025-01-23',
     '4:00 PM',
     'GMT',
     'Why Cutting Foods for Bloating Often Backfires',

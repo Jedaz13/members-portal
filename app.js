@@ -1997,7 +1997,7 @@ function applyAccessControls() {
 
 // Configuration for current Q&A session
 var QA_SESSION_CONFIG = {
-    date: '2025-01-16',  // Current session date (YYYY-MM-DD format)
+    date: '2025-01-23',  // Current session date (YYYY-MM-DD format)
     hostId: 'abcaa567-8e12-4038-a300-9fc8c24d785a',  // Rebecca Taylor's user ID
     baseRsvpCount: 7,  // Starting count so early users don't see empty state
     // Default host info (used when database profile is incomplete)
