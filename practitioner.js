@@ -470,7 +470,7 @@ async function claimPatient() {
             await loadMyPatients();
             await loadUnassignedPatients();
         } else {
-            showToast(data.error || 'Failed to claim patient');
+            showToast(data?.error || 'Failed to claim patient');
         }
     } catch (error) {
         console.error('Error claiming patient:', error);
