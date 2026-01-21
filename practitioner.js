@@ -340,7 +340,7 @@ function renderPatientsList() {
 // ============================================
 async function loadUnassignedPatients() {
     const { data, error } = await supabase
-        .from('unassigned_patients')
+        .from('unassigned_patients_view')
         .select('*')
         .order('created_at', { ascending: false });
 
