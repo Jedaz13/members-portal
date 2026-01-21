@@ -340,7 +340,7 @@ function renderPatientsList() {
 // ============================================
 async function loadUnassignedPatients() {
     const { data, error } = await supabase
-        .from('unassigned_patients_view')
+        .from('unassigned_patients')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -470,7 +470,7 @@ async function claimPatient() {
             await loadMyPatients();
             await loadUnassignedPatients();
         } else {
-            showToast(data.error || 'Failed to claim patient');
+            showToast(data?.error || 'Failed to claim patient');
         }
     } catch (error) {
         console.error('Error claiming patient:', error);
