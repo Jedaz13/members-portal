@@ -19,6 +19,16 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Initialize Supabase client (using different name to avoid conflict with SDK global)
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Protocol names for display
+const PROTOCOL_NAMES = {
+    1: 'Bloating',
+    2: 'IBS-C',
+    3: 'IBS-D',
+    4: 'IBS-M',
+    5: 'Post-SIBO',
+    6: 'Gut-Brain'
+};
+
 // ============================================
 // Global State
 // ============================================
@@ -29,6 +39,14 @@ let currentFilter = 'all';
 let autoRefreshEnabled = false;
 let autoRefreshTimer = null;
 let highlightedConversationId = null;
+
+// Q&A State
+let qaSessions = [];
+let qaQuestions = [];
+let selectedSessionDate = null;
+let qaAutoRefreshEnabled = false;
+let qaAutoRefreshTimer = null;
+let hosts = [];
 
 // ============================================
 // Initialization
@@ -198,7 +216,7 @@ function switchTab(tabId) {
     if (tabId === 'support') {
         loadSupportConversations();
     } else if (tabId === 'qa') {
-        // Q&A tab content is static or embedded
+        initializeQATab();
     }
 
     // Update URL without reload
@@ -715,4 +733,487 @@ function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+}
+
+// ============================================
+// Q&A Sessions Management
+// ============================================
+async function initializeQATab() {
+    await loadHosts();
+    await loadSessions();
+    setupQAEventListeners();
+}
+
+function setupQAEventListeners() {
+    // New session button
+    const newSessionBtn = document.getElementById('btn-new-session');
+    if (newSessionBtn) {
+        newSessionBtn.addEventListener('click', showNewSessionForm);
+    }
+
+    // Cancel session form
+    const cancelSessionBtn = document.getElementById('btn-cancel-session');
+    if (cancelSessionBtn) {
+        cancelSessionBtn.addEventListener('click', hideSessionForm);
+    }
+
+    // Session form submit
+    const sessionForm = document.getElementById('session-form');
+    if (sessionForm) {
+        sessionForm.addEventListener('submit', handleSessionFormSubmit);
+    }
+
+    // Session filter for questions
+    const sessionFilter = document.getElementById('qa-session-filter');
+    if (sessionFilter) {
+        sessionFilter.addEventListener('change', (e) => {
+            selectedSessionDate = e.target.value;
+            if (selectedSessionDate) {
+                loadQAQuestions();
+            } else {
+                renderEmptyQAQuestions();
+            }
+        });
+    }
+
+    // Q&A refresh button
+    const qaRefreshBtn = document.getElementById('btn-qa-refresh');
+    if (qaRefreshBtn) {
+        qaRefreshBtn.addEventListener('click', loadQAQuestions);
+    }
+
+    // Q&A auto-refresh toggle
+    const qaAutoRefreshToggle = document.getElementById('qa-auto-refresh');
+    if (qaAutoRefreshToggle) {
+        qaAutoRefreshToggle.addEventListener('change', (e) => {
+            qaAutoRefreshEnabled = e.target.checked;
+            if (qaAutoRefreshEnabled) {
+                qaAutoRefreshTimer = setInterval(loadQAQuestions, ADMIN_CONFIG.autoRefreshInterval);
+            } else {
+                if (qaAutoRefreshTimer) clearInterval(qaAutoRefreshTimer);
+            }
+        });
+    }
+}
+
+async function loadHosts() {
+    try {
+        // Load users who can be hosts (practitioners or admins)
+        const { data, error } = await supabaseClient
+            .from('users')
+            .select('id, name, email, credentials')
+            .or('is_admin.eq.true,role.eq.practitioner')
+            .order('name');
+
+        if (error) {
+            console.error('Error loading hosts:', error);
+            return;
+        }
+
+        hosts = data || [];
+
+        // Populate host dropdown
+        const hostSelect = document.getElementById('session-host');
+        if (hostSelect) {
+            hostSelect.innerHTML = hosts.map(h =>
+                `<option value="${h.id}">${escapeHtml(h.name || h.email)}${h.credentials ? ` (${escapeHtml(h.credentials)})` : ''}</option>`
+            ).join('');
+        }
+    } catch (err) {
+        console.error('Load hosts error:', err);
+    }
+}
+
+async function loadSessions() {
+    const container = document.getElementById('sessions-list');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Loading sessions...</p>
+        </div>
+    `;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('live_qa_sessions')
+            .select('*')
+            .order('session_date', { ascending: false })
+            .limit(20);
+
+        if (error) {
+            console.error('Error loading sessions:', error);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>Error loading sessions</h3>
+                    <p>${escapeHtml(error.message)}</p>
+                </div>
+            `;
+            return;
+        }
+
+        qaSessions = data || [];
+        renderSessions();
+        populateSessionFilter();
+
+    } catch (err) {
+        console.error('Load sessions error:', err);
+    }
+}
+
+function renderSessions() {
+    const container = document.getElementById('sessions-list');
+    if (!container) return;
+
+    if (qaSessions.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📅</div>
+                <h3>No sessions yet</h3>
+                <p>Create your first live Q&A session using the button above.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    container.innerHTML = qaSessions.map(session => {
+        const isUpcoming = session.session_date >= today && session.status === 'scheduled';
+        const statusClass = session.status === 'scheduled' && isUpcoming ? 'upcoming' : session.status;
+        const dateFormatted = new Date(session.session_date + 'T00:00:00').toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        // Find host name
+        const host = hosts.find(h => h.id === session.host_id);
+        const hostName = host ? (host.name || host.email) : 'Unknown';
+
+        return `
+            <div class="session-card ${statusClass}" data-id="${session.id}">
+                <div class="session-card-left">
+                    <div class="session-date-time">
+                        <span class="date">${dateFormatted}</span>
+                        <span>${session.session_time || ''} ${session.timezone || ''}</span>
+                        <span class="session-status-badge ${session.status}">${session.status}</span>
+                    </div>
+                    <div class="session-topic">${escapeHtml(session.topic || 'No topic set')}</div>
+                    <div class="session-host">Host: ${escapeHtml(hostName)}</div>
+                </div>
+                <div class="session-card-right">
+                    <button class="btn-icon btn-edit-session" data-id="${session.id}" title="Edit">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </button>
+                    <button class="btn-icon btn-delete-session" data-id="${session.id}" title="Delete">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Add event listeners to edit/delete buttons
+    document.querySelectorAll('.btn-edit-session').forEach(btn => {
+        btn.addEventListener('click', () => editSession(btn.dataset.id));
+    });
+
+    document.querySelectorAll('.btn-delete-session').forEach(btn => {
+        btn.addEventListener('click', () => deleteSession(btn.dataset.id));
+    });
+}
+
+function populateSessionFilter() {
+    const sessionFilter = document.getElementById('qa-session-filter');
+    if (!sessionFilter) return;
+
+    const options = qaSessions.map(s => {
+        const dateFormatted = new Date(s.session_date + 'T00:00:00').toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+        });
+        return `<option value="${s.session_date}">${dateFormatted} - ${escapeHtml(s.topic || 'No topic')}</option>`;
+    });
+
+    sessionFilter.innerHTML = '<option value="">Select a session...</option>' + options.join('');
+
+    // Auto-select first session if available
+    if (qaSessions.length > 0 && !selectedSessionDate) {
+        selectedSessionDate = qaSessions[0].session_date;
+        sessionFilter.value = selectedSessionDate;
+        loadQAQuestions();
+    }
+}
+
+function showNewSessionForm() {
+    document.getElementById('session-form-title').textContent = 'Create New Session';
+    document.getElementById('session-id').value = '';
+    document.getElementById('session-form').reset();
+
+    // Set default date to next Thursday
+    const nextThursday = getNextThursday();
+    document.getElementById('session-date').value = nextThursday;
+    document.getElementById('session-time').value = '16:00';
+    document.getElementById('session-timezone').value = 'GMT';
+
+    document.getElementById('session-form-container').style.display = 'block';
+}
+
+function getNextThursday() {
+    const today = new Date();
+    const day = today.getDay();
+    const daysUntilThursday = (4 - day + 7) % 7 || 7;
+    const nextThursday = new Date(today);
+    nextThursday.setDate(today.getDate() + daysUntilThursday);
+    return nextThursday.toISOString().split('T')[0];
+}
+
+function hideSessionForm() {
+    document.getElementById('session-form-container').style.display = 'none';
+    document.getElementById('session-form').reset();
+}
+
+function editSession(sessionId) {
+    const session = qaSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    document.getElementById('session-form-title').textContent = 'Edit Session';
+    document.getElementById('session-id').value = session.id;
+    document.getElementById('session-date').value = session.session_date || '';
+    document.getElementById('session-time').value = session.session_time || '';
+    document.getElementById('session-timezone').value = session.timezone || 'GMT';
+    document.getElementById('session-topic').value = session.topic || '';
+    document.getElementById('session-zoom-link').value = session.zoom_link || '';
+    document.getElementById('session-host').value = session.host_id || '';
+    document.getElementById('session-status').value = session.status || 'scheduled';
+    document.getElementById('session-recording').value = session.recording_url || '';
+    document.getElementById('session-notes').value = session.notes || '';
+
+    document.getElementById('session-form-container').style.display = 'block';
+}
+
+async function handleSessionFormSubmit(e) {
+    e.preventDefault();
+
+    const sessionId = document.getElementById('session-id').value;
+    const sessionData = {
+        session_date: document.getElementById('session-date').value,
+        session_time: document.getElementById('session-time').value,
+        timezone: document.getElementById('session-timezone').value,
+        topic: document.getElementById('session-topic').value,
+        zoom_link: document.getElementById('session-zoom-link').value || null,
+        host_id: document.getElementById('session-host').value || null,
+        status: document.getElementById('session-status').value,
+        recording_url: document.getElementById('session-recording').value || null,
+        notes: document.getElementById('session-notes').value || null,
+        updated_at: new Date().toISOString()
+    };
+
+    const saveBtn = document.getElementById('btn-save-session');
+    saveBtn.classList.add('btn-loading');
+    saveBtn.disabled = true;
+
+    try {
+        let error;
+
+        if (sessionId) {
+            // Update existing session
+            const result = await supabaseClient
+                .from('live_qa_sessions')
+                .update(sessionData)
+                .eq('id', sessionId);
+            error = result.error;
+        } else {
+            // Create new session
+            sessionData.created_at = new Date().toISOString();
+            const result = await supabaseClient
+                .from('live_qa_sessions')
+                .insert(sessionData);
+            error = result.error;
+        }
+
+        if (error) {
+            throw error;
+        }
+
+        showToast(sessionId ? 'Session updated' : 'Session created', 'success');
+        hideSessionForm();
+        await loadSessions();
+
+    } catch (err) {
+        console.error('Save session error:', err);
+        showToast('Failed to save session: ' + (err.message || 'Unknown error'), 'error');
+    } finally {
+        saveBtn.classList.remove('btn-loading');
+        saveBtn.disabled = false;
+    }
+}
+
+async function deleteSession(sessionId) {
+    if (!confirm('Are you sure you want to delete this session? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('live_qa_sessions')
+            .delete()
+            .eq('id', sessionId);
+
+        if (error) throw error;
+
+        showToast('Session deleted', 'success');
+        await loadSessions();
+
+    } catch (err) {
+        console.error('Delete session error:', err);
+        showToast('Failed to delete session', 'error');
+    }
+}
+
+// ============================================
+// Q&A Questions Management
+// ============================================
+async function loadQAQuestions() {
+    if (!selectedSessionDate) return;
+
+    const container = document.getElementById('qa-questions-list');
+    const refreshBtn = document.getElementById('btn-qa-refresh');
+
+    if (refreshBtn) {
+        refreshBtn.classList.add('loading');
+        refreshBtn.disabled = true;
+    }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('qa_questions')
+            .select('*')
+            .eq('session_date', selectedSessionDate)
+            .order('status', { ascending: true })
+            .order('created_at', { ascending: true });
+
+        if (error) {
+            console.error('Error loading questions:', error);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>Error loading questions</h3>
+                    <p>${escapeHtml(error.message)}</p>
+                </div>
+            `;
+            return;
+        }
+
+        qaQuestions = data || [];
+        renderQAQuestions();
+        updateQAStats();
+
+    } catch (err) {
+        console.error('Load questions error:', err);
+    } finally {
+        if (refreshBtn) {
+            refreshBtn.classList.remove('loading');
+            refreshBtn.disabled = false;
+        }
+    }
+}
+
+function renderQAQuestions() {
+    const container = document.getElementById('qa-questions-list');
+    if (!container) return;
+
+    if (qaQuestions.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <h3>No questions yet</h3>
+                <p>Questions will appear here when members submit them for this session.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = qaQuestions.map(q => {
+        const protocolName = PROTOCOL_NAMES[q.protocol_type] || 'Unknown';
+        const timeFormatted = formatTimeAgo(q.created_at);
+        const userName = q.user_name || 'Anonymous';
+
+        const actionButtons = q.status === 'pending' ? `
+            <button class="btn-answered" onclick="markQAQuestion('${q.id}', 'answered')">Mark Answered</button>
+            <button class="btn-skip" onclick="markQAQuestion('${q.id}', 'skipped')">Skip</button>
+        ` : '';
+
+        return `
+            <div class="qa-question-card ${q.status}">
+                <div class="qa-question-header">
+                    <div class="qa-question-user">
+                        <span class="qa-question-user-name">${escapeHtml(userName)}</span>
+                        <span class="qa-question-protocol">${protocolName}</span>
+                    </div>
+                    <span class="qa-question-status ${q.status}">${q.status}</span>
+                </div>
+                <div class="qa-question-text">${escapeHtml(q.question)}</div>
+                <div class="qa-question-footer">
+                    <span class="qa-question-time">Submitted ${timeFormatted}</span>
+                    <div class="qa-question-actions">
+                        ${actionButtons}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderEmptyQAQuestions() {
+    const container = document.getElementById('qa-questions-list');
+    if (container) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <h3>Select a session</h3>
+                <p>Choose a session from the dropdown above to view submitted questions.</p>
+            </div>
+        `;
+    }
+}
+
+function updateQAStats() {
+    const statsEl = document.getElementById('qa-filter-stats');
+    if (!statsEl) return;
+
+    const total = qaQuestions.length;
+    const pending = qaQuestions.filter(q => q.status === 'pending').length;
+
+    statsEl.innerHTML = `<strong>${total}</strong> questions (${pending} pending)`;
+}
+
+// Global function for onclick handlers
+async function markQAQuestion(questionId, newStatus) {
+    try {
+        const { error } = await supabaseClient
+            .from('qa_questions')
+            .update({ status: newStatus })
+            .eq('id', questionId);
+
+        if (error) throw error;
+
+        showToast(`Question marked as ${newStatus}`, 'success');
+        await loadQAQuestions();
+
+    } catch (err) {
+        console.error('Update question error:', err);
+        showToast('Failed to update question', 'error');
+    }
 }
