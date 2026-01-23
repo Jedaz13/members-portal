@@ -14,7 +14,7 @@ const ADMIN_CONFIG = {
 
 // Supabase Configuration (matching main app)
 const SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzMzU1MDAsImV4cCI6MjA1MTkxMTUwMH0.04xC9JWKSGrwCYBYqekHU0Rgy_X8pXRqgFIuWGZMUzI';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
 
 // Initialize Supabase client (using different name to avoid conflict with SDK global)
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
