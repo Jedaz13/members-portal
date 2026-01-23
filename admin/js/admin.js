@@ -798,11 +798,11 @@ function setupQAEventListeners() {
 
 async function loadHosts() {
     try {
-        // Load users who can be hosts (practitioners or admins)
+        // Load all practitioners who can be hosts
         const { data, error } = await supabaseClient
             .from('users')
-            .select('id, name, email, credentials')
-            .or('is_admin.eq.true,role.eq.practitioner')
+            .select('id, name, email, credentials, bio, specializations')
+            .eq('role', 'practitioner')
             .order('name');
 
         if (error) {
