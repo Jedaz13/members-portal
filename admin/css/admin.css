@@ -167,6 +167,14 @@ a:hover {
     gap: 16px;
 }
 
+.admin-logo-box {
+    background: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+}
+
 .admin-logo {
     height: 36px;
     width: auto;
@@ -1055,5 +1063,367 @@ a:hover {
 
     .footer-actions button {
         width: 100%;
+    }
+}
+
+/* ============================================
+   Session Management
+   ============================================ */
+.panel-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.panel-header-row .panel-title {
+    margin-bottom: 4px;
+}
+
+.panel-header-row .panel-intro {
+    margin-bottom: 0;
+}
+
+/* Session Form */
+.session-form-container {
+    background: var(--background-cream);
+    border: 1px solid var(--divider);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.form-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--text);
+    margin-bottom: 20px;
+}
+
+.session-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 10px 14px;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: var(--white);
+    color: var(--text);
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--leaf);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+/* Sessions List */
+.sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.session-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid var(--divider);
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.session-card:hover {
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.session-card.upcoming {
+    border-left: 4px solid var(--citrus);
+}
+
+.session-card.completed {
+    border-left: 4px solid var(--success);
+    opacity: 0.8;
+}
+
+.session-card.cancelled {
+    border-left: 4px solid var(--text-light);
+    opacity: 0.6;
+}
+
+.session-card-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.session-date-time {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.session-date-time .date {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.session-topic {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.session-host {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.session-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.session-status-badge.scheduled {
+    background: var(--citrus-light);
+    color: #856404;
+}
+
+.session-status-badge.live {
+    background: #ffe0e0;
+    color: #c53030;
+}
+
+.session-status-badge.completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.session-status-badge.cancelled {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+.session-card-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-icon {
+    padding: 8px;
+    background: transparent;
+    border: 1px solid var(--divider);
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    background: var(--background-sage);
+    color: var(--text);
+    border-color: var(--sage);
+}
+
+.btn-icon svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+/* Q&A Question Cards (for session questions) */
+.qa-question-card {
+    background: var(--white);
+    border-radius: 10px;
+    border: 1px solid var(--divider);
+    padding: 16px 20px;
+    border-left: 4px solid var(--citrus);
+}
+
+.qa-question-card.answered {
+    border-left-color: var(--success);
+    opacity: 0.85;
+}
+
+.qa-question-card.skipped {
+    border-left-color: var(--text-light);
+    opacity: 0.65;
+}
+
+.qa-question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.qa-question-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.qa-question-user-name {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.qa-question-protocol {
+    font-size: 0.8rem;
+    padding: 3px 10px;
+    background: var(--forest);
+    color: white;
+    border-radius: 4px;
+}
+
+.qa-question-status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.qa-question-status.pending {
+    background: var(--citrus-light);
+    color: #856404;
+}
+
+.qa-question-status.answered {
+    background: #d4edda;
+    color: #155724;
+}
+
+.qa-question-status.skipped {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.qa-question-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--background-cream);
+    padding: 14px 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.qa-question-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.qa-question-time {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.qa-question-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-answered {
+    background: var(--success);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-answered:hover {
+    background: #45a677;
+}
+
+.btn-skip {
+    background: var(--text-light);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-skip:hover {
+    background: #5a6b7a;
+}
+
+/* Responsive adjustments for sessions */
+@media (max-width: 768px) {
+    .panel-header-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .session-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .session-card-right {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
     }
 }

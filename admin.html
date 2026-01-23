@@ -37,7 +37,9 @@
         <!-- Admin Header (Dark) -->
         <header class="admin-header">
             <div class="admin-header-left">
-                <img src="/assets/Logo.png" alt="Gut Healing Academy" class="admin-logo">
+                <div class="admin-logo-box">
+                    <img src="/assets/Logo.png" alt="Gut Healing Academy" class="admin-logo">
+                </div>
                 <span class="admin-badge">ADMIN</span>
             </div>
             <div class="admin-header-right">
@@ -126,17 +128,127 @@
 
             <!-- Live Q&A Panel -->
             <div id="qa-panel" class="tab-panel">
+                <!-- Session Management Section -->
                 <div class="panel-card">
-                    <h2 class="panel-title">Live Q&A Questions</h2>
-                    <p class="panel-intro">Questions submitted by members for live Q&A sessions.</p>
+                    <div class="panel-header-row">
+                        <div>
+                            <h2 class="panel-title">Live Q&A Sessions</h2>
+                            <p class="panel-intro">Manage upcoming and past live Q&A sessions.</p>
+                        </div>
+                        <button id="btn-new-session" class="btn-primary">+ New Session</button>
+                    </div>
 
-                    <div style="text-align: center; padding: 24px;">
-                        <a href="/admin-questions.html" class="btn-primary" style="text-decoration: none; display: inline-block;">
-                            Open Full Q&A Manager
-                        </a>
-                        <p style="margin-top: 12px; font-size: 0.9rem; color: var(--text-muted);">
-                            Opens the existing Q&A management page in a new view.
-                        </p>
+                    <!-- Session Form (hidden by default) -->
+                    <div id="session-form-container" class="session-form-container" style="display: none;">
+                        <h3 class="form-title" id="session-form-title">Create New Session</h3>
+                        <form id="session-form" class="session-form">
+                            <input type="hidden" id="session-id" value="">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="session-date">Date</label>
+                                    <input type="date" id="session-date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="session-time">Time</label>
+                                    <input type="time" id="session-time" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="session-timezone">Timezone</label>
+                                    <select id="session-timezone">
+                                        <option value="GMT">GMT</option>
+                                        <option value="EST">EST</option>
+                                        <option value="PST">PST</option>
+                                        <option value="CET">CET</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-topic">Topic</label>
+                                <input type="text" id="session-topic" placeholder="e.g., Why Cutting Foods for Bloating Often Backfires" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-zoom-link">Zoom Link</label>
+                                <input type="url" id="session-zoom-link" placeholder="https://us06web.zoom.us/j/...">
+                            </div>
+                            <div class="form-group">
+                                <label for="session-host">Host</label>
+                                <select id="session-host">
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-status">Status</label>
+                                <select id="session-status">
+                                    <option value="scheduled">Scheduled</option>
+                                    <option value="live">Live</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-recording">Recording URL (optional)</label>
+                                <input type="url" id="session-recording" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label for="session-notes">Notes (optional)</label>
+                                <textarea id="session-notes" rows="2" placeholder="Internal notes..."></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary" id="btn-save-session">Save Session</button>
+                                <button type="button" class="btn-secondary" id="btn-cancel-session">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Sessions List -->
+                    <div id="sessions-list" class="sessions-list">
+                        <div class="loading-content">
+                            <div class="loading-spinner"></div>
+                            <p>Loading sessions...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Questions Section -->
+                <div class="panel-card">
+                    <h2 class="panel-title">Session Questions</h2>
+                    <p class="panel-intro">Questions submitted by members for the selected session.</p>
+
+                    <!-- Session Filter -->
+                    <div class="filter-bar">
+                        <div class="filter-group">
+                            <label class="filter-label" for="qa-session-filter">Session:</label>
+                            <select id="qa-session-filter" class="filter-select">
+                                <option value="">Select a session...</option>
+                            </select>
+                        </div>
+                        <div class="filter-stats" id="qa-filter-stats">
+                            <strong>0</strong> questions (0 pending)
+                        </div>
+                        <div class="filter-actions">
+                            <label class="auto-refresh-toggle">
+                                <input type="checkbox" id="qa-auto-refresh">
+                                Auto-refresh
+                            </label>
+                            <button id="btn-qa-refresh" class="btn-refresh">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 4v6h-6"></path>
+                                    <path d="M1 20v-6h6"></path>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                                    <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                                </svg>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Questions List -->
+                    <div id="qa-questions-list" class="questions-list">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <h3>Select a session</h3>
+                            <p>Choose a session from the dropdown above to view submitted questions.</p>
+                        </div>
                     </div>
                 </div>
             </div>
