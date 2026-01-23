@@ -248,21 +248,21 @@ a:hover {
 }
 
 .btn-logout-small {
-    padding: 8px 16px;
+    padding: 8px 12px;
     background-color: transparent;
-    color: var(--text-light);
-    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    border: none;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
-    font-family: inherit;
+    font-family: 'Source Sans 3', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-logout-small:hover {
-    background-color: var(--secondary-light);
-    border-color: var(--secondary);
+    color: var(--forest);
+    background-color: transparent;
 }
 
 .btn-text {
@@ -706,11 +706,11 @@ a:hover {
     background-color: var(--background);
 }
 
-/* Dashboard Header - Forest theme */
+/* Dashboard Header - Clean white style matching landing page */
 .dashboard-header {
-    background: var(--forest);
-    border-bottom: none;
-    padding: 14px 20px;
+    background: var(--white);
+    border-bottom: 2px solid var(--forest);
+    padding: 12px 20px;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -727,40 +727,58 @@ a:hover {
 .header-brand h1 {
     font-size: 18px;
     font-weight: 600;
-    color: var(--white);
+    color: var(--forest);
     font-family: 'Source Sans 3', sans-serif;
 }
 
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
+/* Help and Settings links */
+.header-link {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 8px 12px;
+    transition: color 0.2s ease;
+}
+
+.header-link:hover {
+    color: var(--forest);
+    text-decoration: none;
+}
+
+/* Profile button styled like "Members Area" button */
 .btn-profile {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    background: rgba(255, 255, 255, 0.1);
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--forest);
     color: var(--white);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
+    border: none;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
     text-decoration: none;
     transition: all 0.2s ease;
 }
 
 .btn-profile:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: var(--forest-light);
     text-decoration: none;
     color: var(--white);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(27, 51, 41, 0.2);
 }
 
 .btn-profile svg {
-    color: var(--citrus);
+    color: var(--white);
 }
 
 /* Dashboard Main */
@@ -3615,11 +3633,20 @@ a:hover {
 
     /* Dashboard */
     .dashboard-header {
-        padding: 12px 16px;
+        padding: 10px 16px;
     }
 
     .header-brand h1 {
-        font-size: 16px;
+        font-size: 15px;
+    }
+
+    .header-link {
+        display: none;
+    }
+
+    .btn-profile {
+        padding: 8px 16px;
+        font-size: 13px;
     }
 
     .dashboard-main {
