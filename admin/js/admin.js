@@ -13,11 +13,11 @@ const ADMIN_CONFIG = {
 };
 
 // Supabase Configuration (matching main app)
-const SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabaseClient.co';
+const SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzMzU1MDAsImV4cCI6MjA1MTkxMTUwMH0.04xC9JWKSGrwCYBYqekHU0Rgy_X8pXRqgFIuWGZMUzI';
 
 // Initialize Supabase client (using different name to avoid conflict with SDK global)
-const supabaseClient = window.supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================
 // Global State
@@ -81,7 +81,7 @@ async function checkAuth() {
         }
 
         // Fetch admin user details
-        const { data: userData, error: userError } = await supabase
+        const { data: userData, error: userError } = await supabaseClient
             .from('users')
             .select('*')
             .eq('id', currentUser.id)
@@ -110,7 +110,7 @@ async function checkAuth() {
 
 async function checkAdminAccess(userId) {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('users')
             .select('is_admin')
             .eq('id', userId)
@@ -276,7 +276,7 @@ async function loadSupportConversations() {
     }
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('support_conversations')
             .select('*')
             .order('created_at', { ascending: false });
@@ -509,7 +509,7 @@ async function sendReply(id) {
 
     try {
         // Update database
-        const { error: dbError } = await supabase
+        const { error: dbError } = await supabaseClient
             .from('support_conversations')
             .update({
                 admin_response: response,
@@ -572,7 +572,7 @@ async function updateConversationStatus(id, newStatus) {
 
     try {
         // Update database
-        const { error: dbError } = await supabase
+        const { error: dbError } = await supabaseClient
             .from('support_conversations')
             .update({
                 status: newStatus,
