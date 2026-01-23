@@ -498,12 +498,8 @@
         var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
         var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // Authorized admin emails
-        var ADMIN_EMAILS = [
-            'gedaskvedaras7@gmail.com',
-            'rebecca@guthealingacademy.com',
-            'andrzejewska.dietetyk@gmail.com'
-        ];
+        // Admin check now uses is_admin column in users table
+        // (Removed hardcoded ADMIN_EMAILS array)
 
         // Protocol names for display
         var PROTOCOL_NAMES = {
@@ -554,8 +550,9 @@
         }
 
         async function handleAuthenticatedUser(user) {
-            // Check if user email is in admin list
-            if (!ADMIN_EMAILS.includes(user.email)) {
+            // Check if user has is_admin = true in users table
+            var isAdmin = await checkAdminAccess(user.id);
+            if (!isAdmin) {
                 console.log('User not authorized:', user.email);
                 showView('access-denied-view');
                 return;
@@ -567,6 +564,26 @@
             // Initialize dashboard
             await initializeDashboard();
             showView('dashboard-view');
+        }
+
+        async function checkAdminAccess(userId) {
+            try {
+                var { data, error } = await supabase
+                    .from('users')
+                    .select('is_admin')
+                    .eq('id', userId)
+                    .single();
+
+                if (error) {
+                    console.error('Error checking admin access:', error);
+                    return false;
+                }
+
+                return data?.is_admin === true;
+            } catch (err) {
+                console.error('Admin check error:', err);
+                return false;
+            }
         }
 
         async function signInWithGoogle() {
