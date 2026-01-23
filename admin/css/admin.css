@@ -88,7 +88,7 @@ a:hover {
 }
 
 /* Loading View */
-#loading-view {
+#loading-view.active {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -119,7 +119,7 @@ a:hover {
 }
 
 /* Access Denied View */
-#access-denied-view {
+#access-denied-view.active {
     display: flex;
     align-items: center;
     justify-content: center;
