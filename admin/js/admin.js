@@ -7,7 +7,7 @@
 // Configuration
 // ============================================
 const ADMIN_CONFIG = {
-    supportWebhookUrl: 'MAKE_WEBHOOK_URL_HERE', // Update with actual Make.com webhook URL
+    supportWebhookUrl: 'https://hook.eu1.make.com/7oa9tp3w77vdu3jyzu3ik9e6pa6qvh2n',
     autoRefreshInterval: 30000, // 30 seconds
     defaultTab: 'support'
 };
