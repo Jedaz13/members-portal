@@ -21,7 +21,7 @@
 
         .profile-header {
             background: var(--white);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 2px solid var(--forest);
             padding: 12px 20px;
             position: sticky;
             top: 0;
@@ -29,7 +29,7 @@
         }
 
         .profile-header-content {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
@@ -195,21 +195,24 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 0;
+            padding: 20px 0;
             border-bottom: 1px solid var(--border);
+            gap: 16px;
         }
 
         .notification-item:last-child {
             border-bottom: none;
+            padding-bottom: 0;
         }
 
         .notification-info {
             flex: 1;
+            min-width: 0;
         }
 
         .notification-title {
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text);
             margin-bottom: 4px;
         }
@@ -217,12 +220,14 @@
         .notification-description {
             font-size: 13px;
             color: var(--text-light);
+            line-height: 1.4;
         }
 
         /* Toggle Switch */
         .toggle-switch {
             position: relative;
-            width: 50px;
+            display: inline-block;
+            width: 52px;
             height: 28px;
             flex-shrink: 0;
             margin-left: 16px;
@@ -232,6 +237,7 @@
             opacity: 0;
             width: 0;
             height: 0;
+            position: absolute;
         }
 
         .toggle-slider {
@@ -239,10 +245,10 @@
             cursor: pointer;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--border);
-            transition: 0.3s;
+            width: 52px;
+            height: 28px;
+            background-color: var(--sage);
+            transition: 0.3s ease;
             border-radius: 28px;
         }
 
@@ -252,19 +258,19 @@
             height: 22px;
             width: 22px;
             left: 3px;
-            bottom: 3px;
+            top: 3px;
             background-color: var(--white);
-            transition: 0.3s;
+            transition: 0.3s ease;
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
 
         .toggle-switch input:checked + .toggle-slider {
-            background-color: var(--primary);
+            background-color: var(--forest);
         }
 
         .toggle-switch input:checked + .toggle-slider:before {
-            transform: translateX(22px);
+            transform: translateX(24px);
         }
 
         /* Trial Upgrade Card */
@@ -395,13 +401,13 @@
             }
 
             .notification-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 12px;
+                flex-direction: row;
+                align-items: center;
+                gap: 16px;
             }
 
             .toggle-switch {
-                margin-left: 0;
+                margin-left: auto;
             }
         }
     </style>
@@ -419,7 +425,7 @@
                         Back to Dashboard
                     </a>
                 </div>
-                <img src="assets/Logo.png" alt="Gut Healing Academy" class="header-logo-img" style="height: 32px;">
+                <img src="assets/Logo.png" alt="Gut Healing Academy" class="header-logo-img">
             </div>
         </header>
 
