@@ -798,26 +798,38 @@ function setupQAEventListeners() {
 
 async function loadHosts() {
     try {
-        // Load users who can be hosts (practitioners or admins)
+        // Load all users who could be hosts - practitioners have credentials, bio, or specializations
         const { data, error } = await supabaseClient
             .from('users')
-            .select('id, name, email, credentials')
-            .or('is_admin.eq.true,role.eq.practitioner')
+            .select('id, name, email, credentials, bio, specializations, avatar_url')
+            .or('credentials.neq.,is_admin.eq.true')
             .order('name');
 
         if (error) {
             console.error('Error loading hosts:', error);
-            return;
-        }
+            // Fallback: try loading all users with names
+            const fallbackResult = await supabaseClient
+                .from('users')
+                .select('id, name, email, credentials, bio, specializations, avatar_url')
+                .not('name', 'is', null)
+                .order('name');
 
-        hosts = data || [];
+            if (!fallbackResult.error) {
+                hosts = fallbackResult.data || [];
+            }
+        } else {
+            hosts = data || [];
+        }
 
         // Populate host dropdown
         const hostSelect = document.getElementById('session-host');
         if (hostSelect) {
-            hostSelect.innerHTML = hosts.map(h =>
-                `<option value="${h.id}">${escapeHtml(h.name || h.email)}${h.credentials ? ` (${escapeHtml(h.credentials)})` : ''}</option>`
-            ).join('');
+            const options = hosts.map(h => {
+                const displayName = h.name || h.email || 'Unknown';
+                const credentials = h.credentials ? ` (${h.credentials})` : '';
+                return `<option value="${h.id}">${escapeHtml(displayName)}${escapeHtml(credentials)}</option>`;
+            });
+            hostSelect.innerHTML = '<option value="">Select a host...</option>' + options.join('');
         }
     } catch (err) {
         console.error('Load hosts error:', err);
@@ -906,6 +918,11 @@ function renderSessions() {
                     <div class="session-host">Host: ${escapeHtml(hostName)}</div>
                 </div>
                 <div class="session-card-right">
+                    ${session.status === 'scheduled' ? `
+                        <button class="btn-small btn-complete-session" data-id="${session.id}" title="Mark as Completed">
+                            Mark Completed
+                        </button>
+                    ` : ''}
                     <button class="btn-icon btn-edit-session" data-id="${session.id}" title="Edit">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -923,13 +940,17 @@ function renderSessions() {
         `;
     }).join('');
 
-    // Add event listeners to edit/delete buttons
+    // Add event listeners to action buttons
     document.querySelectorAll('.btn-edit-session').forEach(btn => {
         btn.addEventListener('click', () => editSession(btn.dataset.id));
     });
 
     document.querySelectorAll('.btn-delete-session').forEach(btn => {
         btn.addEventListener('click', () => deleteSession(btn.dataset.id));
+    });
+
+    document.querySelectorAll('.btn-complete-session').forEach(btn => {
+        btn.addEventListener('click', () => markSessionCompleted(btn.dataset.id));
     });
 }
 
@@ -1079,6 +1100,27 @@ async function deleteSession(sessionId) {
     } catch (err) {
         console.error('Delete session error:', err);
         showToast('Failed to delete session', 'error');
+    }
+}
+
+async function markSessionCompleted(sessionId) {
+    try {
+        const { error } = await supabaseClient
+            .from('live_qa_sessions')
+            .update({
+                status: 'completed',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', sessionId);
+
+        if (error) throw error;
+
+        showToast('Session marked as completed', 'success');
+        await loadSessions();
+
+    } catch (err) {
+        console.error('Mark completed error:', err);
+        showToast('Failed to update session', 'error');
     }
 }
 
