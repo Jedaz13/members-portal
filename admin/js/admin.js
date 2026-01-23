@@ -128,10 +128,19 @@ async function checkAuth() {
 
 async function checkAdminAccess(userId) {
     try {
+        // Get current user's email from auth session
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user?.email) {
+            console.error('No user email found');
+            return false;
+        }
+
+        // Check if user is admin using email lookup
+        // (email-based lookup handles the case where quiz takers have a different UUID)
         const { data, error } = await supabaseClient
             .from('users')
-            .select('is_admin')
-            .eq('id', userId)
+            .select('is_admin, role')
+            .eq('email', user.email)
             .single();
 
         if (error) {
@@ -139,7 +148,8 @@ async function checkAdminAccess(userId) {
             return false;
         }
 
-        return data?.is_admin === true;
+        // Allow access if is_admin is true OR role is practitioner
+        return data?.is_admin === true || data?.role === 'practitioner';
     } catch (err) {
         console.error('Admin check error:', err);
         return false;
