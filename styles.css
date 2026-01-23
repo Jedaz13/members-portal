@@ -1,25 +1,59 @@
 /* Gut Healing Academy - Member Portal Styles */
-/* Complete Dashboard Styling */
+/* Complete Dashboard Styling - Citrus Energy Theme */
 
 /* ============================================
-   COLOR VARIABLES
+   FONT IMPORTS
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Sans+3:wght@400;500;600;700&display=swap');
+
+/* ============================================
+   COLOR VARIABLES - CITRUS ENERGY THEME
    ============================================ */
 :root {
-    --primary: #6B9080;      /* Soft teal */
-    --primary-dark: #5a7a6b;
-    --secondary: #A4C3B2;    /* Sage green */
-    --secondary-light: #c8ddd2;
-    --background: #FDF8F5;   /* Warm cream */
-    --accent: #E07A5F;       /* Coral (CTA) */
-    --accent-dark: #c96a52;
-    --text: #2D3436;         /* Dark charcoal */
-    --text-light: #636e72;   /* Lighter text */
-    --white: #FFFFFF;
-    --shadow: rgba(45, 52, 54, 0.1);
-    --shadow-lg: rgba(45, 52, 54, 0.15);
-    --border: #e0e0e0;
-    --success: #27ae60;
-    --warning: #f39c12;
+    /* Background Colors */
+    --background: #FFFDF7;          /* Warm White - main dashboard bg */
+    --background-cream: #FBF9F3;    /* Cream - sidebar, secondary panels */
+    --background-sage: #F7FAF7;     /* Sage Subtle - content areas */
+    --white: #FFFFFF;               /* Card White - cards, modals */
+
+    /* Text Colors */
+    --text: #1B3329;                /* Forest - Primary text */
+    --text-secondary: #3D5245;      /* Olive - Body text */
+    --text-muted: #6B7D6E;          /* Muted - Secondary info */
+    --text-light: #8A9A8E;          /* Light - Placeholders, disabled */
+
+    /* Primary - Citrus (Progress & Action) */
+    --citrus: #F9C74F;              /* Main citrus - active states */
+    --citrus-bright: #FFDA6A;       /* Hover states, celebration */
+    --citrus-light: #FFF3CD;        /* Highlighted content, tips */
+    --citrus-pale: #FFFBEB;         /* Active nav, selected cards */
+
+    /* Secondary - Greens (Structure & Trust) */
+    --forest: #1B3329;              /* Primary actions, dark header */
+    --forest-light: #2A4A3A;        /* Hover on primary buttons */
+    --leaf: #4A7C59;                /* Success, completed, links */
+    --spring: #7FB069;              /* Progress fills, positive metrics */
+    --sage: #A8C5A8;                /* Borders, inactive states */
+
+    /* Status Colors */
+    --success: #52B788;             /* Completed tasks, positive data */
+    --success-light: #E8F5EE;       /* Success backgrounds */
+    --warning: #F9C74F;             /* Attention needed (reuse citrus) */
+    --alert: #E07A5F;               /* Urgent items, negative trends */
+
+    /* Utility */
+    --divider: #E8EBE8;             /* All borders and separators */
+    --shadow: rgba(27, 51, 41, 0.04);
+    --shadow-lg: rgba(27, 51, 41, 0.08);
+    --border: #E8EBE8;
+
+    /* Legacy mappings for compatibility */
+    --primary: #1B3329;             /* Forest */
+    --primary-dark: #2A4A3A;        /* Forest Light */
+    --secondary: #A8C5A8;           /* Sage */
+    --secondary-light: #F7FAF7;     /* Sage Subtle */
+    --accent: #1B3329;              /* Forest for primary CTA */
+    --accent-dark: #2A4A3A;         /* Forest Light */
 }
 
 /* ============================================
@@ -36,19 +70,28 @@ html {
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--background);
-    color: var(--text);
+    color: var(--text-secondary);
     min-height: 100vh;
     line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* Serif headings */
+h1, h2, h3, .panel-title, .welcome-text-area h2 {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    color: var(--text);
 }
 
 a {
-    color: var(--primary);
+    color: var(--leaf);
     text-decoration: none;
 }
 
 a:hover {
+    color: var(--forest);
     text-decoration: underline;
 }
 
@@ -87,27 +130,28 @@ a:hover {
 }
 
 /* ============================================
-   BRAND SECTION
+   BRAND SECTION - Citrus Energy Theme
    ============================================ */
 .brand {
     margin-bottom: 32px;
 }
 
 .brand h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--primary);
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    color: var(--text);
     margin-bottom: 8px;
 }
 
 .subtitle {
     font-size: 16px;
-    color: var(--text-light);
+    color: var(--text-muted);
     font-weight: 500;
 }
 
 /* ============================================
-   BUTTONS
+   BUTTONS - Citrus Energy Theme
    ============================================ */
 .btn-primary {
     display: inline-flex;
@@ -115,23 +159,24 @@ a:hover {
     justify-content: center;
     gap: 8px;
     padding: 14px 28px;
-    background-color: var(--accent);
+    background-color: var(--forest);
     color: var(--white);
     border: none;
     border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
-    font-family: inherit;
+    font-family: 'Source Sans 3', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
 }
 
 .btn-primary:hover {
-    background-color: var(--accent-dark);
+    background-color: var(--forest-light);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+    box-shadow: 0 4px 12px rgba(27, 51, 41, 0.2);
     text-decoration: none;
+    color: var(--white);
 }
 
 .btn-primary:active {
@@ -140,9 +185,9 @@ a:hover {
 
 .btn-primary.btn-disabled,
 .btn-primary:disabled {
-    background-color: var(--text-light);
+    background-color: var(--sage);
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
 }
 
 .btn-primary.btn-disabled:hover,
@@ -158,21 +203,21 @@ a:hover {
     gap: 12px;
     width: 100%;
     padding: 14px 24px;
-    background-color: var(--accent);
+    background-color: var(--forest);
     color: var(--white);
     border: none;
     border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
-    font-family: inherit;
+    font-family: 'Source Sans 3', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-google:hover {
-    background-color: var(--accent-dark);
+    background-color: var(--forest-light);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+    box-shadow: 0 4px 12px rgba(27, 51, 41, 0.2);
 }
 
 .btn-google svg {
@@ -263,13 +308,13 @@ a:hover {
 }
 
 /* ============================================
-   LOADING & STATUS
+   LOADING & STATUS - Citrus Energy Theme
    ============================================ */
 .spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid var(--secondary);
-    border-top-color: var(--primary);
+    border: 3px solid var(--divider);
+    border-top-color: var(--citrus);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin: 0 auto 16px;
@@ -282,7 +327,7 @@ a:hover {
 }
 
 .loading-text {
-    color: var(--text-light);
+    color: var(--text-muted);
     font-size: 15px;
 }
 
@@ -658,20 +703,21 @@ a:hover {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    background-color: var(--background);
 }
 
-/* Dashboard Header */
+/* Dashboard Header - Forest theme */
 .dashboard-header {
-    background: var(--white);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 20px;
+    background: var(--forest);
+    border-bottom: none;
+    padding: 14px 20px;
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
 .header-content {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
@@ -680,14 +726,15 @@ a:hover {
 
 .header-brand h1 {
     font-size: 18px;
-    font-weight: 700;
-    color: var(--primary);
+    font-weight: 600;
+    color: var(--white);
+    font-family: 'Source Sans 3', sans-serif;
 }
 
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
 }
 
 .btn-profile {
@@ -695,10 +742,10 @@ a:hover {
     align-items: center;
     gap: 6px;
     padding: 8px 14px;
-    background: var(--background);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
     font-size: 13px;
     font-weight: 500;
     text-decoration: none;
@@ -706,28 +753,30 @@ a:hover {
 }
 
 .btn-profile:hover {
-    background: var(--secondary-light);
-    border-color: var(--secondary);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
     text-decoration: none;
+    color: var(--white);
 }
 
 .btn-profile svg {
-    color: var(--primary);
+    color: var(--citrus);
 }
 
 /* Dashboard Main */
 .dashboard-main {
     flex: 1;
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     width: 100%;
-    padding: 0 20px 40px;
+    padding: 0 40px 40px;
+    background: var(--background);
 }
 
 /* Welcome Section */
 .welcome-section {
-    padding: 24px 0;
-    border-bottom: 1px solid var(--border);
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--divider);
     margin-bottom: 0;
 }
 
@@ -738,25 +787,27 @@ a:hover {
 }
 
 .welcome-text-area h2 {
-    font-size: 24px;
-    font-weight: 600;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
     color: var(--text);
     margin-bottom: 4px;
 }
 
 .protocol-name {
-    color: var(--primary);
+    color: var(--leaf);
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .trial-banner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, var(--secondary-light) 0%, var(--secondary) 100%);
+    background: var(--citrus-pale);
+    border: 1px solid var(--citrus);
     padding: 12px 16px;
-    border-radius: 8px;
+    border-radius: 12px;
     flex-wrap: wrap;
     gap: 12px;
 }
@@ -769,7 +820,7 @@ a:hover {
 
 .trial-label {
     font-size: 13px;
-    color: var(--text);
+    color: var(--text-secondary);
 }
 
 .trial-days {
@@ -782,10 +833,10 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-    border: 2px solid #ff9800;
+    background: var(--citrus-light);
+    border: 2px solid var(--citrus);
     padding: 12px 16px;
-    border-radius: 8px;
+    border-radius: 12px;
     flex-wrap: wrap;
     gap: 12px;
 }
@@ -810,51 +861,56 @@ a:hover {
 }
 
 /* ============================================
-   TAB NAVIGATION
+   TAB NAVIGATION - Citrus Energy Theme
    ============================================ */
 .tab-nav {
     display: flex;
     background: var(--white);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--divider);
     position: sticky;
     top: 52px;
     z-index: 90;
-    margin: 0 -20px;
-    padding: 0 20px;
+    margin: 0 -40px;
+    padding: 0 40px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    gap: 4px;
 }
 
 .tab-btn {
     flex: 1;
     min-width: max-content;
-    padding: 16px 12px;
+    padding: 16px 20px;
     background: none;
     border: none;
     border-bottom: 3px solid transparent;
     font-size: 14px;
     font-weight: 500;
-    font-family: inherit;
-    color: var(--text-light);
+    font-family: 'Source Sans 3', sans-serif;
+    color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    border-radius: 8px 8px 0 0;
 }
 
 .tab-btn:hover {
-    color: var(--primary);
+    color: var(--text);
+    background: var(--background-sage);
 }
 
 .tab-btn.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
+    color: var(--text);
+    background: var(--citrus-pale);
+    border-bottom-color: var(--citrus);
+    font-weight: 600;
 }
 
 /* ============================================
-   TAB CONTENT & PANELS
+   TAB CONTENT & PANELS - Citrus Energy Theme
    ============================================ */
 .tab-content {
-    padding-top: 24px;
+    padding-top: 32px;
 }
 
 .tab-panel {
@@ -874,27 +930,29 @@ a:hover {
 
 .panel-card {
     background: var(--white);
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 24px;
     box-shadow: 0 2px 12px var(--shadow);
+    border: 1px solid var(--divider);
     position: relative;
 }
 
 .panel-title {
-    font-size: 20px;
-    font-weight: 600;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
     color: var(--text);
     margin-bottom: 8px;
 }
 
 .panel-intro {
-    color: var(--text-light);
-    font-size: 14px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
     margin-bottom: 24px;
 }
 
 /* ============================================
-   TRACKING FORM
+   TRACKING FORM - Citrus Energy Theme
    ============================================ */
 .tracking-form {
     margin-bottom: 32px;
@@ -906,15 +964,17 @@ a:hover {
 
 .form-group label {
     display: block;
-    font-size: 15px;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--text);
     margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .field-description {
     font-size: 13px;
-    color: var(--text-light);
+    color: var(--text-muted);
     margin-bottom: 10px;
 }
 
@@ -926,9 +986,9 @@ a:hover {
 .slider {
     -webkit-appearance: none;
     width: 100%;
-    height: 8px;
-    border-radius: 4px;
-    background: var(--secondary-light);
+    height: 6px;
+    border-radius: 3px;
+    background: var(--divider);
     outline: none;
     margin-bottom: 8px;
 }
@@ -938,24 +998,25 @@ a:hover {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: var(--primary);
+    background: var(--citrus);
     cursor: pointer;
-    box-shadow: 0 2px 6px var(--shadow);
+    box-shadow: 0 2px 8px rgba(249, 199, 79, 0.4);
     transition: transform 0.2s ease;
 }
 
 .slider::-webkit-slider-thumb:hover {
     transform: scale(1.1);
+    background: var(--citrus-bright);
 }
 
 .slider::-moz-range-thumb {
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: var(--primary);
+    background: var(--citrus);
     cursor: pointer;
     border: none;
-    box-shadow: 0 2px 6px var(--shadow);
+    box-shadow: 0 2px 8px rgba(249, 199, 79, 0.4);
 }
 
 .slider-labels {
@@ -963,13 +1024,13 @@ a:hover {
     justify-content: space-between;
     align-items: center;
     font-size: 13px;
-    color: var(--text-light);
+    color: var(--text-muted);
 }
 
 .slider-value {
     font-size: 18px;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--leaf);
 }
 
 /* Radio Buttons */
@@ -991,23 +1052,24 @@ a:hover {
 
 .radio-text {
     padding: 10px 16px;
-    background: var(--background);
-    border: 2px solid var(--border);
+    background: var(--white);
+    border: 2px solid var(--divider);
     border-radius: 8px;
     font-size: 14px;
-    color: var(--text);
+    color: var(--text-secondary);
     transition: all 0.2s ease;
 }
 
 .radio-label input[type="radio"]:checked + .radio-text {
-    background: var(--secondary-light);
-    border-color: var(--primary);
-    color: var(--primary);
-    font-weight: 500;
+    background: var(--citrus-pale);
+    border-color: var(--citrus);
+    color: var(--text);
+    font-weight: 600;
 }
 
 .radio-label:hover .radio-text {
-    border-color: var(--secondary);
+    border-color: var(--sage);
+    background: var(--background-sage);
 }
 
 /* Select */
@@ -1015,18 +1077,19 @@ a:hover {
     width: 100%;
     padding: 12px 16px;
     font-size: 15px;
-    font-family: inherit;
-    border: 2px solid var(--border);
-    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    border: 1px solid var(--divider);
+    border-radius: 12px;
     background: var(--white);
-    color: var(--text);
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-select:focus {
     outline: none;
-    border-color: var(--primary);
+    border-color: var(--citrus);
+    box-shadow: 0 0 0 3px var(--citrus-pale);
 }
 
 /* Number Input */
@@ -1034,21 +1097,24 @@ a:hover {
     width: 100%;
     padding: 12px 16px;
     font-size: 15px;
-    font-family: inherit;
-    border: 2px solid var(--border);
-    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    border: 1px solid var(--divider);
+    border-radius: 12px;
     background: var(--white);
-    color: var(--text);
-    transition: border-color 0.2s ease;
+    color: var(--text-secondary);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-input:focus {
     outline: none;
-    border-color: var(--primary);
+    border-color: var(--citrus);
+    box-shadow: 0 0 0 3px var(--citrus-pale);
 }
 
 .form-input-number {
     max-width: 120px;
+    text-align: center;
+    font-size: 1.1rem;
 }
 
 /* Textarea */
@@ -1056,41 +1122,50 @@ a:hover {
     width: 100%;
     padding: 12px 16px;
     font-size: 15px;
-    font-family: inherit;
-    border: 2px solid var(--border);
-    border-radius: 8px;
+    font-family: 'Source Sans 3', sans-serif;
+    border: 1px solid var(--divider);
+    border-radius: 12px;
     background: var(--white);
-    color: var(--text);
+    color: var(--text-secondary);
     resize: vertical;
     min-height: 80px;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-textarea:focus {
     outline: none;
-    border-color: var(--primary);
+    border-color: var(--citrus);
+    box-shadow: 0 0 0 3px var(--citrus-pale);
 }
 
 /* ============================================
-   INFO BOX (Why Track)
+   INFO BOX (Why Track) - Citrus Energy Theme
    ============================================ */
 .info-box {
-    background: linear-gradient(135deg, var(--secondary-light) 0%, #e8f4ed 100%);
-    border-radius: 10px;
+    background: var(--citrus-light);
+    border-radius: 12px;
     padding: 16px 20px;
     margin-bottom: 32px;
+    border-left: 4px solid var(--citrus);
 }
 
 .info-box h4 {
     font-size: 14px;
     font-weight: 600;
-    color: var(--primary-dark);
+    color: var(--text);
     margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-box h4::before {
+    content: "💡";
 }
 
 .info-box p {
     font-size: 13px;
-    color: var(--text);
+    color: var(--text-secondary);
     line-height: 1.6;
 }
 
@@ -1098,8 +1173,9 @@ a:hover {
    TRACKING HISTORY
    ============================================ */
 .recent-history h4 {
-    font-size: 16px;
-    font-weight: 600;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
     color: var(--text);
     margin-bottom: 16px;
 }
@@ -1111,22 +1187,23 @@ a:hover {
 }
 
 .history-empty {
-    color: var(--text-light);
+    color: var(--text-muted);
     font-size: 14px;
     text-align: center;
     padding: 24px;
-    background: var(--background);
-    border-radius: 8px;
+    background: var(--background-sage);
+    border-radius: 12px;
 }
 
 .history-item {
-    background: var(--background);
-    border-radius: 8px;
+    background: var(--white);
+    border: 1px solid var(--divider);
+    border-radius: 12px;
     overflow: hidden;
 }
 
 .history-item.has-notes {
-    border-left: 3px solid var(--secondary);
+    border-left: 3px solid var(--citrus);
 }
 
 .history-main {
@@ -1140,14 +1217,14 @@ a:hover {
 .history-date {
     font-size: 13px;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--leaf);
     white-space: nowrap;
     min-width: 80px;
 }
 
 .history-summary {
     font-size: 13px;
-    color: var(--text);
+    color: var(--text-secondary);
     flex: 1;
     text-align: right;
 }
@@ -1187,11 +1264,15 @@ a:hover {
 }
 
 /* ============================================
-   PROTOCOL HEADER SECTION
+   PROTOCOL HEADER SECTION - Citrus Energy Theme
    ============================================ */
 .protocol-header-section {
     margin-bottom: 20px;
     text-align: center;
+    padding: 24px;
+    background: var(--citrus-pale);
+    border-radius: 16px;
+    margin: -24px -24px 24px -24px;
 }
 
 .protocol-header-section .panel-title {
@@ -1200,14 +1281,14 @@ a:hover {
 
 .protocol-subtitle {
     font-size: 16px;
-    font-weight: 500;
-    color: var(--primary);
+    font-weight: 600;
+    color: var(--leaf);
     margin: 0 0 6px 0;
 }
 
 .protocol-header-section .protocol-focus {
     font-size: 14px;
-    color: var(--text-light);
+    color: var(--text-muted);
     font-style: italic;
     margin: 0;
     padding: 0;
@@ -1215,22 +1296,22 @@ a:hover {
 }
 
 .protocol-intro-card {
-    background: linear-gradient(135deg, #f0f7f4 0%, #e8f0ec 100%);
-    border: 1px solid #c8ddd2;
-    border-radius: 10px;
+    background: var(--background-sage);
+    border: 1px solid var(--sage);
+    border-radius: 12px;
     padding: 16px 20px;
     margin-bottom: 24px;
 }
 
 .protocol-intro-text {
     font-size: 14px;
-    color: var(--text);
+    color: var(--text-secondary);
     line-height: 1.6;
     margin: 0;
 }
 
 /* ============================================
-   PROTOCOL CONTENT
+   PROTOCOL CONTENT - Citrus Energy Theme
    ============================================ */
 .protocol-content {
     line-height: 1.7;
@@ -1241,19 +1322,20 @@ a:hover {
 }
 
 .protocol-week h4 {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--primary);
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--text);
     margin-bottom: 8px;
 }
 
 .protocol-focus {
     font-size: 15px;
-    color: var(--text-light);
+    color: var(--text-muted);
     font-style: italic;
     margin-bottom: 24px;
     padding-bottom: 16px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--divider);
 }
 
 .protocol-day {
@@ -1265,10 +1347,23 @@ a:hover {
     font-weight: 600;
     color: var(--text);
     margin-bottom: 12px;
-    padding: 8px 12px;
-    background: var(--secondary-light);
-    border-radius: 6px;
+    padding: 8px 12px 8px 36px;
+    background: var(--citrus-pale);
+    border-radius: 8px;
     display: inline-block;
+    position: relative;
+}
+
+.protocol-day h5::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background: var(--citrus);
+    border-radius: 50%;
 }
 
 .protocol-day ul {
@@ -1277,15 +1372,15 @@ a:hover {
 
 .protocol-day li {
     font-size: 14px;
-    color: var(--text);
+    color: var(--text-secondary);
     margin-bottom: 8px;
     padding-left: 8px;
 }
 
 .protocol-tips {
-    background: linear-gradient(135deg, #fff5f2 0%, #fff9f7 100%);
-    border: 1px solid rgba(224, 122, 95, 0.2);
-    border-radius: 10px;
+    background: var(--citrus-light);
+    border-left: 4px solid var(--citrus);
+    border-radius: 12px;
     padding: 20px;
     margin-top: 24px;
 }
@@ -1293,13 +1388,20 @@ a:hover {
 .protocol-tips h5 {
     font-size: 15px;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--text);
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.protocol-tips h5::before {
+    content: "💡";
 }
 
 .protocol-tips p {
     font-size: 14px;
-    color: var(--text);
+    color: var(--text-secondary);
     margin-bottom: 12px;
 }
 
@@ -1804,13 +1906,13 @@ a:hover {
     border-top: 1px solid var(--border);
 }
 
-/* Upgrade CTA Section */
+/* Upgrade CTA Section - Citrus Energy Theme */
 .upgrade-cta-section {
     text-align: center;
     padding: 32px 24px;
-    background: linear-gradient(135deg, #fff9f7 0%, var(--white) 100%);
-    border: 2px solid var(--accent);
-    border-radius: 12px;
+    background: var(--citrus-pale);
+    border: 2px solid var(--citrus);
+    border-radius: 16px;
 }
 
 .btn-upgrade-primary {
@@ -1818,24 +1920,25 @@ a:hover {
     align-items: center;
     justify-content: center;
     padding: 16px 32px;
-    background-color: var(--accent);
+    background-color: var(--forest);
     color: var(--white);
     border: none;
     border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
-    font-family: inherit;
+    font-family: 'Source Sans 3', sans-serif;
     cursor: pointer;
     transition: all 0.3s ease;
     text-decoration: none;
-    box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+    box-shadow: 0 4px 12px rgba(27, 51, 41, 0.2);
 }
 
 .btn-upgrade-primary:hover {
-    background-color: var(--accent-dark);
+    background-color: var(--forest-light);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(224, 122, 95, 0.4);
+    box-shadow: 0 6px 20px rgba(27, 51, 41, 0.3);
     text-decoration: none;
+    color: var(--white);
 }
 
 .btn-upgrade-primary:active {
@@ -1845,12 +1948,12 @@ a:hover {
 .upgrade-cta-subtext {
     margin-top: 12px;
     font-size: 14px;
-    color: var(--text-light);
+    color: var(--text-muted);
     font-style: italic;
 }
 
 /* ============================================
-   MESSAGING
+   MESSAGING - Citrus Energy Theme
    ============================================ */
 
 /* Practitioner Header */
@@ -1859,8 +1962,8 @@ a:hover {
     align-items: center;
     gap: 12px;
     padding: 16px 20px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    border-radius: 12px;
+    background: var(--forest);
+    border-radius: 16px;
     margin-bottom: 24px;
     color: var(--white);
 }
@@ -1894,7 +1997,7 @@ a:hover {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 3px solid var(--citrus);
 }
 
 .practitioner-info {
@@ -1916,20 +2019,21 @@ a:hover {
 }
 
 /* ============================================
-   EXPANDABLE PRACTITIONER CARD (Message Expert Tab)
+   EXPANDABLE PRACTITIONER CARD (Message Expert Tab) - Citrus Energy Theme
    ============================================ */
 .practitioner-card {
     background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    border: 1px solid var(--divider);
+    border-radius: 16px;
     margin-bottom: 24px;
-    box-shadow: 0 2px 8px var(--shadow);
+    box-shadow: 0 2px 12px var(--shadow);
     overflow: hidden;
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .practitioner-card:hover {
-    box-shadow: 0 4px 12px var(--shadow);
+    box-shadow: 0 4px 16px var(--shadow-lg);
+    transform: translateY(-2px);
 }
 
 .practitioner-card.hidden {
@@ -1942,12 +2046,12 @@ a:hover {
     gap: 12px;
     padding: 16px 20px;
     cursor: pointer;
-    background: linear-gradient(135deg, #E8F0EC 0%, #f5f9f7 100%);
+    background: var(--background-sage);
     transition: background 0.2s ease;
 }
 
 .practitioner-card-header:hover {
-    background: linear-gradient(135deg, #dce9e2 0%, #ecf4f0 100%);
+    background: var(--citrus-pale);
 }
 
 .practitioner-card-avatar {
@@ -1955,7 +2059,7 @@ a:hover {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--primary);
+    border: 3px solid var(--citrus);
     flex-shrink: 0;
 }
 
@@ -1970,8 +2074,9 @@ a:hover {
 }
 
 .practitioner-card-name {
-    font-size: 16px;
-    font-weight: 600;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
     color: var(--text);
     margin: 0;
     line-height: 1.3;
@@ -1979,7 +2084,7 @@ a:hover {
 
 .practitioner-card-credentials {
     font-size: 13px;
-    color: var(--primary);
+    color: var(--leaf);
     margin: 2px 0 0 0;
     font-weight: 500;
 }
@@ -1987,7 +2092,7 @@ a:hover {
 .practitioner-card-chevron {
     background: none;
     border: none;
-    color: var(--primary);
+    color: var(--leaf);
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
@@ -1998,7 +2103,7 @@ a:hover {
 }
 
 .practitioner-card-chevron:hover {
-    background: rgba(107, 144, 128, 0.1);
+    background: var(--citrus-pale);
 }
 
 .practitioner-card.expanded .practitioner-card-chevron {
@@ -2071,15 +2176,15 @@ a:hover {
 }
 
 /* ============================================
-   PROTOCOL PRACTITIONER CARD (My Protocol Tab)
+   PROTOCOL PRACTITIONER CARD (My Protocol Tab) - Citrus Energy Theme
    ============================================ */
 .protocol-practitioner-card {
-    background: linear-gradient(135deg, #E8F0EC 0%, #f5f9f7 100%);
-    border: 1px solid #c8ddd2;
+    background: var(--background-sage);
+    border: 1px solid var(--sage);
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 24px;
-    box-shadow: 0 2px 8px var(--shadow);
+    box-shadow: 0 2px 12px var(--shadow);
 }
 
 .protocol-practitioner-card.hidden {
@@ -2093,7 +2198,7 @@ a:hover {
 .protocol-practitioner-label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--leaf);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin: 0;
@@ -2111,7 +2216,7 @@ a:hover {
     height: 64px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid var(--white);
+    border: 3px solid var(--citrus);
     box-shadow: 0 2px 8px var(--shadow);
     flex-shrink: 0;
 }
@@ -2122,8 +2227,9 @@ a:hover {
 }
 
 .protocol-practitioner-name {
-    font-size: 18px;
-    font-weight: 600;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
     color: var(--text);
     margin: 0;
     line-height: 1.3;
@@ -2131,14 +2237,14 @@ a:hover {
 
 .protocol-practitioner-credentials {
     font-size: 14px;
-    color: var(--primary);
+    color: var(--leaf);
     margin: 4px 0 0 0;
     font-weight: 500;
 }
 
 .protocol-practitioner-intro {
     font-size: 14px;
-    color: var(--text);
+    color: var(--text-secondary);
     line-height: 1.6;
     margin: 0 0 20px 0;
     font-style: italic;
@@ -2149,10 +2255,11 @@ a:hover {
     align-items: center;
     gap: 8px;
     padding: 12px 24px;
-    background: var(--accent);
+    background: var(--forest);
     color: var(--white);
     font-size: 14px;
     font-weight: 600;
+    font-family: 'Source Sans 3', sans-serif;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -2160,7 +2267,7 @@ a:hover {
 }
 
 .btn-message-practitioner:hover {
-    background: #c77269;
+    background: var(--forest-light);
     transform: translateY(-1px);
 }
 
@@ -2458,32 +2565,36 @@ a:hover {
     max-height: 400px;
     overflow-y: auto;
     padding-right: 8px;
+    background: var(--background-cream);
+    border-radius: 12px;
+    padding: 16px;
 }
 
 .messages-empty {
-    color: var(--text-light);
+    color: var(--text-muted);
     font-size: 14px;
     text-align: center;
     padding: 32px;
-    background: var(--background);
-    border-radius: 10px;
+    background: var(--background-sage);
+    border-radius: 12px;
 }
 
 .message {
     padding: 14px 16px;
-    border-radius: 12px;
+    border-radius: 16px;
     max-width: 85%;
 }
 
 .message-member {
-    background: var(--secondary-light);
+    background: var(--forest);
+    color: var(--white);
     margin-left: auto;
     border-bottom-right-radius: 4px;
 }
 
 .message-expert {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: var(--white);
+    background: var(--background-sage);
+    color: var(--text-secondary);
     margin-right: auto;
     border-bottom-left-radius: 4px;
 }
@@ -2504,11 +2615,11 @@ a:hover {
 }
 
 .message-member .message-sender {
-    color: var(--primary);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .message-expert .message-sender {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--leaf);
 }
 
 .message-time {
@@ -2613,11 +2724,12 @@ a:hover {
 }
 
 /* ============================================
-   LIVE Q&A TAB
+   LIVE Q&A TAB - Citrus Energy Theme
    ============================================ */
 .qna-session-card {
-    background: linear-gradient(135deg, var(--secondary-light) 0%, #e8f4ed 100%);
-    border-radius: 12px;
+    background: var(--citrus-pale);
+    border: 1px solid var(--citrus);
+    border-radius: 16px;
     padding: 24px;
     margin-bottom: 24px;
 }
@@ -2634,8 +2746,9 @@ a:hover {
 }
 
 .qna-session-header h4 {
-    font-size: 20px;
-    font-weight: 600;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
     color: var(--text);
     margin: 0;
 }
@@ -2655,12 +2768,12 @@ a:hover {
 }
 
 .qna-label {
-    color: var(--text);
+    color: var(--text-secondary);
     font-weight: 500;
 }
 
 .qna-value {
-    color: var(--primary);
+    color: var(--leaf);
     font-weight: 600;
 }
 
@@ -2781,11 +2894,11 @@ a:hover {
     font-weight: 500 !important;
 }
 
-/* Q&A Session Host Card */
+/* Q&A Session Host Card - Citrus Energy Theme */
 .qna-host-card {
-    background: linear-gradient(135deg, #E8F0EC 0%, #f5f9f7 100%);
-    border: 1px solid #c8ddd2;
-    border-radius: 12px;
+    background: var(--background-sage);
+    border: 1px solid var(--sage);
+    border-radius: 16px;
     padding: 20px;
     margin: 20px 0;
 }
@@ -2793,7 +2906,7 @@ a:hover {
 .qna-host-label {
     font-size: 12px;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--leaf);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin: 0 0 12px 0;
@@ -2811,7 +2924,7 @@ a:hover {
     height: 64px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid var(--white);
+    border: 3px solid var(--citrus);
     box-shadow: 0 2px 8px var(--shadow);
     flex-shrink: 0;
 }
@@ -2822,8 +2935,9 @@ a:hover {
 }
 
 .qna-host-name {
-    font-size: 17px;
-    font-weight: 600;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
     color: var(--text);
     margin: 0;
     line-height: 1.3;
@@ -2831,7 +2945,7 @@ a:hover {
 
 .qna-host-credentials {
     font-size: 13px;
-    color: var(--primary);
+    color: var(--leaf);
     margin: 2px 0 0 0;
     font-weight: 500;
 }
@@ -2877,21 +2991,21 @@ a:hover {
     align-items: center;
     justify-content: center;
     padding: 14px 32px;
-    background-color: var(--accent);
+    background-color: var(--forest);
     color: var(--white);
     border: none;
     border-radius: 8px;
     font-size: 16px;
     font-weight: 600;
-    font-family: inherit;
+    font-family: 'Source Sans 3', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-qna-rsvp:hover {
-    background-color: var(--accent-dark);
+    background-color: var(--forest-light);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+    box-shadow: 0 4px 12px rgba(27, 51, 41, 0.2);
 }
 
 .btn-qna-rsvp-confirmed {
@@ -2946,7 +3060,7 @@ a:hover {
 }
 
 /* ============================================
-   LEARNING MATERIAL TAB
+   LEARNING MATERIAL TAB - Citrus Energy Theme
    ============================================ */
 .learning-content {
     display: flex;
@@ -2975,15 +3089,16 @@ a:hover {
     display: flex;
     gap: 16px;
     padding: 20px;
-    background: var(--background);
-    border: 2px solid var(--border);
-    border-radius: 12px;
+    background: var(--citrus-pale);
+    border: 1px solid var(--divider);
+    border-radius: 16px;
     transition: all 0.2s ease;
 }
 
 .resource-card:hover {
-    border-color: var(--secondary);
-    box-shadow: 0 2px 8px var(--shadow);
+    border-color: var(--citrus);
+    box-shadow: 0 4px 16px var(--shadow);
+    transform: translateY(-2px);
 }
 
 .resource-icon {
@@ -2996,15 +3111,16 @@ a:hover {
 }
 
 .resource-info h4 {
-    font-size: 18px;
-    font-weight: 600;
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
     color: var(--text);
     margin-bottom: 8px;
 }
 
 .resource-info p {
     font-size: 14px;
-    color: var(--text-light);
+    color: var(--text-muted);
     margin-bottom: 12px;
     line-height: 1.5;
 }
@@ -3013,22 +3129,23 @@ a:hover {
     display: inline-flex;
     align-items: center;
     padding: 10px 20px;
-    background-color: var(--primary);
+    background-color: var(--forest);
     color: var(--white);
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 600;
-    font-family: inherit;
+    font-family: 'Source Sans 3', sans-serif;
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
 }
 
 .btn-resource:hover {
-    background-color: var(--primary-dark);
+    background-color: var(--forest-light);
     transform: translateY(-1px);
     text-decoration: none;
+    color: var(--white);
 }
 
 .locked-overlay {
@@ -3379,17 +3496,17 @@ a:hover {
 }
 
 /* ============================================
-   GLOBAL FOOTER
+   GLOBAL FOOTER - Citrus Energy Theme
    ============================================ */
 .global-footer {
-    background: #37534e;
+    background: var(--forest);
     color: rgba(255, 255, 255, 0.9);
     padding: 40px 20px 24px;
     margin-top: 60px;
 }
 
 .footer-content {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
@@ -3400,7 +3517,7 @@ a:hover {
 .footer-disclaimer p {
     font-size: 13px;
     line-height: 1.7;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.7);
     text-align: center;
 }
 
@@ -3411,8 +3528,8 @@ a:hover {
     flex-wrap: wrap;
     gap: 16px;
     padding: 20px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .footer-links a {
@@ -3424,12 +3541,12 @@ a:hover {
 }
 
 .footer-links a:hover {
-    color: var(--secondary-light);
+    color: var(--citrus);
     text-decoration: underline;
 }
 
 .footer-divider {
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.3);
     font-size: 14px;
 }
 
@@ -3440,26 +3557,27 @@ a:hover {
 
 .footer-copyright p {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.6);
 }
 
 /* ============================================
-   TOAST NOTIFICATION
+   TOAST NOTIFICATION - Citrus Energy Theme
    ============================================ */
 .toast {
     position: fixed;
     bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--text);
+    background: var(--forest);
     color: var(--white);
     padding: 14px 24px;
-    border-radius: 8px;
+    border-radius: 12px;
     font-size: 14px;
     font-weight: 500;
-    box-shadow: 0 4px 16px var(--shadow-lg);
+    box-shadow: 0 4px 20px rgba(27, 51, 41, 0.3);
     z-index: 1000;
     animation: slideUp 0.3s ease;
+    border-left: 4px solid var(--citrus);
 }
 
 @keyframes slideUp {
@@ -3474,7 +3592,7 @@ a:hover {
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - Citrus Energy Theme
    ============================================ */
 @media (max-width: 600px) {
     /* General */
@@ -3497,7 +3615,7 @@ a:hover {
 
     /* Dashboard */
     .dashboard-header {
-        padding: 10px 16px;
+        padding: 12px 16px;
     }
 
     .header-brand h1 {
@@ -3505,15 +3623,15 @@ a:hover {
     }
 
     .dashboard-main {
-        padding: 0 16px 32px;
+        padding: 0 20px 32px;
     }
 
     .welcome-section {
-        padding: 20px 0;
+        padding: 24px 0 20px;
     }
 
     .welcome-text-area h2 {
-        font-size: 20px;
+        font-size: 1.5rem;
     }
 
     .trial-banner {
@@ -3538,13 +3656,21 @@ a:hover {
 
     /* Tabs */
     .tab-nav {
-        margin: 0 -16px;
+        margin: 0 -20px;
         padding: 0 16px;
+        gap: 0;
     }
 
     .tab-btn {
-        padding: 14px 8px;
+        padding: 14px 10px;
         font-size: 13px;
+        border-radius: 0;
+    }
+
+    /* Protocol header adjustment */
+    .protocol-header-section {
+        margin: -20px -16px 20px -16px;
+        padding: 20px 16px;
     }
 
     /* Panel */
@@ -3826,12 +3952,12 @@ a:hover {
     }
 }
 
-/* Focus States */
+/* Focus States - Citrus Energy Theme */
 .btn-primary:focus,
 .btn-google:focus,
 .btn-logout:focus,
 .btn-logout-small:focus {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--citrus);
     outline-offset: 2px;
 }
 
@@ -3842,7 +3968,8 @@ a:hover {
 
 .tab-btn:focus-visible {
     outline: none;
-    border-bottom-color: var(--primary);
+    border-bottom-color: var(--citrus);
+    background: var(--citrus-pale);
 }
 
 .form-input:focus,
@@ -3850,12 +3977,12 @@ a:hover {
 .form-textarea:focus,
 .message-compose textarea:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(107, 144, 128, 0.1);
+    border-color: var(--citrus);
+    box-shadow: 0 0 0 3px var(--citrus-pale);
 }
 
 /* ============================================
-   LOGIN PAGE REDESIGN - SPLIT SCREEN LAYOUT
+   LOGIN PAGE REDESIGN - SPLIT SCREEN LAYOUT - Citrus Energy Theme
    ============================================ */
 
 /* Login View Override */
@@ -3873,7 +4000,7 @@ a:hover {
     left: 0;
     right: 0;
     height: 60px;
-    background: var(--white);
+    background: var(--forest);
     box-shadow: 0 2px 8px var(--shadow);
     z-index: 100;
 }
@@ -3890,14 +4017,14 @@ a:hover {
 
 .login-header-logo {
     font-size: 18px;
-    font-weight: 700;
-    color: var(--primary);
+    font-weight: 600;
+    color: var(--white);
     text-decoration: none;
 }
 
 .login-header-logo:hover {
     text-decoration: none;
-    color: var(--primary-dark);
+    color: var(--citrus);
 }
 
 .header-logo-img {
@@ -4053,7 +4180,7 @@ a:hover {
 .login-toggle {
     display: inline-flex;
     position: relative;
-    background: #f0f0f0;
+    background: var(--divider);
     border-radius: 30px;
     padding: 4px;
 }
@@ -4066,10 +4193,11 @@ a:hover {
     background: transparent;
     font-size: 14px;
     font-weight: 500;
-    color: var(--text-light);
+    color: var(--text-muted);
     cursor: pointer;
     transition: color 0.3s ease;
     border-radius: 26px;
+    font-family: 'Source Sans 3', sans-serif;
 }
 
 .toggle-btn.active {
@@ -4082,7 +4210,7 @@ a:hover {
     left: 4px;
     height: calc(100% - 8px);
     width: calc(50% - 4px);
-    background: var(--primary);
+    background: var(--forest);
     border-radius: 26px;
     transition: transform 0.3s ease;
     z-index: 1;
@@ -4095,7 +4223,7 @@ a:hover {
 /* Login Description */
 .login-description {
     font-size: 16px;
-    color: var(--text-light);
+    color: var(--text-muted);
     margin-bottom: 24px;
     line-height: 1.5;
 }
@@ -4103,7 +4231,7 @@ a:hover {
 /* Right Panel - Slideshow */
 .login-right-panel {
     flex: 1;
-    background: linear-gradient(135deg, #E8F0EC 0%, #d4e4da 100%);
+    background: linear-gradient(135deg, var(--citrus-pale) 0%, var(--citrus-light) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4187,20 +4315,21 @@ a:hover {
 }
 
 .slide-name {
+    font-family: 'DM Serif Display', serif;
     font-size: 18px;
-    font-weight: 600;
+    font-weight: 400;
     color: var(--text);
 }
 
 .slide-credentials {
     font-size: 14px;
-    color: var(--primary);
+    color: var(--leaf);
     font-weight: 500;
 }
 
 .slide-stars {
     font-size: 18px;
-    color: #F4B942;
+    color: var(--citrus);
     letter-spacing: 2px;
 }
 
@@ -4216,7 +4345,7 @@ a:hover {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: rgba(91, 138, 114, 0.3);
+    background: var(--sage);
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -4224,11 +4353,11 @@ a:hover {
 }
 
 .dot:hover {
-    background: rgba(91, 138, 114, 0.5);
+    background: var(--leaf);
 }
 
 .dot.active {
-    background: var(--primary);
+    background: var(--citrus);
     transform: scale(1.2);
 }
 
