@@ -1900,8 +1900,9 @@ function applyAccessControls() {
     const messageComposeSection = document.getElementById('message-compose-section');
     const messageComposeLocked = document.getElementById('message-compose-locked');
 
-    if (userStatus === 'active') {
-        // Active (paid) users - Full access to everything
+    if (userStatus === 'active' || userStatus === 'trial') {
+        // Active (paid) and Trial users - Full access to everything
+        // Trial users now get full access during their trial period
 
         // Learning Materials: UNLOCKED
         if (learningOverlay) learningOverlay.classList.add('hidden');
@@ -1923,40 +1924,7 @@ function applyAccessControls() {
         }
         if (attachFileBtn) attachFileBtn.disabled = false;
 
-        console.log('Access: Active (Paid) - Full access to all features');
-
-    } else if (userStatus === 'trial') {
-        // Trial users - Limited access: Learning materials LOCKED, Messages LOCKED, Q&A questions LOCKED
-
-        // Learning Materials: LOCKED (unlock after upgrade)
-        if (learningOverlay) learningOverlay.classList.remove('hidden');
-        if (learningContent) learningContent.classList.add('locked');
-
-        // Q&A: Can view session info and RSVP, but question submission is LOCKED
-        if (qnaJoinSection) qnaJoinSection.classList.remove('hidden');
-        if (qnaLockedMessage) qnaLockedMessage.classList.add('hidden');
-        if (qnaQuestionLocked) qnaQuestionLocked.classList.remove('hidden');
-
-        // Update "What to Expect" - lock the question submission benefit
-        if (qnaBenefitsList) {
-            var askQuestionItem = qnaBenefitsList.querySelector('li:first-child');
-            if (askQuestionItem && !askQuestionItem.classList.contains('locked-benefit')) {
-                askQuestionItem.classList.add('locked-benefit');
-                askQuestionItem.textContent = 'Ask questions (Paid members)';
-            }
-        }
-
-        // Messages: LOCKED for trial users - show upgrade overlay
-        if (messageComposeLocked) messageComposeLocked.classList.remove('hidden');
-        if (messageComposeSection) messageComposeSection.classList.add('locked');
-        if (messageInput) messageInput.disabled = true;
-        if (sendMessageBtn) {
-            sendMessageBtn.disabled = true;
-            sendMessageBtn.classList.add('btn-disabled');
-        }
-        if (attachFileBtn) attachFileBtn.disabled = true;
-
-        console.log('Access: Trial - Protocol + Tracking + Q&A view. Locked: Messages, Learning, Questions');
+        console.log('Access:', userStatus === 'trial' ? 'Trial' : 'Active', '- Full access to all features');
 
     } else if (userStatus === 'trial_expired' || !userStatus || userStatus === 'lead') {
         // Trial expired or no status - Restricted access
