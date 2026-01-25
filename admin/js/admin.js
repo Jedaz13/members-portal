@@ -612,25 +612,6 @@ async function updateConversationStatus(id, newStatus) {
             throw dbError;
         }
 
-        // Send webhook to Make.com
-        if (ADMIN_CONFIG.supportWebhookUrl !== 'MAKE_WEBHOOK_URL_HERE') {
-            try {
-                await fetch(ADMIN_CONFIG.supportWebhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'status_update',
-                        conversation_id: id,
-                        new_status: newStatus
-                    })
-                });
-            } catch (webhookErr) {
-                console.warn('Webhook error (non-critical):', webhookErr);
-            }
-        }
-
         showToast(`Status updated to ${formatStatus(newStatus)}`, 'success');
 
         // Reload conversations
