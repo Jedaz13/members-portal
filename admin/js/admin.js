@@ -7,7 +7,7 @@
 // Configuration
 // ============================================
 const ADMIN_CONFIG = {
-    supportWebhookUrl: 'https://hook.eu1.make.com/7oa9tp3w77vdu3jyzu3ik9e6pa6qvh2n',
+    supportWebhookUrl: 'https://hook.eu1.make.com/lk1drwd5cr6fjcjj6hejxsy8o3kkxv9z',
     autoRefreshInterval: 30000, // 30 seconds
     defaultTab: 'support'
 };
