@@ -1427,3 +1427,499 @@ a:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================
+   Quiz Analytics Dashboard
+   ============================================ */
+
+/* Date Filter Bar */
+.quiz-date-filter-card {
+    padding: 16px 24px;
+    margin-bottom: 24px;
+}
+
+.quiz-date-filter {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.date-filter-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.date-filter-btn {
+    padding: 8px 16px;
+    background: var(--white);
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.date-filter-btn:hover {
+    background: var(--background-sage);
+    border-color: var(--sage);
+}
+
+.date-filter-btn.active {
+    background: var(--forest);
+    border-color: var(--forest);
+    color: white;
+}
+
+.date-filter-custom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.date-input {
+    padding: 8px 12px;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: var(--white);
+    color: var(--text);
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: var(--leaf);
+}
+
+.date-separator {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.btn-apply-dates {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+}
+
+.quiz-date-filter .btn-refresh {
+    margin-left: auto;
+}
+
+/* Overview Cards */
+.quiz-overview-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.overview-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 12px var(--shadow);
+    border: 1px solid var(--divider);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.overview-card:hover {
+    box-shadow: 0 4px 20px var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.overview-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.overview-card-icon.starts {
+    background: linear-gradient(135deg, #6B9080 0%, #4A7C59 100%);
+    color: white;
+}
+
+.overview-card-icon.emails {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: white;
+}
+
+.overview-card-icon.completions {
+    background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+    color: white;
+}
+
+.overview-card-icon.time {
+    background: linear-gradient(135deg, #F9C74F 0%, #F8961E 100%);
+    color: white;
+}
+
+.overview-card-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.overview-card-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+
+.overview-card-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.overview-card-rate {
+    font-size: 0.8rem;
+    color: var(--success);
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* Funnel Chart */
+.funnel-chart-container {
+    height: 300px;
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.funnel-legend {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--divider);
+}
+
+.funnel-legend-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.funnel-legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.funnel-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--background-sage);
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.funnel-legend-item.high {
+    background: #fee2e2;
+    border-left: 3px solid #E07A5F;
+}
+
+.funnel-legend-item.medium {
+    background: #fef3c7;
+    border-left: 3px solid #F8961E;
+}
+
+.legend-screen {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.legend-dropoff {
+    font-weight: 600;
+    color: var(--alert);
+}
+
+.funnel-legend-note {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Quiz Tables */
+.table-container {
+    overflow-x: auto;
+    margin: -4px;
+    padding: 4px;
+}
+
+.quiz-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.quiz-table th,
+.quiz-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--divider);
+}
+
+.quiz-table th {
+    background: var(--background-sage);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.quiz-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease;
+}
+
+.quiz-table th.sortable:hover {
+    background: var(--sage);
+}
+
+.quiz-table th.sorted {
+    background: var(--forest);
+    color: white;
+}
+
+.sort-arrow {
+    font-size: 0.7rem;
+    margin-left: 4px;
+}
+
+.quiz-table tbody tr:hover {
+    background: var(--background-cream);
+}
+
+.quiz-table td code {
+    background: var(--background-sage);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.loading-cell,
+.empty-cell {
+    text-align: center;
+    padding: 40px 20px !important;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Phase Badge */
+.phase-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+/* Drop-off highlighting */
+.dropoff-high {
+    background: #fee2e2;
+    color: #E07A5F;
+    font-weight: 600;
+}
+
+.dropoff-medium {
+    background: #fef3c7;
+    color: #92400e;
+    font-weight: 600;
+}
+
+/* Active Sessions */
+.active-sessions-count {
+    background: var(--success);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.active-sessions-count span {
+    font-size: 1.1rem;
+}
+
+.active-sessions-table td {
+    vertical-align: middle;
+}
+
+/* Email Indicator */
+.email-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.email-indicator.has-email {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.email-indicator.no-email {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Daily Trends Chart */
+.trends-chart-container {
+    height: 350px;
+    position: relative;
+}
+
+/* Answer Distribution */
+.answer-distribution-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.answer-chart-card {
+    background: var(--background-cream);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--divider);
+}
+
+.answer-chart-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+    margin-bottom: 16px;
+    font-weight: 400;
+}
+
+.answer-chart-container {
+    height: 200px;
+    position: relative;
+}
+
+.empty-state-small {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Quiz Analytics Responsive */
+@media (max-width: 768px) {
+    .quiz-date-filter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .date-filter-buttons {
+        flex-wrap: wrap;
+    }
+
+    .date-filter-custom {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .quiz-date-filter .btn-refresh {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .quiz-overview-cards {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .overview-card {
+        padding: 16px;
+    }
+
+    .overview-card-value {
+        font-size: 1.6rem;
+    }
+
+    .funnel-chart-container {
+        height: 250px;
+    }
+
+    .trends-chart-container {
+        height: 280px;
+    }
+
+    .answer-distribution-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .quiz-table {
+        font-size: 0.8rem;
+    }
+
+    .quiz-table th,
+    .quiz-table td {
+        padding: 10px 12px;
+    }
+
+    .phase-badge {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .quiz-overview-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .overview-card-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .overview-card-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .funnel-legend-items {
+        flex-direction: column;
+    }
+
+    .funnel-legend-item {
+        width: 100%;
+    }
+
+    .quiz-table th,
+    .quiz-table td {
+        padding: 8px 10px;
+    }
+}

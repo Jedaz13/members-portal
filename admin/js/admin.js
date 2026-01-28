@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Set default tab from URL or config
-    if (tabParam && ['support', 'qa', 'members', 'settings'].includes(tabParam)) {
+    if (tabParam && ['support', 'qa', 'quiz-analytics', 'members', 'settings'].includes(tabParam)) {
         ADMIN_CONFIG.defaultTab = tabParam;
     }
 
@@ -227,6 +227,8 @@ function switchTab(tabId) {
         loadSupportConversations();
     } else if (tabId === 'qa') {
         initializeQATab();
+    } else if (tabId === 'quiz-analytics') {
+        initializeQuizAnalytics();
     }
 
     // Update URL without reload
@@ -1207,4 +1209,940 @@ async function markQAQuestion(questionId, newStatus) {
         console.error('Update question error:', err);
         showToast('Failed to update question', 'error');
     }
+}
+
+// ============================================
+// Quiz Analytics Dashboard
+// ============================================
+
+// Quiz Analytics State
+let quizDateRange = 'today';
+let quizStartDate = null;
+let quizEndDate = null;
+let quizFunnelData = [];
+let quizDailyData = [];
+let quizActiveSessionsData = [];
+let quizActiveSessionsTimer = null;
+let quizTableSortColumn = 'screen_index';
+let quizTableSortDirection = 'asc';
+
+// Chart instances
+let funnelChart = null;
+let trendsChart = null;
+let primaryComplaintChart = null;
+let stressConnectionChart = null;
+let lifeImpactChart = null;
+
+// Screen reference data for Quiz-4
+const QUIZ_SCREENS = [
+    { index: 0, id: 'future_vision', name: 'Future Vision', phase: 'YOUR GOALS' },
+    { index: 1, id: 'timeline', name: 'Timeline', phase: 'YOUR GOALS' },
+    { index: 2, id: 'primary_complaint', name: 'Primary Complaint', phase: 'YOUR GOALS' },
+    { index: 3, id: 'duration', name: 'Duration', phase: 'YOUR GOALS' },
+    { index: 4, id: 'validation_duration', name: 'Duration Validation', phase: 'YOUR GOALS' },
+    { index: 5, id: 'bm_relief', name: 'BM Relief', phase: 'YOUR SYMPTOMS' },
+    { index: 6, id: 'flare_frequency', name: 'Flare Frequency', phase: 'YOUR SYMPTOMS' },
+    { index: 7, id: 'stool_changes', name: 'Stool Changes', phase: 'YOUR SYMPTOMS' },
+    { index: 8, id: 'progress_validation', name: 'Progress Validation', phase: 'YOUR SYMPTOMS' },
+    { index: 9, id: 'treatments_tried', name: 'Treatments Tried', phase: 'YOUR SYMPTOMS' },
+    { index: 10, id: 'diagnosis_history', name: 'Diagnosis History', phase: 'YOUR SYMPTOMS' },
+    { index: 11, id: 'name_capture', name: 'Name Capture', phase: 'YOUR SYMPTOMS' },
+    { index: 12, id: 'why_different', name: 'Why Different', phase: 'WHY THIS WORKS' },
+    { index: 13, id: 'testimonial', name: 'Testimonial', phase: 'WHY THIS WORKS' },
+    { index: 14, id: 'knowledge_intro', name: 'Knowledge Intro', phase: 'QUICK GUT CHECK' },
+    { index: 15, id: 'knowledge_eating_speed', name: 'Eating Speed', phase: 'QUICK GUT CHECK' },
+    { index: 16, id: 'knowledge_eating_response', name: 'Eating Response', phase: 'QUICK GUT CHECK' },
+    { index: 17, id: 'knowledge_fodmap', name: 'FODMAP', phase: 'QUICK GUT CHECK' },
+    { index: 18, id: 'knowledge_fodmap_response', name: 'FODMAP Response', phase: 'QUICK GUT CHECK' },
+    { index: 19, id: 'stress_connection', name: 'Stress Connection', phase: 'YOUR PROFILE' },
+    { index: 20, id: 'stress_validation', name: 'Stress Validation', phase: 'YOUR PROFILE' },
+    { index: 21, id: 'safety_blood', name: 'Safety Blood', phase: 'FINAL QUESTIONS' },
+    { index: 22, id: 'safety_weight', name: 'Safety Weight', phase: 'FINAL QUESTIONS' },
+    { index: 23, id: 'life_impact', name: 'Life Impact', phase: 'YOUR RESULTS' },
+    { index: 24, id: 'email_capture', name: 'Email Capture', phase: 'YOUR RESULTS' },
+    { index: 25, id: 'vision_optional', name: 'Vision Optional', phase: 'YOUR RESULTS' },
+    { index: 26, id: 'loading_sequence', name: 'Loading Sequence', phase: 'YOUR RESULTS' },
+    { index: 27, id: 'results_page', name: 'Results Page', phase: 'YOUR RESULTS' }
+];
+
+// Phase colors for charts
+const PHASE_COLORS = {
+    'YOUR GOALS': '#6B9080',
+    'YOUR SYMPTOMS': '#A4C3B2',
+    'WHY THIS WORKS': '#CCE3DE',
+    'QUICK GUT CHECK': '#F9C74F',
+    'YOUR PROFILE': '#F8961E',
+    'FINAL QUESTIONS': '#F3722C',
+    'YOUR RESULTS': '#90BE6D'
+};
+
+// ============================================
+// Quiz Analytics Initialization
+// ============================================
+async function initializeQuizAnalytics() {
+    setupQuizAnalyticsEventListeners();
+    await loadAllQuizData();
+    startActiveSessionsRefresh();
+}
+
+function setupQuizAnalyticsEventListeners() {
+    // Date range buttons
+    document.querySelectorAll('.date-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.date-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const range = btn.dataset.range;
+            if (range === 'custom') {
+                document.getElementById('custom-date-range').style.display = 'flex';
+            } else {
+                document.getElementById('custom-date-range').style.display = 'none';
+                quizDateRange = range;
+                loadAllQuizData();
+            }
+        });
+    });
+
+    // Custom date apply button
+    const applyDatesBtn = document.getElementById('btn-apply-dates');
+    if (applyDatesBtn) {
+        applyDatesBtn.addEventListener('click', () => {
+            quizStartDate = document.getElementById('quiz-start-date').value;
+            quizEndDate = document.getElementById('quiz-end-date').value;
+            if (quizStartDate && quizEndDate) {
+                quizDateRange = 'custom';
+                loadAllQuizData();
+            } else {
+                showToast('Please select both start and end dates', 'warning');
+            }
+        });
+    }
+
+    // Refresh button
+    const refreshBtn = document.getElementById('btn-quiz-refresh');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => loadAllQuizData());
+    }
+
+    // Table sorting
+    document.querySelectorAll('#screen-table th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+            const column = th.dataset.sort;
+            if (quizTableSortColumn === column) {
+                quizTableSortDirection = quizTableSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                quizTableSortColumn = column;
+                quizTableSortDirection = 'asc';
+            }
+            renderScreenTable();
+        });
+    });
+}
+
+// ============================================
+// Date Range Helpers
+// ============================================
+function getDateRange() {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+
+    switch (quizDateRange) {
+        case 'today':
+            return { start: today, end: today };
+        case '7d':
+            const sevenDaysAgo = new Date(now);
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+            return { start: sevenDaysAgo.toISOString().split('T')[0], end: today };
+        case '30d':
+            const thirtyDaysAgo = new Date(now);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+            return { start: thirtyDaysAgo.toISOString().split('T')[0], end: today };
+        case 'custom':
+            return { start: quizStartDate, end: quizEndDate };
+        default:
+            return { start: today, end: today };
+    }
+}
+
+// ============================================
+// Data Loading Functions
+// ============================================
+async function loadAllQuizData() {
+    const refreshBtn = document.getElementById('btn-quiz-refresh');
+    if (refreshBtn) {
+        refreshBtn.classList.add('loading');
+        refreshBtn.disabled = true;
+    }
+
+    try {
+        await Promise.all([
+            loadQuizOverviewStats(),
+            loadQuizFunnelData(),
+            loadQuizDailyStats(),
+            loadQuizActiveSessions(),
+            loadAnswerDistributions()
+        ]);
+    } catch (err) {
+        console.error('Error loading quiz data:', err);
+        showToast('Failed to load some quiz data', 'error');
+    } finally {
+        if (refreshBtn) {
+            refreshBtn.classList.remove('loading');
+            refreshBtn.disabled = false;
+        }
+    }
+}
+
+async function loadQuizOverviewStats() {
+    const { start, end } = getDateRange();
+    const startDate = `${start}T00:00:00.000Z`;
+    const endDate = `${end}T23:59:59.999Z`;
+
+    try {
+        // Get quiz starts
+        const { data: startsData, error: startsError } = await supabaseClient
+            .from('quiz_events')
+            .select('session_id', { count: 'exact', head: true })
+            .eq('quiz_source', 'quiz-4')
+            .eq('event_type', 'quiz_start')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate);
+
+        // Get email captures
+        const { data: emailsData, count: emailCount, error: emailsError } = await supabaseClient
+            .from('quiz_events')
+            .select('session_id', { count: 'exact', head: true })
+            .eq('quiz_source', 'quiz-4')
+            .eq('event_type', 'email_capture')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate);
+
+        // Get completions
+        const { data: completionsData, count: completionCount, error: completionsError } = await supabaseClient
+            .from('quiz_events')
+            .select('session_id', { count: 'exact', head: true })
+            .eq('quiz_source', 'quiz-4')
+            .eq('event_type', 'quiz_complete')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate);
+
+        // Get unique sessions for starts count
+        const { data: uniqueStarts, error: uniqueStartsError } = await supabaseClient
+            .from('quiz_events')
+            .select('session_id')
+            .eq('quiz_source', 'quiz-4')
+            .eq('event_type', 'quiz_start')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate);
+
+        const totalStarts = uniqueStarts ? uniqueStarts.length : 0;
+        const emailCaptures = emailCount || 0;
+        const completions = completionCount || 0;
+
+        // Calculate rates
+        const emailRate = totalStarts > 0 ? ((emailCaptures / totalStarts) * 100).toFixed(1) : 0;
+        const completionRate = totalStarts > 0 ? ((completions / totalStarts) * 100).toFixed(1) : 0;
+
+        // Get average completion time
+        const { data: completionTimes, error: timesError } = await supabaseClient
+            .from('quiz_events')
+            .select('time_since_start_seconds')
+            .eq('quiz_source', 'quiz-4')
+            .eq('event_type', 'quiz_complete')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate)
+            .not('time_since_start_seconds', 'is', null);
+
+        let avgTime = '--';
+        if (completionTimes && completionTimes.length > 0) {
+            const totalTime = completionTimes.reduce((sum, e) => sum + (e.time_since_start_seconds || 0), 0);
+            const avgSeconds = totalTime / completionTimes.length;
+            avgTime = formatDuration(avgSeconds);
+        }
+
+        // Update UI
+        document.getElementById('stat-total-starts').textContent = totalStarts.toLocaleString();
+        document.getElementById('stat-email-captures').textContent = emailCaptures.toLocaleString();
+        document.getElementById('stat-email-rate').textContent = `${emailRate}% rate`;
+        document.getElementById('stat-completions').textContent = completions.toLocaleString();
+        document.getElementById('stat-completion-rate').textContent = `${completionRate}% rate`;
+        document.getElementById('stat-avg-time').textContent = avgTime;
+
+    } catch (err) {
+        console.error('Error loading overview stats:', err);
+    }
+}
+
+async function loadQuizFunnelData() {
+    const { start, end } = getDateRange();
+    const startDate = `${start}T00:00:00.000Z`;
+    const endDate = `${end}T23:59:59.999Z`;
+
+    try {
+        // Try to use the pre-built view first
+        let { data: funnelData, error } = await supabaseClient
+            .from('quiz_dropoff_analysis')
+            .select('*')
+            .eq('quiz_source', 'quiz-4')
+            .order('screen_index');
+
+        // If view doesn't exist or errors, calculate from raw events
+        if (error || !funnelData || funnelData.length === 0) {
+            console.log('Calculating funnel from raw events...');
+            funnelData = await calculateFunnelFromEvents(startDate, endDate);
+        }
+
+        quizFunnelData = funnelData || [];
+        renderFunnelChart();
+        renderScreenTable();
+
+    } catch (err) {
+        console.error('Error loading funnel data:', err);
+        quizFunnelData = [];
+        renderFunnelChart();
+        renderScreenTable();
+    }
+}
+
+async function calculateFunnelFromEvents(startDate, endDate) {
+    // Get all screen_view events grouped by screen
+    const { data: screenViews, error } = await supabaseClient
+        .from('quiz_events')
+        .select('screen_index, screen_id, screen_name, phase_name, session_id, time_on_screen_seconds')
+        .eq('quiz_source', 'quiz-4')
+        .eq('event_type', 'screen_view')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate);
+
+    if (error || !screenViews) {
+        console.error('Error fetching screen views:', error);
+        return [];
+    }
+
+    // Get total starts for percentage calculation
+    const { data: starts } = await supabaseClient
+        .from('quiz_events')
+        .select('session_id')
+        .eq('quiz_source', 'quiz-4')
+        .eq('event_type', 'quiz_start')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate);
+
+    const totalStarts = starts ? new Set(starts.map(s => s.session_id)).size : 0;
+
+    // Group by screen
+    const screenStats = {};
+    screenViews.forEach(event => {
+        const key = event.screen_index;
+        if (!screenStats[key]) {
+            screenStats[key] = {
+                screen_index: event.screen_index,
+                screen_id: event.screen_id,
+                screen_name: event.screen_name,
+                phase_name: event.phase_name,
+                sessions: new Set(),
+                totalTime: 0,
+                timeCount: 0
+            };
+        }
+        screenStats[key].sessions.add(event.session_id);
+        if (event.time_on_screen_seconds) {
+            screenStats[key].totalTime += event.time_on_screen_seconds;
+            screenStats[key].timeCount++;
+        }
+    });
+
+    // Convert to array and calculate metrics
+    const result = [];
+    let prevSessions = totalStarts;
+
+    QUIZ_SCREENS.forEach(screen => {
+        const stats = screenStats[screen.index];
+        const sessionsReached = stats ? stats.sessions.size : 0;
+        const pctOfStarts = totalStarts > 0 ? (sessionsReached / totalStarts * 100) : 0;
+        const dropoff = prevSessions > 0 ? ((prevSessions - sessionsReached) / prevSessions * 100) : 0;
+        const avgTime = stats && stats.timeCount > 0 ? stats.totalTime / stats.timeCount : 0;
+
+        result.push({
+            screen_index: screen.index,
+            screen_id: stats?.screen_id || screen.id,
+            screen_name: stats?.screen_name || screen.name,
+            phase_name: stats?.phase_name || screen.phase,
+            sessions_reached: sessionsReached,
+            pct_of_starts: pctOfStarts,
+            dropoff_pct: screen.index === 0 ? 0 : dropoff,
+            avg_time: avgTime
+        });
+
+        prevSessions = sessionsReached;
+    });
+
+    return result;
+}
+
+async function loadQuizDailyStats() {
+    const { start, end } = getDateRange();
+
+    try {
+        // Try to use the pre-built view
+        let { data: dailyData, error } = await supabaseClient
+            .from('quiz_daily_stats')
+            .select('*')
+            .eq('quiz_source', 'quiz-4')
+            .gte('date', start)
+            .lte('date', end)
+            .order('date', { ascending: true });
+
+        // If view doesn't exist, calculate from raw events
+        if (error || !dailyData || dailyData.length === 0) {
+            console.log('Calculating daily stats from raw events...');
+            dailyData = await calculateDailyStatsFromEvents(start, end);
+        }
+
+        quizDailyData = dailyData || [];
+        renderTrendsChart();
+
+    } catch (err) {
+        console.error('Error loading daily stats:', err);
+        quizDailyData = [];
+        renderTrendsChart();
+    }
+}
+
+async function calculateDailyStatsFromEvents(start, end) {
+    const startDate = `${start}T00:00:00.000Z`;
+    const endDate = `${end}T23:59:59.999Z`;
+
+    const { data: events, error } = await supabaseClient
+        .from('quiz_events')
+        .select('event_type, session_id, created_at')
+        .eq('quiz_source', 'quiz-4')
+        .in('event_type', ['quiz_start', 'email_capture', 'quiz_complete'])
+        .gte('created_at', startDate)
+        .lte('created_at', endDate);
+
+    if (error || !events) return [];
+
+    // Group by date
+    const dailyStats = {};
+    events.forEach(event => {
+        const date = event.created_at.split('T')[0];
+        if (!dailyStats[date]) {
+            dailyStats[date] = {
+                date,
+                starts: new Set(),
+                emails: new Set(),
+                completions: new Set()
+            };
+        }
+
+        if (event.event_type === 'quiz_start') {
+            dailyStats[date].starts.add(event.session_id);
+        } else if (event.event_type === 'email_capture') {
+            dailyStats[date].emails.add(event.session_id);
+        } else if (event.event_type === 'quiz_complete') {
+            dailyStats[date].completions.add(event.session_id);
+        }
+    });
+
+    return Object.values(dailyStats).map(d => ({
+        date: d.date,
+        quiz_starts: d.starts.size,
+        email_captures: d.emails.size,
+        completions: d.completions.size
+    })).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+async function loadQuizActiveSessions() {
+    try {
+        // Try to use the pre-built view
+        let { data: activeSessions, error } = await supabaseClient
+            .from('quiz_active_sessions')
+            .select('*')
+            .eq('quiz_source', 'quiz-4')
+            .order('last_activity', { ascending: false });
+
+        // If view doesn't exist, calculate manually
+        if (error || !activeSessions) {
+            console.log('Calculating active sessions from raw events...');
+            activeSessions = await calculateActiveSessionsFromEvents();
+        }
+
+        quizActiveSessionsData = activeSessions || [];
+        renderActiveSessions();
+
+    } catch (err) {
+        console.error('Error loading active sessions:', err);
+        quizActiveSessionsData = [];
+        renderActiveSessions();
+    }
+}
+
+async function calculateActiveSessionsFromEvents() {
+    const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+
+    const { data: recentEvents, error } = await supabaseClient
+        .from('quiz_events')
+        .select('session_id, screen_index, screen_id, screen_name, phase_name, user_email, created_at')
+        .eq('quiz_source', 'quiz-4')
+        .gte('created_at', thirtyMinsAgo)
+        .order('created_at', { ascending: false });
+
+    if (error || !recentEvents) return [];
+
+    // Group by session and get latest event
+    const sessions = {};
+    recentEvents.forEach(event => {
+        if (!sessions[event.session_id]) {
+            sessions[event.session_id] = {
+                session_id: event.session_id,
+                current_screen_index: event.screen_index,
+                current_screen_id: event.screen_id,
+                current_screen_name: event.screen_name,
+                current_phase: event.phase_name,
+                has_email: !!event.user_email,
+                last_activity: event.created_at,
+                started_at: event.created_at
+            };
+        } else {
+            // Update started_at with earliest event
+            if (event.created_at < sessions[event.session_id].started_at) {
+                sessions[event.session_id].started_at = event.created_at;
+            }
+            // Check for email
+            if (event.user_email) {
+                sessions[event.session_id].has_email = true;
+            }
+        }
+    });
+
+    return Object.values(sessions);
+}
+
+async function loadAnswerDistributions() {
+    const { start, end } = getDateRange();
+    const startDate = `${start}T00:00:00.000Z`;
+    const endDate = `${end}T23:59:59.999Z`;
+
+    try {
+        // Load primary_complaint distribution
+        const { data: primaryData } = await supabaseClient
+            .from('quiz_events')
+            .select('answer_value, answer_text')
+            .eq('quiz_source', 'quiz-4')
+            .eq('event_type', 'answer')
+            .eq('screen_id', 'primary_complaint')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate);
+
+        // Load stress_connection distribution
+        const { data: stressData } = await supabaseClient
+            .from('quiz_events')
+            .select('answer_value, answer_text')
+            .eq('quiz_source', 'quiz-4')
+            .eq('event_type', 'answer')
+            .eq('screen_id', 'stress_connection')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate);
+
+        // Load life_impact distribution
+        const { data: impactData } = await supabaseClient
+            .from('quiz_events')
+            .select('answer_value, answer_text')
+            .eq('quiz_source', 'quiz-4')
+            .eq('event_type', 'answer')
+            .eq('screen_id', 'life_impact')
+            .gte('created_at', startDate)
+            .lte('created_at', endDate);
+
+        renderAnswerChart('chart-primary-complaint', primaryData || [], 'primaryComplaintChart');
+        renderAnswerChart('chart-stress-connection', stressData || [], 'stressConnectionChart');
+        renderAnswerChart('chart-life-impact', impactData || [], 'lifeImpactChart');
+
+    } catch (err) {
+        console.error('Error loading answer distributions:', err);
+    }
+}
+
+// ============================================
+// Rendering Functions
+// ============================================
+function renderFunnelChart() {
+    const ctx = document.getElementById('funnel-chart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (funnelChart) {
+        funnelChart.destroy();
+    }
+
+    if (quizFunnelData.length === 0) {
+        ctx.parentElement.innerHTML = '<div class="empty-state"><p>No funnel data available for the selected date range.</p></div>';
+        return;
+    }
+
+    // Prepare data
+    const labels = quizFunnelData.map(d => `${d.screen_index}`);
+    const sessionsData = quizFunnelData.map(d => d.sessions_reached);
+    const dropoffData = quizFunnelData.map(d => d.dropoff_pct || 0);
+    const backgroundColors = quizFunnelData.map(d => {
+        // Highlight high drop-off points in red
+        if (d.dropoff_pct > 20) return '#E07A5F';
+        if (d.dropoff_pct > 10) return '#F8961E';
+        return PHASE_COLORS[d.phase_name] || '#6B9080';
+    });
+
+    funnelChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Sessions Reached',
+                data: sessionsData,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors.map(c => c),
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title: (items) => {
+                            const idx = items[0].dataIndex;
+                            const screen = quizFunnelData[idx];
+                            return `Screen ${screen.screen_index}: ${screen.screen_name}`;
+                        },
+                        label: (item) => {
+                            const idx = item.dataIndex;
+                            const screen = quizFunnelData[idx];
+                            return [
+                                `Sessions: ${screen.sessions_reached}`,
+                                `% of Starts: ${screen.pct_of_starts?.toFixed(1)}%`,
+                                `Drop-off: ${screen.dropoff_pct?.toFixed(1)}%`,
+                                `Phase: ${screen.phase_name}`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Screen Index'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Sessions'
+                    }
+                }
+            }
+        }
+    });
+
+    // Render legend with highest drop-off points
+    renderFunnelLegend();
+}
+
+function renderFunnelLegend() {
+    const legendEl = document.getElementById('funnel-legend');
+    if (!legendEl) return;
+
+    // Find top 3 drop-off points
+    const sortedByDropoff = [...quizFunnelData]
+        .filter(d => d.screen_index > 0)
+        .sort((a, b) => (b.dropoff_pct || 0) - (a.dropoff_pct || 0))
+        .slice(0, 3);
+
+    if (sortedByDropoff.length === 0) {
+        legendEl.innerHTML = '<p class="funnel-legend-note">No significant drop-off points detected.</p>';
+        return;
+    }
+
+    legendEl.innerHTML = `
+        <div class="funnel-legend-title">Highest Drop-off Points:</div>
+        <div class="funnel-legend-items">
+            ${sortedByDropoff.map(d => `
+                <div class="funnel-legend-item ${d.dropoff_pct > 20 ? 'high' : d.dropoff_pct > 10 ? 'medium' : ''}">
+                    <span class="legend-screen">Screen ${d.screen_index}: ${d.screen_name}</span>
+                    <span class="legend-dropoff">${d.dropoff_pct?.toFixed(1)}% drop-off</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function renderScreenTable() {
+    const tbody = document.getElementById('screen-table-body');
+    if (!tbody) return;
+
+    if (quizFunnelData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">No data available for the selected date range.</td></tr>';
+        return;
+    }
+
+    // Sort data
+    const sortedData = [...quizFunnelData].sort((a, b) => {
+        let aVal = a[quizTableSortColumn];
+        let bVal = b[quizTableSortColumn];
+
+        // Handle null/undefined
+        if (aVal == null) aVal = '';
+        if (bVal == null) bVal = '';
+
+        // Handle numeric vs string
+        if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return quizTableSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+
+        return quizTableSortDirection === 'asc'
+            ? String(aVal).localeCompare(String(bVal))
+            : String(bVal).localeCompare(String(aVal));
+    });
+
+    // Update sort arrows
+    document.querySelectorAll('#screen-table th.sortable').forEach(th => {
+        const arrow = th.querySelector('.sort-arrow');
+        if (th.dataset.sort === quizTableSortColumn) {
+            arrow.textContent = quizTableSortDirection === 'asc' ? ' ▲' : ' ▼';
+            th.classList.add('sorted');
+        } else {
+            arrow.textContent = '';
+            th.classList.remove('sorted');
+        }
+    });
+
+    tbody.innerHTML = sortedData.map(row => {
+        const dropoffClass = row.dropoff_pct > 20 ? 'dropoff-high' : row.dropoff_pct > 10 ? 'dropoff-medium' : '';
+        return `
+            <tr>
+                <td>${row.screen_index}</td>
+                <td><code>${escapeHtml(row.screen_id || '')}</code></td>
+                <td>${escapeHtml(row.screen_name || '')}</td>
+                <td><span class="phase-badge" style="background-color: ${PHASE_COLORS[row.phase_name] || '#ccc'}">${escapeHtml(row.phase_name || '')}</span></td>
+                <td>${row.sessions_reached?.toLocaleString() || 0}</td>
+                <td>${row.pct_of_starts?.toFixed(1) || 0}%</td>
+                <td class="${dropoffClass}">${row.dropoff_pct?.toFixed(1) || 0}%</td>
+                <td>${formatDuration(row.avg_time || 0)}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderActiveSessions() {
+    const tbody = document.getElementById('active-sessions-body');
+    const countEl = document.getElementById('active-count');
+
+    if (!tbody) return;
+
+    const count = quizActiveSessionsData.length;
+    if (countEl) countEl.textContent = count;
+
+    if (count === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">No active sessions in the last 30 minutes.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = quizActiveSessionsData.map(session => {
+        const timeInQuiz = session.started_at
+            ? formatDuration((Date.now() - new Date(session.started_at).getTime()) / 1000)
+            : '--';
+
+        return `
+            <tr>
+                <td><code>${escapeHtml(session.session_id?.substring(0, 8) || '')}...</code></td>
+                <td>${escapeHtml(session.current_screen_name || `Screen ${session.current_screen_index}`)}</td>
+                <td><span class="phase-badge" style="background-color: ${PHASE_COLORS[session.current_phase] || '#ccc'}">${escapeHtml(session.current_phase || '')}</span></td>
+                <td>${timeInQuiz}</td>
+                <td>
+                    <span class="email-indicator ${session.has_email ? 'has-email' : 'no-email'}">
+                        ${session.has_email ? '✓' : '✗'}
+                    </span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderTrendsChart() {
+    const ctx = document.getElementById('trends-chart');
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (trendsChart) {
+        trendsChart.destroy();
+    }
+
+    if (quizDailyData.length === 0) {
+        ctx.parentElement.innerHTML = '<div class="empty-state"><p>No trend data available for the selected date range.</p></div>';
+        return;
+    }
+
+    const labels = quizDailyData.map(d => {
+        const date = new Date(d.date + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+
+    trendsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Quiz Starts',
+                    data: quizDailyData.map(d => d.quiz_starts || 0),
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Email Captures',
+                    data: quizDailyData.map(d => d.email_captures || 0),
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                },
+                {
+                    label: 'Completions',
+                    data: quizDailyData.map(d => d.completions || 0),
+                    borderColor: '#8B5CF6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
+            }
+        }
+    });
+}
+
+function renderAnswerChart(canvasId, data, chartVarName) {
+    const ctx = document.getElementById(canvasId);
+    if (!ctx) return;
+
+    // Destroy existing chart
+    if (window[chartVarName]) {
+        window[chartVarName].destroy();
+    }
+
+    if (!data || data.length === 0) {
+        ctx.parentElement.innerHTML = '<div class="empty-state-small"><p>No data</p></div>';
+        return;
+    }
+
+    // Aggregate answers
+    const answerCounts = {};
+    data.forEach(d => {
+        const key = d.answer_text || d.answer_value || 'Unknown';
+        answerCounts[key] = (answerCounts[key] || 0) + 1;
+    });
+
+    const labels = Object.keys(answerCounts);
+    const values = Object.values(answerCounts);
+    const colors = [
+        '#6B9080', '#A4C3B2', '#CCE3DE', '#F9C74F', '#F8961E',
+        '#F3722C', '#90BE6D', '#43AA8B', '#577590', '#277DA1'
+    ];
+
+    window[chartVarName] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, labels.length),
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        boxWidth: 12,
+                        font: { size: 11 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (item) => {
+                            const total = values.reduce((a, b) => a + b, 0);
+                            const pct = ((item.raw / total) * 100).toFixed(1);
+                            return `${item.label}: ${item.raw} (${pct}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ============================================
+// Active Sessions Auto-Refresh
+// ============================================
+function startActiveSessionsRefresh() {
+    if (quizActiveSessionsTimer) {
+        clearInterval(quizActiveSessionsTimer);
+    }
+
+    quizActiveSessionsTimer = setInterval(() => {
+        // Only refresh if we're on the quiz analytics tab
+        const quizPanel = document.getElementById('quiz-analytics-panel');
+        if (quizPanel && quizPanel.classList.contains('active')) {
+            loadQuizActiveSessions();
+        }
+    }, 30000); // 30 seconds
+}
+
+function stopActiveSessionsRefresh() {
+    if (quizActiveSessionsTimer) {
+        clearInterval(quizActiveSessionsTimer);
+        quizActiveSessionsTimer = null;
+    }
+}
+
+// ============================================
+// Utility Functions for Quiz Analytics
+// ============================================
+function formatDuration(seconds) {
+    if (!seconds || seconds < 0) return '0s';
+
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (mins === 0) return `${secs}s`;
+    if (secs === 0) return `${mins}m`;
+    return `${mins}m ${secs}s`;
 }

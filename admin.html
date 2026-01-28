@@ -64,6 +64,9 @@
             <button class="tab-btn" data-tab="qa">
                 Live Q&A Questions
             </button>
+            <button class="tab-btn" data-tab="quiz-analytics">
+                Quiz Analytics
+            </button>
             <button class="tab-btn" data-tab="members" disabled>
                 Members
                 <span class="coming-soon">Soon</span>
@@ -253,6 +256,192 @@
                 </div>
             </div>
 
+            <!-- Quiz Analytics Panel -->
+            <div id="quiz-analytics-panel" class="tab-panel">
+                <!-- Date Range Filter -->
+                <div class="panel-card quiz-date-filter-card">
+                    <div class="quiz-date-filter">
+                        <div class="date-filter-buttons">
+                            <button class="date-filter-btn active" data-range="today">Today</button>
+                            <button class="date-filter-btn" data-range="7d">Last 7 Days</button>
+                            <button class="date-filter-btn" data-range="30d">Last 30 Days</button>
+                            <button class="date-filter-btn" data-range="custom">Custom</button>
+                        </div>
+                        <div class="date-filter-custom" id="custom-date-range" style="display: none;">
+                            <input type="date" id="quiz-start-date" class="date-input">
+                            <span class="date-separator">to</span>
+                            <input type="date" id="quiz-end-date" class="date-input">
+                            <button class="btn-primary btn-apply-dates" id="btn-apply-dates">Apply</button>
+                        </div>
+                        <button id="btn-quiz-refresh" class="btn-refresh">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 4v6h-6"></path>
+                                <path d="M1 20v-6h6"></path>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                                <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                            </svg>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Overview Cards -->
+                <div class="quiz-overview-cards">
+                    <div class="overview-card">
+                        <div class="overview-card-icon starts">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                            </svg>
+                        </div>
+                        <div class="overview-card-content">
+                            <div class="overview-card-value" id="stat-total-starts">--</div>
+                            <div class="overview-card-label">Quiz Starts</div>
+                        </div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="overview-card-icon emails">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                        </div>
+                        <div class="overview-card-content">
+                            <div class="overview-card-value" id="stat-email-captures">--</div>
+                            <div class="overview-card-label">Email Captures</div>
+                            <div class="overview-card-rate" id="stat-email-rate">-- rate</div>
+                        </div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="overview-card-icon completions">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                        </div>
+                        <div class="overview-card-content">
+                            <div class="overview-card-value" id="stat-completions">--</div>
+                            <div class="overview-card-label">Completions</div>
+                            <div class="overview-card-rate" id="stat-completion-rate">-- rate</div>
+                        </div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="overview-card-icon time">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </div>
+                        <div class="overview-card-content">
+                            <div class="overview-card-value" id="stat-avg-time">--</div>
+                            <div class="overview-card-label">Avg. Completion Time</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Funnel Visualization -->
+                <div class="panel-card">
+                    <h2 class="panel-title">Quiz Funnel</h2>
+                    <p class="panel-intro">Visual progression through quiz screens showing drop-off points.</p>
+                    <div class="funnel-chart-container">
+                        <canvas id="funnel-chart"></canvas>
+                    </div>
+                    <div id="funnel-legend" class="funnel-legend"></div>
+                </div>
+
+                <!-- Screen-by-Screen Table -->
+                <div class="panel-card">
+                    <h2 class="panel-title">Screen-by-Screen Analysis</h2>
+                    <p class="panel-intro">Detailed metrics for each quiz screen. Click column headers to sort.</p>
+                    <div class="table-container">
+                        <table class="quiz-table" id="screen-table">
+                            <thead>
+                                <tr>
+                                    <th data-sort="screen_index" class="sortable"># <span class="sort-arrow"></span></th>
+                                    <th data-sort="screen_id" class="sortable">Screen ID <span class="sort-arrow"></span></th>
+                                    <th data-sort="screen_name" class="sortable">Screen Name <span class="sort-arrow"></span></th>
+                                    <th data-sort="phase_name" class="sortable">Phase <span class="sort-arrow"></span></th>
+                                    <th data-sort="sessions_reached" class="sortable">Sessions <span class="sort-arrow"></span></th>
+                                    <th data-sort="pct_of_starts" class="sortable">% of Starts <span class="sort-arrow"></span></th>
+                                    <th data-sort="dropoff_pct" class="sortable">Drop-off % <span class="sort-arrow"></span></th>
+                                    <th data-sort="avg_time" class="sortable">Avg Time <span class="sort-arrow"></span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="screen-table-body">
+                                <tr>
+                                    <td colspan="8" class="loading-cell">Loading data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Real-Time Active Sessions -->
+                <div class="panel-card">
+                    <div class="panel-header-row">
+                        <div>
+                            <h2 class="panel-title">Active Sessions</h2>
+                            <p class="panel-intro">Users currently taking the quiz (last 30 minutes). Auto-refreshes every 30 seconds.</p>
+                        </div>
+                        <div class="active-sessions-count">
+                            <span id="active-count">0</span> active
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="quiz-table active-sessions-table" id="active-sessions-table">
+                            <thead>
+                                <tr>
+                                    <th>Session ID</th>
+                                    <th>Current Screen</th>
+                                    <th>Phase</th>
+                                    <th>Time in Quiz</th>
+                                    <th>Has Email?</th>
+                                </tr>
+                            </thead>
+                            <tbody id="active-sessions-body">
+                                <tr>
+                                    <td colspan="5" class="loading-cell">Loading active sessions...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Daily Trends Chart -->
+                <div class="panel-card">
+                    <h2 class="panel-title">Daily Trends</h2>
+                    <p class="panel-intro">Quiz activity over time showing starts, email captures, and completions.</p>
+                    <div class="trends-chart-container">
+                        <canvas id="trends-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Answer Distribution -->
+                <div class="panel-card">
+                    <h2 class="panel-title">Answer Distribution</h2>
+                    <p class="panel-intro">Breakdown of answers for key quiz questions.</p>
+                    <div class="answer-distribution-grid">
+                        <div class="answer-chart-card">
+                            <h3 class="answer-chart-title">Primary Complaint</h3>
+                            <div class="answer-chart-container">
+                                <canvas id="chart-primary-complaint"></canvas>
+                            </div>
+                        </div>
+                        <div class="answer-chart-card">
+                            <h3 class="answer-chart-title">Stress Connection</h3>
+                            <div class="answer-chart-container">
+                                <canvas id="chart-stress-connection"></canvas>
+                            </div>
+                        </div>
+                        <div class="answer-chart-card">
+                            <h3 class="answer-chart-title">Life Impact</h3>
+                            <div class="answer-chart-container">
+                                <canvas id="chart-life-impact"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Members Panel (Coming Soon) -->
             <div id="members-panel" class="tab-panel">
                 <div class="panel-card">
@@ -280,6 +469,9 @@
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Chart.js for Quiz Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <!-- Admin Console Script -->
     <script src="/admin/js/admin.js"></script>
