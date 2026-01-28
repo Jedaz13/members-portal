@@ -1751,6 +1751,12 @@ a:hover {
 }
 
 /* Active Sessions */
+.active-sessions-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
 .active-sessions-count {
     background: var(--success);
     color: white;

@@ -380,10 +380,16 @@
                     <div class="panel-header-row">
                         <div>
                             <h2 class="panel-title">Active Sessions</h2>
-                            <p class="panel-intro">Users currently taking the quiz (last 30 minutes). Auto-refreshes every 30 seconds.</p>
+                            <p class="panel-intro">Users currently taking the quiz (last 30 minutes).</p>
                         </div>
-                        <div class="active-sessions-count">
-                            <span id="active-count">0</span> active
+                        <div class="active-sessions-controls">
+                            <label class="auto-refresh-toggle">
+                                <input type="checkbox" id="quiz-auto-refresh">
+                                Auto-refresh (60s)
+                            </label>
+                            <div class="active-sessions-count">
+                                <span id="active-count">0</span> active
+                            </div>
                         </div>
                     </div>
                     <div class="table-container">

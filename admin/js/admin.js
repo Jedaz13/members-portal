@@ -1337,6 +1337,14 @@ function setupQuizAnalyticsEventListeners() {
             renderScreenTable();
         });
     });
+
+    // Auto-refresh toggle for active sessions
+    const quizAutoRefreshToggle = document.getElementById('quiz-auto-refresh');
+    if (quizAutoRefreshToggle) {
+        quizAutoRefreshToggle.addEventListener('change', (e) => {
+            toggleQuizAutoRefresh(e.target.checked);
+        });
+    }
 }
 
 // ============================================
@@ -1505,14 +1513,15 @@ async function loadQuizFunnelData() {
 }
 
 async function calculateFunnelFromEvents(startDate, endDate) {
-    // Get all screen_view events grouped by screen
+    // Get screen_view events - limit to 10000 rows to prevent excessive reads
     const { data: screenViews, error } = await supabaseClient
         .from('quiz_events')
         .select('screen_index, screen_id, screen_name, phase_name, session_id, time_on_screen_seconds')
         .eq('quiz_source', 'quiz-4')
         .eq('event_type', 'screen_view')
         .gte('created_at', startDate)
-        .lte('created_at', endDate);
+        .lte('created_at', endDate)
+        .limit(10000);
 
     if (error || !screenViews) {
         console.error('Error fetching screen views:', error);
@@ -1613,13 +1622,15 @@ async function calculateDailyStatsFromEvents(start, end) {
     const startDate = `${start}T00:00:00.000Z`;
     const endDate = `${end}T23:59:59.999Z`;
 
+    // Limit to 5000 events to prevent excessive reads
     const { data: events, error } = await supabaseClient
         .from('quiz_events')
         .select('event_type, session_id, created_at')
         .eq('quiz_source', 'quiz-4')
         .in('event_type', ['quiz_start', 'email_capture', 'quiz_complete'])
         .gte('created_at', startDate)
-        .lte('created_at', endDate);
+        .lte('created_at', endDate)
+        .limit(5000);
 
     if (error || !events) return [];
 
@@ -2112,18 +2123,33 @@ function renderAnswerChart(canvasId, data, chartVarName) {
 // ============================================
 // Active Sessions Auto-Refresh
 // ============================================
+let quizAutoRefreshEnabled = false;
+
 function startActiveSessionsRefresh() {
+    // Don't auto-start - require user opt-in to save on queries
+    // User can enable via the checkbox if they want real-time updates
+}
+
+function toggleQuizAutoRefresh(enabled) {
+    quizAutoRefreshEnabled = enabled;
+
     if (quizActiveSessionsTimer) {
         clearInterval(quizActiveSessionsTimer);
+        quizActiveSessionsTimer = null;
     }
 
-    quizActiveSessionsTimer = setInterval(() => {
-        // Only refresh if we're on the quiz analytics tab
-        const quizPanel = document.getElementById('quiz-analytics-panel');
-        if (quizPanel && quizPanel.classList.contains('active')) {
-            loadQuizActiveSessions();
-        }
-    }, 30000); // 30 seconds
+    if (enabled) {
+        // Refresh every 60 seconds instead of 30 to reduce query load
+        quizActiveSessionsTimer = setInterval(() => {
+            const quizPanel = document.getElementById('quiz-analytics-panel');
+            if (quizPanel && quizPanel.classList.contains('active')) {
+                loadQuizActiveSessions();
+            }
+        }, 60000); // 60 seconds (was 30)
+
+        // Immediate refresh when enabled
+        loadQuizActiveSessions();
+    }
 }
 
 function stopActiveSessionsRefresh() {
