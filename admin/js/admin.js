@@ -1487,17 +1487,34 @@ async function loadQuizFunnelData() {
     const endDate = `${end}T23:59:59.999Z`;
 
     try {
-        // Try to use the pre-built view first
-        let { data: funnelData, error } = await supabaseClient
-            .from('quiz_dropoff_analysis')
+        // Try to use quiz_funnel_stats view (has avg_time_seconds)
+        let { data: funnelStats, error: statsError } = await supabaseClient
+            .from('quiz_funnel_stats')
             .select('*')
             .eq('quiz_source', 'quiz-4')
+            .gte('date', start)
+            .lte('date', end)
             .order('screen_index');
 
-        // If view doesn't exist or errors, calculate from raw events
-        if (error || !funnelData || funnelData.length === 0) {
-            console.log('Calculating funnel from raw events...');
-            funnelData = await calculateFunnelFromEvents(startDate, endDate);
+        let funnelData = [];
+
+        if (!statsError && funnelStats && funnelStats.length > 0) {
+            // Aggregate data across dates and calculate drop-off
+            funnelData = aggregateFunnelStats(funnelStats);
+        } else {
+            // Fall back to quiz_dropoff_analysis or raw events
+            let { data: dropoffData, error: dropoffError } = await supabaseClient
+                .from('quiz_dropoff_analysis')
+                .select('*')
+                .eq('quiz_source', 'quiz-4')
+                .order('screen_index');
+
+            if (!dropoffError && dropoffData && dropoffData.length > 0) {
+                funnelData = dropoffData;
+            } else {
+                console.log('Calculating funnel from raw events...');
+                funnelData = await calculateFunnelFromEvents(startDate, endDate);
+            }
         }
 
         quizFunnelData = funnelData || [];
@@ -1510,6 +1527,64 @@ async function loadQuizFunnelData() {
         renderFunnelChart();
         renderScreenTable();
     }
+}
+
+// Aggregate quiz_funnel_stats data across dates
+function aggregateFunnelStats(stats) {
+    // Group by screen_index
+    const screenData = {};
+    let totalStarts = 0;
+
+    stats.forEach(row => {
+        const idx = row.screen_index;
+        if (!screenData[idx]) {
+            screenData[idx] = {
+                screen_index: idx,
+                screen_id: row.screen_id,
+                screen_name: row.screen_name,
+                phase_name: row.phase_name,
+                total_sessions: 0,
+                total_time: 0,
+                time_count: 0
+            };
+        }
+        screenData[idx].total_sessions += row.unique_sessions || 0;
+        if (row.avg_time_seconds && row.avg_time_seconds > 0) {
+            screenData[idx].total_time += row.avg_time_seconds * (row.unique_sessions || 1);
+            screenData[idx].time_count += row.unique_sessions || 1;
+        }
+        // Track total starts from screen 0
+        if (idx === 0) {
+            totalStarts += row.unique_sessions || 0;
+        }
+    });
+
+    // Convert to array and calculate metrics
+    const result = [];
+    let prevSessions = totalStarts;
+
+    QUIZ_SCREENS.forEach(screen => {
+        const data = screenData[screen.index];
+        const sessionsReached = data ? data.total_sessions : 0;
+        const pctOfStarts = totalStarts > 0 ? (sessionsReached / totalStarts * 100) : 0;
+        const dropoff = prevSessions > 0 ? ((prevSessions - sessionsReached) / prevSessions * 100) : 0;
+        const avgTime = data && data.time_count > 0 ? data.total_time / data.time_count : 0;
+
+        result.push({
+            screen_index: screen.index,
+            screen_id: data?.screen_id || screen.id,
+            screen_name: data?.screen_name || screen.name,
+            phase_name: data?.phase_name || screen.phase,
+            sessions_reached: sessionsReached,
+            pct_of_starts: pctOfStarts,
+            dropoff_pct: screen.index === 0 ? 0 : dropoff,
+            avg_time: avgTime
+        });
+
+        prevSessions = sessionsReached;
+    });
+
+    return result;
 }
 
 async function calculateFunnelFromEvents(startDate, endDate) {
