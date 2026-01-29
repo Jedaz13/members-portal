@@ -1513,14 +1513,16 @@ async function loadQuizFunnelData() {
 }
 
 async function calculateFunnelFromEvents(startDate, endDate) {
-    // Get screen_view events - limit to 10000 rows to prevent excessive reads
+    // Get screen_view events with created_at for time calculation - limit to 10000 rows
     const { data: screenViews, error } = await supabaseClient
         .from('quiz_events')
-        .select('screen_index, screen_id, screen_name, phase_name, session_id, time_on_screen_seconds')
+        .select('screen_index, screen_id, screen_name, phase_name, session_id, time_on_screen_seconds, created_at')
         .eq('quiz_source', 'quiz-4')
         .eq('event_type', 'screen_view')
         .gte('created_at', startDate)
         .lte('created_at', endDate)
+        .order('session_id')
+        .order('created_at')
         .limit(10000);
 
     if (error || !screenViews) {
@@ -1539,7 +1541,46 @@ async function calculateFunnelFromEvents(startDate, endDate) {
 
     const totalStarts = starts ? new Set(starts.map(s => s.session_id)).size : 0;
 
-    // Group by screen
+    // Calculate time on screen from consecutive events
+    // Group events by session first
+    const sessionEvents = {};
+    screenViews.forEach(event => {
+        if (!sessionEvents[event.session_id]) {
+            sessionEvents[event.session_id] = [];
+        }
+        sessionEvents[event.session_id].push(event);
+    });
+
+    // Calculate time spent on each screen by looking at time until next screen
+    const screenTimes = {}; // { screen_index: [time1, time2, ...] }
+    Object.values(sessionEvents).forEach(events => {
+        // Sort by created_at just in case
+        events.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+        for (let i = 0; i < events.length; i++) {
+            const currentEvent = events[i];
+            const screenIndex = currentEvent.screen_index;
+
+            if (!screenTimes[screenIndex]) {
+                screenTimes[screenIndex] = [];
+            }
+
+            // If time_on_screen_seconds is available, use it
+            if (currentEvent.time_on_screen_seconds && currentEvent.time_on_screen_seconds > 0) {
+                screenTimes[screenIndex].push(currentEvent.time_on_screen_seconds);
+            } else if (i < events.length - 1) {
+                // Calculate time from next screen view
+                const nextEvent = events[i + 1];
+                const timeDiff = (new Date(nextEvent.created_at) - new Date(currentEvent.created_at)) / 1000;
+                // Only include reasonable times (0-300 seconds = 5 minutes max)
+                if (timeDiff > 0 && timeDiff <= 300) {
+                    screenTimes[screenIndex].push(timeDiff);
+                }
+            }
+        }
+    });
+
+    // Group by screen for session counting
     const screenStats = {};
     screenViews.forEach(event => {
         const key = event.screen_index;
@@ -1549,16 +1590,10 @@ async function calculateFunnelFromEvents(startDate, endDate) {
                 screen_id: event.screen_id,
                 screen_name: event.screen_name,
                 phase_name: event.phase_name,
-                sessions: new Set(),
-                totalTime: 0,
-                timeCount: 0
+                sessions: new Set()
             };
         }
         screenStats[key].sessions.add(event.session_id);
-        if (event.time_on_screen_seconds) {
-            screenStats[key].totalTime += event.time_on_screen_seconds;
-            screenStats[key].timeCount++;
-        }
     });
 
     // Convert to array and calculate metrics
@@ -1570,7 +1605,10 @@ async function calculateFunnelFromEvents(startDate, endDate) {
         const sessionsReached = stats ? stats.sessions.size : 0;
         const pctOfStarts = totalStarts > 0 ? (sessionsReached / totalStarts * 100) : 0;
         const dropoff = prevSessions > 0 ? ((prevSessions - sessionsReached) / prevSessions * 100) : 0;
-        const avgTime = stats && stats.timeCount > 0 ? stats.totalTime / stats.timeCount : 0;
+
+        // Calculate avg time from the screenTimes array
+        const times = screenTimes[screen.index] || [];
+        const avgTime = times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0;
 
         result.push({
             screen_index: screen.index,
@@ -1796,11 +1834,21 @@ function renderFunnelChart() {
     const labels = quizFunnelData.map(d => `${d.screen_index}`);
     const sessionsData = quizFunnelData.map(d => d.sessions_reached);
     const dropoffData = quizFunnelData.map(d => d.dropoff_pct || 0);
-    const backgroundColors = quizFunnelData.map(d => {
-        // Highlight high drop-off points in red
-        if (d.dropoff_pct > 20) return '#E07A5F';
-        if (d.dropoff_pct > 10) return '#F8961E';
-        return PHASE_COLORS[d.phase_name] || '#6B9080';
+    // Use consistent phase colors for bars
+    const backgroundColors = quizFunnelData.map(d => PHASE_COLORS[d.phase_name] || '#6B9080');
+
+    // Use border colors to highlight drop-off points
+    const borderColors = quizFunnelData.map(d => {
+        if (d.dropoff_pct > 20) return '#E07A5F';  // High drop-off - red border
+        if (d.dropoff_pct > 10) return '#F8961E';  // Medium drop-off - orange border
+        return PHASE_COLORS[d.phase_name] || '#6B9080';  // Normal - same as fill
+    });
+
+    // Border width increases for high drop-off
+    const borderWidths = quizFunnelData.map(d => {
+        if (d.dropoff_pct > 20) return 3;
+        if (d.dropoff_pct > 10) return 2;
+        return 1;
     });
 
     funnelChart = new Chart(ctx, {
@@ -1811,8 +1859,8 @@ function renderFunnelChart() {
                 label: 'Sessions Reached',
                 data: sessionsData,
                 backgroundColor: backgroundColors,
-                borderColor: backgroundColors.map(c => c),
-                borderWidth: 1,
+                borderColor: borderColors,
+                borderWidth: borderWidths,
                 borderRadius: 4
             }]
         },
