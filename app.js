@@ -1400,9 +1400,15 @@ async function signOut() {
         await supabase.auth.signOut();
         currentUser = null;
         currentMember = null;
+        authProcessed = false;
+        isRouting = false;
         showView('login-view');
     } catch (err) {
         console.error('Sign out error:', err);
+        currentUser = null;
+        currentMember = null;
+        authProcessed = false;
+        isRouting = false;
         showView('login-view');
     }
 }
@@ -1617,6 +1623,7 @@ async function checkUserStatusAndRoute(user, accessToken) {
             console.error('Fetch failed:', fetchError);
             if (fetchError.name === 'AbortError') {
                 showToast('Connection timeout. Please try again.');
+                authProcessed = false;
                 showView('login-view');
                 return;
             }
@@ -1626,6 +1633,7 @@ async function checkUserStatusAndRoute(user, accessToken) {
         if (error) {
             console.error('Database error:', error);
             showToast('Error connecting to database. Please try again.');
+            authProcessed = false;
             showView('login-view');
             return;
         }
@@ -1776,6 +1784,8 @@ async function checkUserStatusAndRoute(user, accessToken) {
     } catch (err) {
         console.error('Error checking user status:', err);
         showToast('Error loading your account. Please try again.');
+        // Reset authProcessed so user can retry without refreshing the page
+        authProcessed = false;
         showView('login-view');
     } finally {
         isRouting = false;
@@ -3613,9 +3623,30 @@ async function checkSession() {
         if (!session) {
             console.log('No session found, showing login');
             showView('login-view');
+        } else {
+            // Session exists - onAuthStateChange should handle routing
+            // But add a safety timeout in case it doesn't fire
+            setTimeout(function() {
+                var loadingView = document.getElementById('loading-view');
+                if (loadingView && !loadingView.classList.contains('hidden') && !isRouting) {
+                    console.warn('Safety timeout: still on loading view after 8s with valid session, retrying...');
+                    authProcessed = false;
+                    isRouting = false;
+                    // Try to manually trigger routing with the existing session
+                    supabase.auth.getSession().then(function(result) {
+                        if (result.data.session && !authProcessed) {
+                            authProcessed = true;
+                            checkUserStatusAndRoute(result.data.session.user, result.data.session.access_token);
+                        } else if (!result.data.session) {
+                            showView('login-view');
+                        }
+                    }).catch(function(err) {
+                        console.error('Safety timeout session check failed:', err);
+                        showView('login-view');
+                    });
+                }
+            }, 8000);
         }
-        // If session exists, onAuthStateChange will handle routing
-        // No need for fallback - auth state change is reliable
     } catch (err) {
         console.error('Session check error:', err);
         showView('login-view');
@@ -3638,13 +3669,27 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 
     // Handle valid session events - only process once per page load
     if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session) {
-        // Skip if already processed or currently routing
-        if (authProcessed || isRouting) {
+        // Allow re-routing if we're stuck on loading view (e.g., after BFCache restore or token refresh)
+        var loadingView = document.getElementById('loading-view');
+        var isStuckOnLoading = loadingView && !loadingView.classList.contains('hidden');
+
+        // Skip if already processed or currently routing, UNLESS stuck on loading
+        if ((authProcessed || isRouting) && !isStuckOnLoading) {
             console.log('Auth already processed or routing in progress, skipping...');
             return;
         }
-        authProcessed = true;
-        await checkUserStatusAndRoute(session.user, session.access_token);
+
+        // If stuck on loading with a valid session, reset flags and re-process
+        if (isStuckOnLoading && authProcessed) {
+            console.log('Detected stuck loading state, allowing re-processing for event:', event);
+            authProcessed = false;
+            isRouting = false;
+        }
+
+        if (!authProcessed && !isRouting) {
+            authProcessed = true;
+            await checkUserStatusAndRoute(session.user, session.access_token);
+        }
     }
 });
 
@@ -3701,6 +3746,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize
     checkSession();
+});
+
+// ============================================
+// BACK-FORWARD CACHE & TAB RECOVERY
+// ============================================
+
+// Handle BFCache restoration (back/forward button navigation)
+// When the browser restores a page from BFCache, DOMContentLoaded does NOT fire.
+// This causes the dashboard to get stuck on "Loading your dashboard..." because
+// authProcessed is still true from the previous session, blocking onAuthStateChange.
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        console.log('Page restored from BFCache, re-initializing session...');
+        // Reset auth state flags so onAuthStateChange can process again
+        authProcessed = false;
+        isRouting = false;
+        // Re-check the session from scratch
+        checkSession();
+    }
+});
+
+// Handle tab visibility changes (e.g., switching back to tab after extended period)
+// This catches cases where the token may have expired while the tab was hidden
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        // Only recover if we're stuck on loading view
+        var loadingView = document.getElementById('loading-view');
+        if (loadingView && !loadingView.classList.contains('hidden')) {
+            console.log('Tab became visible while loading view is showing, checking session...');
+            // Give a brief moment for any in-progress auth to complete
+            setTimeout(function() {
+                var stillLoading = !document.getElementById('loading-view').classList.contains('hidden');
+                if (stillLoading && !isRouting) {
+                    console.log('Still stuck on loading after tab restore, resetting...');
+                    authProcessed = false;
+                    isRouting = false;
+                    checkSession();
+                }
+            }, 1500);
+        }
+    }
 });
 
 // ============================================
