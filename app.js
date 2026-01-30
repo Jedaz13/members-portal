@@ -2473,6 +2473,15 @@ function loadTrackingForm(protocol) {
     const protocolInfo = PROTOCOLS[protocol];
     const form = document.getElementById('tracking-form');
 
+    // Validate protocol exists
+    if (!protocolInfo) {
+        console.error('Invalid protocol:', protocol, '- falling back to protocol 1');
+        return loadTrackingForm(1);
+    }
+
+    // Remove previous submit handler to prevent duplicates (e.g., from BFCache re-init)
+    form.removeEventListener('submit', handleTrackingSubmit);
+
     // Set why track text
     document.getElementById('why-track-text').textContent = protocolInfo.whyTrack;
 
@@ -2565,25 +2574,45 @@ function loadTrackingForm(protocol) {
     checkTodaysEntry();
 }
 
+// Get today's date in YYYY-MM-DD format using the user's local timezone
+// Using toISOString().split('T')[0] returns UTC date, which can be wrong
+// for users in negative UTC offsets (e.g., 11 PM PST = next day in UTC)
+function getLocalDateString() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var day = String(now.getDate()).padStart(2, '0');
+    return year + '-' + month + '-' + day;
+}
+
 async function checkTodaysEntry() {
     if (!currentMember) return;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
 
-    const { data: entry, error } = await supabase
-        .from('tracking_logs')
-        .select('*')
-        .eq('user_id', currentMember.id)
-        .eq('date', today)
-        .single();
+    try {
+        const { data: entry, error } = await supabase
+            .from('tracking_logs')
+            .select('*')
+            .eq('user_id', currentMember.id)
+            .eq('date', today)
+            .maybeSingle();
 
-    if (entry && !error) {
-        // Fill form with existing data
-        populateFormWithEntry(entry);
+        if (error) {
+            console.warn('Error checking today\'s entry:', error);
+            return;
+        }
 
-        // Change button text
-        const submitBtn = document.querySelector('.btn-submit');
-        submitBtn.textContent = 'Update Today\'s Tracking';
+        if (entry) {
+            // Fill form with existing data
+            populateFormWithEntry(entry);
+
+            // Change button text
+            const submitBtn = document.querySelector('.btn-submit');
+            if (submitBtn) submitBtn.textContent = 'Update Today\'s Tracking';
+        }
+    } catch (err) {
+        console.warn('Error in checkTodaysEntry:', err);
     }
 }
 
@@ -2602,9 +2631,15 @@ function populateFormWithEntry(entry) {
                 element.value = data[key];
             }
         } else {
-            // Check for radio buttons
-            const radio = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
-            if (radio) radio.checked = true;
+            // Check for radio buttons - use CSS.escape to handle special characters in values
+            try {
+                var escapedKey = CSS.escape(key);
+                var escapedValue = CSS.escape(String(data[key]));
+                const radio = document.querySelector('input[name="' + escapedKey + '"][value="' + escapedValue + '"]');
+                if (radio) radio.checked = true;
+            } catch (selectorErr) {
+                console.warn('Could not find radio for field:', key, selectorErr);
+            }
         }
     });
 
@@ -2617,44 +2652,72 @@ function populateFormWithEntry(entry) {
 async function handleTrackingSubmit(e) {
     e.preventDefault();
 
-    const form = e.target;
-    const formData = new FormData(form);
-    const protocol = currentMember.protocol || 1;
-    const today = new Date().toISOString().split('T')[0];
+    if (!currentMember) {
+        showToast('Please log in again to save tracking.');
+        return;
+    }
 
-    // Build tracking data object
-    const trackingData = {};
-    PROTOCOLS[protocol].fields.forEach(field => {
-        const value = formData.get(field.id);
-        if (value !== null && value !== '') {
-            trackingData[field.id] = field.type === 'number' || field.type === 'slider'
-                ? parseInt(value)
-                : value;
+    // Prevent double submission
+    const submitBtn = document.querySelector('.btn-submit');
+    if (submitBtn && submitBtn.disabled) return;
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+    }
+
+    try {
+        const form = e.target;
+        const formData = new FormData(form);
+        const protocol = currentMember.protocol || 1;
+        const protocolInfo = PROTOCOLS[protocol];
+        const today = getLocalDateString();
+
+        if (!protocolInfo) {
+            showToast('Error: Invalid protocol configuration.');
+            return;
         }
-    });
 
-    const notes = formData.get('notes') || '';
-
-    // Upsert to database
-    const { error } = await supabase
-        .from('tracking_logs')
-        .upsert({
-            user_id: currentMember.id,
-            date: today,
-            protocol_type: protocol,
-            tracking_data: trackingData,
-            notes: notes
-        }, {
-            onConflict: 'user_id,date'
+        // Build tracking data object
+        const trackingData = {};
+        protocolInfo.fields.forEach(field => {
+            const value = formData.get(field.id);
+            if (value !== null && value !== '') {
+                trackingData[field.id] = field.type === 'number' || field.type === 'slider'
+                    ? parseInt(value)
+                    : value;
+            }
         });
 
-    if (error) {
-        console.error('Error saving tracking:', error);
+        const notes = formData.get('notes') || '';
+
+        // Upsert to database
+        const { error } = await supabase
+            .from('tracking_logs')
+            .upsert({
+                user_id: currentMember.id,
+                date: today,
+                protocol_type: protocol,
+                tracking_data: trackingData,
+                notes: notes
+            }, {
+                onConflict: 'user_id,date'
+            });
+
+        if (error) {
+            console.error('Error saving tracking:', error);
+            showToast('Error saving. Please try again.');
+        } else {
+            showToast('Tracking saved successfully!');
+            if (submitBtn) submitBtn.textContent = 'Update Today\'s Tracking';
+            loadTrackingHistory();
+        }
+    } catch (err) {
+        console.error('Error in handleTrackingSubmit:', err);
         showToast('Error saving. Please try again.');
-    } else {
-        showToast('Tracking saved successfully!');
-        document.querySelector('.btn-submit').textContent = 'Update Today\'s Tracking';
-        loadTrackingHistory();
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+        }
     }
 }
 
@@ -2666,13 +2729,15 @@ async function loadTrackingHistory() {
 
     // Trial expired users only see today's tracking
     if (userStatus === 'trial_expired' || userStatus === 'lead') {
-        const today = new Date().toISOString().split('T')[0];
-        dateFilter = today;
+        dateFilter = getLocalDateString();
     } else {
         // Active and trial users see last 7 days
-        const sevenDaysAgo = new Date();
+        var sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        dateFilter = sevenDaysAgo.toISOString().split('T')[0];
+        var y = sevenDaysAgo.getFullYear();
+        var m = String(sevenDaysAgo.getMonth() + 1).padStart(2, '0');
+        var d = String(sevenDaysAgo.getDate()).padStart(2, '0');
+        dateFilter = y + '-' + m + '-' + d;
     }
 
     let query = supabase
@@ -3187,6 +3252,11 @@ function updateExpertMessagesBadge() {
 }
 
 async function sendMessage() {
+    if (!currentMember) {
+        showToast('Please log in again to send messages.');
+        return;
+    }
+
     const input = document.getElementById('message-input');
     const message = input.value.trim();
     const sendBtn = document.getElementById('send-message-btn');
@@ -3203,6 +3273,7 @@ async function sendMessage() {
     try {
         // Upload files if any
         let uploadedFiles = [];
+        let failedUploads = [];
         if (attachedFiles.length > 0) {
             showToast('Uploading files...');
             for (const file of attachedFiles) {
@@ -3211,8 +3282,22 @@ async function sendMessage() {
                     uploadedFiles.push(uploadedFile);
                 } catch (uploadError) {
                     console.error('File upload failed:', uploadError);
-                    showToast(`Failed to upload ${file.name}`);
+                    failedUploads.push(file.name);
                 }
+            }
+
+            // If some files failed, warn the user and let them decide
+            if (failedUploads.length > 0 && failedUploads.length < attachedFiles.length) {
+                showToast(`Failed to upload: ${failedUploads.join(', ')}. Sending message with ${uploadedFiles.length} file(s).`);
+            } else if (failedUploads.length === attachedFiles.length) {
+                // All files failed - if there's no message text either, abort
+                if (!message) {
+                    showToast('All file uploads failed. Please try again.');
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = 'Send Message';
+                    return;
+                }
+                showToast('File uploads failed. Sending message without attachments.');
             }
         }
 
@@ -3259,8 +3344,17 @@ function initializeFileUpload() {
     const fileInput = document.getElementById('file-input');
     const attachBtn = document.getElementById('attach-file-btn');
 
-    attachBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', handleFileSelect);
+    if (!fileInput || !attachBtn) return;
+
+    // Remove old listeners before adding new ones to prevent duplicates on re-init
+    const newAttachBtn = attachBtn.cloneNode(true);
+    attachBtn.parentNode.replaceChild(newAttachBtn, attachBtn);
+    newAttachBtn.addEventListener('click', () => fileInput.click());
+
+    // For file input, clone to remove old listeners
+    const newFileInput = fileInput.cloneNode(true);
+    fileInput.parentNode.replaceChild(newFileInput, fileInput);
+    newFileInput.addEventListener('change', handleFileSelect);
 }
 
 function handleFileSelect(e) {
@@ -3344,6 +3438,9 @@ function formatFileSize(bytes) {
 }
 
 async function uploadFile(file) {
+    if (!currentMember) {
+        throw new Error('Not logged in');
+    }
     const timestamp = Date.now();
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filePath = `${currentMember.id}/${timestamp}_${safeName}`;
@@ -3379,25 +3476,37 @@ function initializeMessageSearch() {
     const clearBtn = document.getElementById('clear-search-btn');
     const highlightedBtn = document.getElementById('show-highlighted-btn');
 
+    if (!searchInput || !clearBtn || !highlightedBtn) return;
+
     // Load highlighted messages from localStorage
     loadHighlightedMessages();
 
-    searchInput.addEventListener('input', (e) => {
+    // Clone elements to remove any old listeners and prevent duplicates on re-init
+    var newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+
+    var newClearBtn = clearBtn.cloneNode(true);
+    clearBtn.parentNode.replaceChild(newClearBtn, clearBtn);
+
+    var newHighlightedBtn = highlightedBtn.cloneNode(true);
+    highlightedBtn.parentNode.replaceChild(newHighlightedBtn, highlightedBtn);
+
+    newSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim();
-        clearBtn.classList.toggle('hidden', !query);
+        newClearBtn.classList.toggle('hidden', !query);
         filterMessages(query);
     });
 
-    clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearBtn.classList.add('hidden');
+    newClearBtn.addEventListener('click', () => {
+        newSearchInput.value = '';
+        newClearBtn.classList.add('hidden');
         filterMessages('');
     });
 
-    highlightedBtn.addEventListener('click', () => {
+    newHighlightedBtn.addEventListener('click', () => {
         showHighlightedOnly = !showHighlightedOnly;
-        highlightedBtn.classList.toggle('active', showHighlightedOnly);
-        filterMessages(searchInput.value.trim());
+        newHighlightedBtn.classList.toggle('active', showHighlightedOnly);
+        filterMessages(newSearchInput.value.trim());
     });
 }
 
@@ -3533,13 +3642,18 @@ function renderMessages(messages, searchQuery = '') {
 
     messagesList.innerHTML = html;
 
-    // Add highlight button handlers
-    messagesList.querySelectorAll('.btn-highlight').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const messageId = e.currentTarget.dataset.id;
-            toggleHighlight(messageId);
-        });
-    });
+    // Use event delegation for highlight buttons to avoid listener accumulation
+    // Remove old delegated handler and add fresh one
+    if (!messagesList._highlightHandler) {
+        messagesList._highlightHandler = function(e) {
+            var btn = e.target.closest('.btn-highlight');
+            if (btn) {
+                var messageId = btn.dataset.id;
+                toggleHighlight(messageId);
+            }
+        };
+        messagesList.addEventListener('click', messagesList._highlightHandler);
+    }
 
     // Scroll to bottom
     messagesList.scrollTop = messagesList.scrollHeight;
