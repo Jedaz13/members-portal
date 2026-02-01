@@ -87,6 +87,87 @@ a:hover {
     display: block;
 }
 
+/* Admin Login View */
+#login-view.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--background);
+}
+
+.admin-login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+}
+
+.admin-login-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 48px 40px;
+    box-shadow: 0 4px 24px var(--shadow);
+    text-align: center;
+}
+
+.admin-login-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.admin-login-logo {
+    height: 40px;
+    width: auto;
+}
+
+.admin-login-badge {
+    background: var(--admin-header);
+    color: var(--citrus);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.admin-login-text {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 28px;
+}
+
+.admin-login-card .btn-google {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: var(--white);
+    border: 1.5px solid var(--divider);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Source Sans 3', sans-serif;
+}
+
+.admin-login-card .btn-google:hover {
+    background: var(--background-cream);
+    border-color: #ccc;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.admin-login-footer {
+    color: var(--text-light);
+    font-size: 0.8rem;
+    margin-top: 20px;
+}
+
 /* Loading View */
 #loading-view.active {
     display: flex;
