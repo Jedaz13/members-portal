@@ -66,11 +66,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         ADMIN_CONFIG.defaultTab = tabParam;
     }
 
+    // Set up event listeners first (so Google button works during auth check)
+    setupEventListeners();
+
     // Check authentication
     await checkAuth();
 
-    // Set up event listeners
-    setupEventListeners();
+    // Listen for auth state changes (handles OAuth callback)
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            await checkAuth();
+        } else if (event === 'SIGNED_OUT') {
+            showView('login-view');
+        }
+    });
 });
 
 // ============================================
@@ -80,11 +89,25 @@ async function checkAuth() {
     showView('loading-view');
 
     try {
+        // Handle OAuth callback (code in URL from Google redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const hasOAuthCallback = urlParams.has('code') || hashParams.has('access_token');
+
+        if (hasOAuthCallback) {
+            // Exchange code for session (PKCE flow)
+            if (urlParams.has('code')) {
+                await supabaseClient.auth.exchangeCodeForSession(urlParams.get('code'));
+            }
+            // Clean URL without reloading
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+
         const { data: { session }, error } = await supabaseClient.auth.getSession();
 
         if (error || !session) {
-            // Redirect to login
-            window.location.href = '/index.html';
+            // Show admin login view instead of redirecting
+            showView('login-view');
             return;
         }
 
@@ -122,7 +145,21 @@ async function checkAuth() {
 
     } catch (err) {
         console.error('Auth error:', err);
-        window.location.href = '/index.html';
+        showView('login-view');
+    }
+}
+
+async function signInWithGoogle() {
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: window.location.origin + '/admin.html'
+        }
+    });
+
+    if (error) {
+        console.error('Error signing in with Google:', error);
+        showToast('Error signing in. Please try again.', 'error');
     }
 }
 
@@ -159,10 +196,10 @@ async function checkAdminAccess(userId) {
 async function logout() {
     try {
         await supabaseClient.auth.signOut();
-        window.location.href = '/index.html';
+        showView('login-view');
     } catch (err) {
         console.error('Logout error:', err);
-        window.location.href = '/index.html';
+        showView('login-view');
     }
 }
 
@@ -241,6 +278,21 @@ function switchTab(tabId) {
 }
 
 function setupEventListeners() {
+    // Google sign-in button
+    const googleLoginBtn = document.getElementById('google-login-btn');
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', signInWithGoogle);
+    }
+
+    // Access denied sign-out button
+    const deniedLogoutBtn = document.getElementById('btn-denied-logout');
+    if (deniedLogoutBtn) {
+        deniedLogoutBtn.addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            showView('login-view');
+        });
+    }
+
     // Tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
