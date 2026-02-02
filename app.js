@@ -1352,12 +1352,16 @@ var ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/g
 // REFERRAL TRACKING
 // ============================================
 
-// Capture referral code from URL on page load
+// Capture referral code from URL on page load and set cookie + localStorage
 function captureReferralCode() {
     var urlParams = new URLSearchParams(window.location.search);
     var refCode = urlParams.get('ref');
     if (refCode) {
         localStorage.setItem('referral_code', refCode);
+        // Set a 14-day cookie for cross-session attribution
+        var expires = new Date();
+        expires.setDate(expires.getDate() + 14);
+        document.cookie = 'ref_code=' + encodeURIComponent(refCode) + ';expires=' + expires.toUTCString() + ';path=/;SameSite=Lax';
         console.log('Referral code captured:', refCode);
         // Clean the ref param from URL without reload
         urlParams.delete('ref');
@@ -1369,20 +1373,41 @@ function captureReferralCode() {
     }
 }
 
+// Get referral code from localStorage or cookie (14-day window)
+function getReferralCode() {
+    var code = localStorage.getItem('referral_code');
+    if (code) return code;
+    // Fallback to cookie
+    var match = document.cookie.match(/(?:^|;\s*)ref_code=([^;]*)/);
+    if (match) {
+        code = decodeURIComponent(match[1]);
+        // Also put it back in localStorage for consistency
+        localStorage.setItem('referral_code', code);
+        return code;
+    }
+    return null;
+}
+
+// Clean up referral code from both storage mechanisms
+function clearReferralCode() {
+    localStorage.removeItem('referral_code');
+    document.cookie = 'ref_code=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Lax';
+}
+
 // Track referral when user signs in with a valid account
 async function trackReferral(member, accessToken) {
-    var refCode = localStorage.getItem('referral_code');
+    var refCode = getReferralCode();
     if (!refCode) return;
 
     // Don't self-refer
     if (member.referral_code === refCode) {
-        localStorage.removeItem('referral_code');
+        clearReferralCode();
         return;
     }
 
     // Skip if user was already referred
     if (member.referred_by) {
-        localStorage.removeItem('referral_code');
+        clearReferralCode();
         return;
     }
 
@@ -1428,13 +1453,18 @@ async function trackReferral(member, accessToken) {
         if (existingReferrals.length > 0) {
             // Update existing referral record
             var updateData = { updated_at: new Date().toISOString() };
+            if (quizCompleted) {
+                updateData.quiz_completed = true;
+                updateData.quiz_completed_at = new Date().toISOString();
+            }
             if (trialStarted) {
                 updateData.trial_started = true;
-                updateData.trial_started_at = updateData.trial_started_at || new Date().toISOString();
+                updateData.trial_started_at = new Date().toISOString();
             }
             if (accountActivated) {
                 updateData.account_activated = true;
-                updateData.account_activated_at = updateData.account_activated_at || new Date().toISOString();
+                updateData.account_activated_at = new Date().toISOString();
+                updateData.subscription_type = member.subscription_type || null;
             }
 
             await fetch(SUPABASE_URL + '/rest/v1/referrals?id=eq.' + existingReferrals[0].id, {
@@ -1466,7 +1496,7 @@ async function trackReferral(member, accessToken) {
 
             if (referrerData.length === 0) {
                 console.warn('Referrer not found for code:', refCode);
-                localStorage.removeItem('referral_code');
+                clearReferralCode();
                 return;
             }
 
@@ -1485,6 +1515,7 @@ async function trackReferral(member, accessToken) {
                 trial_started_at: trialStarted ? now : null,
                 account_activated: accountActivated,
                 account_activated_at: accountActivated ? now : null,
+                subscription_type: accountActivated ? (member.subscription_type || null) : null,
                 created_at: now,
                 updated_at: now
             };
@@ -1502,12 +1533,12 @@ async function trackReferral(member, accessToken) {
         }
 
         // Clean up
-        localStorage.removeItem('referral_code');
+        clearReferralCode();
         console.log('Referral tracked successfully');
 
     } catch (err) {
         console.error('Error tracking referral:', err);
-        // Don't remove from localStorage on error - try again next time
+        // Don't remove from storage on error - try again next time
     }
 }
 
@@ -1543,6 +1574,7 @@ async function updateReferralStatus(member, accessToken) {
         if (!referral.account_activated && member.status === 'active') {
             updateData.account_activated = true;
             updateData.account_activated_at = new Date().toISOString();
+            updateData.subscription_type = member.subscription_type || null;
             needsUpdate = true;
         }
 

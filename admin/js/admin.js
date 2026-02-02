@@ -2392,100 +2392,385 @@ function formatDuration(seconds) {
 }
 
 // ============================================
-// Referral Management
+// Referral & Commission Management
 // ============================================
+
+// Subscription price lookup
+const PLAN_PRICES = { monthly: 47, '4month': 149, annual: 297, '6month': 197 };
+const MIN_PAYOUT = 50;
+
+let referralDataCache = { referrals: [], referrers: [], commissions: [], payouts: [] };
+
+function getSelectedMonth() {
+    const sel = document.getElementById('payout-month-select');
+    if (!sel || !sel.value) {
+        const now = new Date();
+        return { month: now.getMonth() + 1, year: now.getFullYear() };
+    }
+    const parts = sel.value.split('-');
+    return { year: parseInt(parts[0]), month: parseInt(parts[1]) };
+}
+
+function populateMonthSelector() {
+    const sel = document.getElementById('payout-month-select');
+    if (!sel) return;
+    sel.innerHTML = '';
+    const now = new Date();
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    // Show last 12 months
+    for (let i = 0; i < 12; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const opt = document.createElement('option');
+        opt.value = d.getFullYear() + '-' + (d.getMonth() + 1);
+        opt.textContent = months[d.getMonth()] + ' ' + d.getFullYear();
+        if (i === 0) opt.selected = true;
+        sel.appendChild(opt);
+    }
+    sel.addEventListener('change', () => loadPayoutTable());
+}
+
 async function loadReferralData() {
     const refreshBtn = document.getElementById('btn-referral-refresh');
-    if (refreshBtn) {
-        refreshBtn.classList.add('loading');
-        refreshBtn.disabled = true;
-    }
+    if (refreshBtn) { refreshBtn.classList.add('loading'); refreshBtn.disabled = true; }
 
     try {
-        // Load all referrals
-        const { data: referrals, error: refError } = await supabaseClient
-            .from('referrals')
-            .select('*')
-            .order('created_at', { ascending: false });
+        // Load all data in parallel
+        const [refResult, usersResult, commResult, payoutResult] = await Promise.all([
+            supabaseClient.from('referrals').select('*').order('created_at', { ascending: false }),
+            supabaseClient.from('users').select('id, email, name, referral_code, referral_commission_rate, payout_method, payout_paypal_email, payout_bank_name').not('referral_code', 'is', null),
+            supabaseClient.from('referral_commissions').select('*').order('earned_at', { ascending: false }),
+            supabaseClient.from('referral_payouts').select('*').order('payout_year', { ascending: false }).order('payout_month', { ascending: false })
+        ]);
 
-        if (refError) {
-            console.error('Error loading referrals:', refError);
-            showToast('Error loading referral data', 'error');
-            return;
-        }
+        if (refResult.error) { console.error('Error loading referrals:', refResult.error); }
+        if (usersResult.error) { console.error('Error loading users:', usersResult.error); }
 
-        // Load users with referral codes
-        const { data: referrers, error: usersError } = await supabaseClient
-            .from('users')
-            .select('id, email, name, referral_code')
-            .not('referral_code', 'is', null);
+        referralDataCache.referrals = refResult.data || [];
+        referralDataCache.referrers = usersResult.data || [];
+        referralDataCache.commissions = commResult.data || [];
+        referralDataCache.payouts = payoutResult.data || [];
 
-        if (usersError) {
-            console.error('Error loading referrers:', usersError);
-        }
+        const allReferrals = referralDataCache.referrals;
+        const allCommissions = referralDataCache.commissions;
+        const allPayouts = referralDataCache.payouts;
 
-        const allReferrals = referrals || [];
-        const allReferrers = referrers || [];
+        // Overview stats
+        const pendingCommissions = allCommissions.filter(c => c.status === 'pending' || c.status === 'approved');
+        const paidCommissions = allCommissions.filter(c => c.status === 'paid');
+        const totalOwed = pendingCommissions.reduce((sum, c) => sum + parseFloat(c.commission_amount || 0), 0);
+        const totalPaid = paidCommissions.reduce((sum, c) => sum + parseFloat(c.commission_amount || 0), 0);
 
-        // Update overview stats
         document.getElementById('ref-stat-total').textContent = allReferrals.length;
-        document.getElementById('ref-stat-quiz').textContent = allReferrals.filter(r => r.quiz_completed).length;
-        document.getElementById('ref-stat-trial').textContent = allReferrals.filter(r => r.trial_started).length;
         document.getElementById('ref-stat-active').textContent = allReferrals.filter(r => r.account_activated).length;
+        document.getElementById('ref-stat-owed').textContent = '$' + totalOwed.toFixed(2);
+        document.getElementById('ref-stat-paid').textContent = '$' + totalPaid.toFixed(2);
 
-        // Build referrers table
-        const referrersBody = document.getElementById('referrers-table-body');
-        if (allReferrers.length === 0) {
-            referrersBody.innerHTML = '<tr><td colspan="6" class="loading-cell">No referrers found. Members get a referral code on their profile page.</td></tr>';
-        } else {
-            referrersBody.innerHTML = '';
-            allReferrers.forEach(referrer => {
-                const refs = allReferrals.filter(r => r.referrer_code === referrer.referral_code);
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${escapeHtml(referrer.name || referrer.email)}</td>
-                    <td><code>${escapeHtml(referrer.referral_code)}</code></td>
-                    <td>${refs.length}</td>
-                    <td>${refs.filter(r => r.quiz_completed).length}</td>
-                    <td>${refs.filter(r => r.trial_started).length}</td>
-                    <td>${refs.filter(r => r.account_activated).length}</td>
-                `;
-                referrersBody.appendChild(row);
-            });
-        }
+        // Populate month selector
+        populateMonthSelector();
 
-        // Build all referrals table
-        const referralsBody = document.getElementById('referrals-table-body');
-        if (allReferrals.length === 0) {
-            referralsBody.innerHTML = '<tr><td colspan="6" class="loading-cell">No referrals recorded yet.</td></tr>';
-        } else {
-            referralsBody.innerHTML = '';
-            allReferrals.forEach(ref => {
-                const row = document.createElement('tr');
-                const dateStr = ref.created_at
-                    ? new Date(ref.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                    : 'N/A';
-                row.innerHTML = `
-                    <td>${escapeHtml(ref.referred_email || 'N/A')}</td>
-                    <td>${escapeHtml(ref.referrer_email || ref.referrer_code)}</td>
-                    <td>${ref.quiz_completed ? '<span style="color: #2e7d32;">Yes</span>' : '<span style="color: #999;">No</span>'}</td>
-                    <td>${ref.trial_started ? '<span style="color: #e65100;">Yes</span>' : '<span style="color: #999;">No</span>'}</td>
-                    <td>${ref.account_activated ? '<span style="color: #1565c0;">Yes</span>' : '<span style="color: #999;">No</span>'}</td>
-                    <td>${dateStr}</td>
-                `;
-                referralsBody.appendChild(row);
-            });
-        }
+        // Load subtables
+        loadPayoutTable();
+        loadCommissionSettings();
+        loadAllReferralsTable();
+        loadPayoutHistory();
 
     } catch (err) {
         console.error('Error loading referral data:', err);
         showToast('Error loading referral data', 'error');
     } finally {
-        if (refreshBtn) {
-            refreshBtn.classList.remove('loading');
-            refreshBtn.disabled = false;
-        }
+        if (refreshBtn) { refreshBtn.classList.remove('loading'); refreshBtn.disabled = false; }
     }
+}
+
+function loadPayoutTable() {
+    const { month, year } = getSelectedMonth();
+    const referrals = referralDataCache.referrals;
+    const referrers = referralDataCache.referrers;
+    const commissions = referralDataCache.commissions;
+    const payouts = referralDataCache.payouts;
+
+    // Find activated referrals in the selected month
+    const monthActivations = referrals.filter(r => {
+        if (!r.account_activated || !r.account_activated_at) return false;
+        const d = new Date(r.account_activated_at);
+        return d.getMonth() + 1 === month && d.getFullYear() === year;
+    });
+
+    // Group by referrer
+    const referrerMap = {};
+    referrers.forEach(u => { referrerMap[u.referral_code] = u; });
+
+    const byReferrer = {};
+    monthActivations.forEach(ref => {
+        if (!byReferrer[ref.referrer_code]) byReferrer[ref.referrer_code] = [];
+        byReferrer[ref.referrer_code].push(ref);
+    });
+
+    const tbody = document.getElementById('payouts-table-body');
+
+    if (Object.keys(byReferrer).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading-cell">No activations for this month.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+
+    Object.keys(byReferrer).forEach(code => {
+        const refs = byReferrer[code];
+        const referrer = referrerMap[code];
+        if (!referrer) return;
+
+        const rate = parseFloat(referrer.referral_commission_rate || 0.20);
+
+        // Calculate owed for this month
+        let totalOwed = 0;
+        refs.forEach(ref => {
+            const price = PLAN_PRICES[ref.subscription_type] || 47;
+            totalOwed += price * rate;
+        });
+
+        // Check if already paid
+        const existingPayout = payouts.find(p =>
+            p.referrer_user_id === referrer.id && p.payout_month === month && p.payout_year === year
+        );
+        const isPaid = existingPayout && existingPayout.status === 'paid';
+
+        // Payment info
+        let paymentInfo = '<span style="color:#999;">Not set</span>';
+        if (referrer.payout_method === 'paypal' && referrer.payout_paypal_email) {
+            paymentInfo = 'PayPal: ' + escapeHtml(referrer.payout_paypal_email);
+        } else if (referrer.payout_method === 'bank' && referrer.payout_bank_name) {
+            paymentInfo = 'Bank: ' + escapeHtml(referrer.payout_bank_name);
+        }
+
+        const belowMinimum = totalOwed < MIN_PAYOUT;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><strong>${escapeHtml(referrer.name || referrer.email)}</strong><br><small style="color:#888;">${escapeHtml(referrer.email)}</small></td>
+            <td style="font-size:12px;">${paymentInfo}</td>
+            <td>${refs.length}</td>
+            <td>${(rate * 100).toFixed(0)}%</td>
+            <td><strong>$${totalOwed.toFixed(2)}</strong>${belowMinimum ? '<br><small style="color:#e65100;">Below $50 min</small>' : ''}</td>
+            <td>${isPaid
+                ? '<span style="color:#2e7d32;font-weight:600;">Paid</span>'
+                : '<span style="color:#e65100;font-weight:600;">Pending</span>'}</td>
+            <td>${isPaid
+                ? '<span style="color:#999;font-size:12px;">Settled ' + new Date(existingPayout.paid_at).toLocaleDateString() + '</span>'
+                : '<button class="btn-refresh" style="font-size:12px;padding:4px 12px;" onclick="markAsPaid(\'' + referrer.id + '\',\'' + escapeHtml(referrer.email) + '\',' + month + ',' + year + ',' + totalOwed.toFixed(2) + ',' + refs.length + ')">Mark Paid</button>'}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+async function markAsPaid(referrerUserId, referrerEmail, month, year, amount, numCommissions) {
+    if (!confirm('Mark $' + amount.toFixed(2) + ' as paid to ' + referrerEmail + '?')) return;
+
+    try {
+        // Create or update payout record
+        const { data: existing } = await supabaseClient
+            .from('referral_payouts')
+            .select('id')
+            .eq('referrer_user_id', referrerUserId)
+            .eq('payout_month', month)
+            .eq('payout_year', year)
+            .maybeSingle();
+
+        if (existing) {
+            await supabaseClient.from('referral_payouts').update({
+                status: 'paid',
+                paid_at: new Date().toISOString(),
+                total_amount: amount,
+                total_commissions: numCommissions,
+                updated_at: new Date().toISOString()
+            }).eq('id', existing.id);
+        } else {
+            await supabaseClient.from('referral_payouts').insert({
+                referrer_user_id: referrerUserId,
+                referrer_email: referrerEmail,
+                payout_month: month,
+                payout_year: year,
+                total_commissions: numCommissions,
+                total_amount: amount,
+                status: 'paid',
+                paid_at: new Date().toISOString()
+            });
+        }
+
+        // Create commission records for each activation this month
+        const activations = referralDataCache.referrals.filter(r => {
+            if (!r.account_activated || !r.account_activated_at || r.referrer_code !== referralDataCache.referrers.find(u => u.id === referrerUserId)?.referral_code) return false;
+            const d = new Date(r.account_activated_at);
+            return d.getMonth() + 1 === month && d.getFullYear() === year;
+        });
+
+        const referrer = referralDataCache.referrers.find(u => u.id === referrerUserId);
+        const rate = parseFloat(referrer?.referral_commission_rate || 0.20);
+
+        for (const ref of activations) {
+            const price = PLAN_PRICES[ref.subscription_type] || 47;
+            const commissionAmt = price * rate;
+
+            // Check if commission already exists for this referral
+            const existingComm = referralDataCache.commissions.find(c => c.referral_id === ref.id);
+            if (!existingComm) {
+                await supabaseClient.from('referral_commissions').insert({
+                    referral_id: ref.id,
+                    referrer_user_id: referrerUserId,
+                    referrer_email: referrerEmail,
+                    referred_email: ref.referred_email,
+                    subscription_type: ref.subscription_type || 'monthly',
+                    subscription_amount: price,
+                    commission_rate: rate,
+                    commission_amount: commissionAmt,
+                    status: 'paid',
+                    earned_at: ref.account_activated_at,
+                    paid_at: new Date().toISOString(),
+                    payout_month: month,
+                    payout_year: year
+                });
+            } else if (existingComm.status !== 'paid') {
+                await supabaseClient.from('referral_commissions').update({
+                    status: 'paid',
+                    paid_at: new Date().toISOString(),
+                    payout_month: month,
+                    payout_year: year,
+                    updated_at: new Date().toISOString()
+                }).eq('id', existingComm.id);
+            }
+        }
+
+        showToast('Payout marked as paid!', 'success');
+        await loadReferralData();
+
+    } catch (err) {
+        console.error('Error marking payout:', err);
+        showToast('Error marking payout as paid', 'error');
+    }
+}
+
+async function refundCommission(commissionId) {
+    if (!confirm('Refund this commission? This will mark it as refunded.')) return;
+    try {
+        await supabaseClient.from('referral_commissions').update({
+            status: 'refunded',
+            refunded_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        }).eq('id', commissionId);
+        showToast('Commission refunded', 'success');
+        await loadReferralData();
+    } catch (err) {
+        console.error('Error refunding:', err);
+        showToast('Error refunding commission', 'error');
+    }
+}
+
+function loadCommissionSettings() {
+    const referrers = referralDataCache.referrers;
+    const referrals = referralDataCache.referrals;
+    const tbody = document.getElementById('commission-settings-body');
+
+    if (referrers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">No referrers yet.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    referrers.forEach(referrer => {
+        const refs = referrals.filter(r => r.referrer_code === referrer.referral_code);
+        const activated = refs.filter(r => r.account_activated).length;
+        const rate = parseFloat(referrer.referral_commission_rate || 0.20);
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(referrer.name || referrer.email)}</td>
+            <td><code>${escapeHtml(referrer.referral_code)}</code></td>
+            <td>
+                <input type="number" min="1" max="100" value="${(rate * 100).toFixed(0)}"
+                    style="width:60px;padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:13px;text-align:center;"
+                    id="rate-${referrer.id}">%
+            </td>
+            <td>${refs.length}</td>
+            <td>${activated}</td>
+            <td><button class="btn-refresh" style="font-size:12px;padding:4px 12px;"
+                onclick="updateCommissionRate('${referrer.id}', document.getElementById('rate-${referrer.id}').value)">Save</button></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+async function updateCommissionRate(userId, ratePercent) {
+    const rate = parseFloat(ratePercent) / 100;
+    if (isNaN(rate) || rate < 0 || rate > 1) {
+        showToast('Invalid rate. Enter 1-100.', 'error');
+        return;
+    }
+    try {
+        const { error } = await supabaseClient.from('users').update({
+            referral_commission_rate: rate
+        }).eq('id', userId);
+        if (error) throw error;
+        showToast('Commission rate updated to ' + ratePercent + '%', 'success');
+        // Update cache
+        const referrer = referralDataCache.referrers.find(r => r.id === userId);
+        if (referrer) referrer.referral_commission_rate = rate;
+    } catch (err) {
+        console.error('Error updating rate:', err);
+        showToast('Error updating rate', 'error');
+    }
+}
+
+function loadAllReferralsTable() {
+    const allReferrals = referralDataCache.referrals;
+    const tbody = document.getElementById('referrals-table-body');
+
+    if (allReferrals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="loading-cell">No referrals recorded yet.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    allReferrals.forEach(ref => {
+        const row = document.createElement('tr');
+        const dateStr = ref.created_at
+            ? new Date(ref.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'N/A';
+        row.innerHTML = `
+            <td>${escapeHtml(ref.referred_email || 'N/A')}</td>
+            <td>${escapeHtml(ref.referrer_email || ref.referrer_code)}</td>
+            <td>${ref.quiz_completed ? '<span style="color: #2e7d32;">Yes</span>' : '<span style="color: #999;">No</span>'}</td>
+            <td>${ref.trial_started ? '<span style="color: #e65100;">Yes</span>' : '<span style="color: #999;">No</span>'}</td>
+            <td>${ref.account_activated ? '<span style="color: #1565c0;">Yes</span>' : '<span style="color: #999;">No</span>'}</td>
+            <td>${ref.subscription_type ? escapeHtml(ref.subscription_type) : '-'}</td>
+            <td>${dateStr}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function loadPayoutHistory() {
+    const payouts = referralDataCache.payouts.filter(p => p.status === 'paid');
+    const tbody = document.getElementById('payout-history-body');
+
+    if (payouts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">No payouts settled yet.</td></tr>';
+        return;
+    }
+
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    tbody.innerHTML = '';
+    payouts.forEach(p => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${escapeHtml(p.referrer_email)}</td>
+            <td>${months[p.payout_month - 1]} ${p.payout_year}</td>
+            <td>${p.total_commissions}</td>
+            <td><strong>$${parseFloat(p.total_amount).toFixed(2)}</strong></td>
+            <td>${p.paid_at ? new Date(p.paid_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}</td>
+            <td>${escapeHtml(p.payment_method || '-')}</td>
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 // Helper: escape HTML to prevent XSS
