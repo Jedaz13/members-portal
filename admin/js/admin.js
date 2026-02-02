@@ -34,6 +34,7 @@ const PROTOCOL_NAMES = {
 // ============================================
 let currentUser = null;
 let currentAdmin = null;
+let authInProgress = false; // Prevent double auth processing
 let supportConversations = [];
 let currentFilter = 'all';
 let autoRefreshEnabled = false;
@@ -62,7 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Set default tab from URL or config
-    if (tabParam && ['support', 'qa', 'quiz-analytics', 'members', 'settings'].includes(tabParam)) {
+    if (tabParam && ['support', 'qa', 'quiz-analytics', 'referrals', 'members', 'settings'].includes(tabParam)) {
         ADMIN_CONFIG.defaultTab = tabParam;
     }
 
@@ -74,9 +75,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Listen for auth state changes (handles OAuth callback)
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        console.log('Admin auth state changed:', event);
         if (event === 'SIGNED_IN' && session) {
-            await checkAuth();
+            // Only process if not already handled by checkAuth (avoids double processing)
+            if (!authInProgress && !currentAdmin) {
+                await checkAuth();
+            }
         } else if (event === 'SIGNED_OUT') {
+            currentUser = null;
+            currentAdmin = null;
             showView('login-view');
         }
     });
@@ -86,29 +93,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Authentication
 // ============================================
 async function checkAuth() {
+    // Prevent double processing from onAuthStateChange race condition
+    if (authInProgress) {
+        console.log('Auth already in progress, skipping...');
+        return;
+    }
+    authInProgress = true;
     showView('loading-view');
 
     try {
         // Handle OAuth callback (code in URL from Google redirect)
         const urlParams = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const hasOAuthCallback = urlParams.has('code') || hashParams.has('access_token');
+        const code = urlParams.get('code');
+        const hasOAuthCallback = code || hashParams.has('access_token');
 
-        if (hasOAuthCallback) {
-            // Exchange code for session (PKCE flow)
-            if (urlParams.has('code')) {
-                await supabaseClient.auth.exchangeCodeForSession(urlParams.get('code'));
-            }
-            // Clean URL without reloading
+        let session = null;
+
+        if (hasOAuthCallback && code) {
+            // Clean URL BEFORE exchange to prevent onAuthStateChange from re-processing
             window.history.replaceState({}, '', window.location.pathname);
+
+            // Exchange code for session (PKCE flow)
+            const { data, error: exchangeError } = await supabaseClient.auth.exchangeCodeForSession(code);
+
+            if (exchangeError) {
+                console.error('OAuth code exchange failed:', exchangeError.message);
+                showToast('Sign in failed. Please try again.', 'error');
+                showView('login-view');
+                authInProgress = false;
+                return;
+            }
+
+            session = data?.session;
         }
 
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        // If no session from exchange, try getting existing session
+        if (!session) {
+            const { data: sessionData, error } = await supabaseClient.auth.getSession();
 
-        if (error || !session) {
-            // Show admin login view instead of redirecting
-            showView('login-view');
-            return;
+            if (error || !sessionData?.session) {
+                showView('login-view');
+                authInProgress = false;
+                return;
+            }
+
+            session = sessionData.session;
         }
 
         currentUser = session.user;
@@ -118,6 +148,7 @@ async function checkAuth() {
 
         if (!isAdmin) {
             showView('access-denied-view');
+            authInProgress = false;
             return;
         }
 
@@ -146,6 +177,8 @@ async function checkAuth() {
     } catch (err) {
         console.error('Auth error:', err);
         showView('login-view');
+    } finally {
+        authInProgress = false;
     }
 }
 
@@ -266,6 +299,8 @@ function switchTab(tabId) {
         initializeQATab();
     } else if (tabId === 'quiz-analytics') {
         initializeQuizAnalytics();
+    } else if (tabId === 'referrals') {
+        loadReferralData();
     }
 
     // Update URL without reload
@@ -343,6 +378,14 @@ function setupEventListeners() {
             } else {
                 stopAutoRefresh();
             }
+        });
+    }
+
+    // Referral refresh button
+    const referralRefreshBtn = document.getElementById('btn-referral-refresh');
+    if (referralRefreshBtn) {
+        referralRefreshBtn.addEventListener('click', () => {
+            loadReferralData();
         });
     }
 }
@@ -2346,4 +2389,109 @@ function formatDuration(seconds) {
     if (mins === 0) return `${secs}s`;
     if (secs === 0) return `${mins}m`;
     return `${mins}m ${secs}s`;
+}
+
+// ============================================
+// Referral Management
+// ============================================
+async function loadReferralData() {
+    const refreshBtn = document.getElementById('btn-referral-refresh');
+    if (refreshBtn) {
+        refreshBtn.classList.add('loading');
+        refreshBtn.disabled = true;
+    }
+
+    try {
+        // Load all referrals
+        const { data: referrals, error: refError } = await supabaseClient
+            .from('referrals')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (refError) {
+            console.error('Error loading referrals:', refError);
+            showToast('Error loading referral data', 'error');
+            return;
+        }
+
+        // Load users with referral codes
+        const { data: referrers, error: usersError } = await supabaseClient
+            .from('users')
+            .select('id, email, name, referral_code')
+            .not('referral_code', 'is', null);
+
+        if (usersError) {
+            console.error('Error loading referrers:', usersError);
+        }
+
+        const allReferrals = referrals || [];
+        const allReferrers = referrers || [];
+
+        // Update overview stats
+        document.getElementById('ref-stat-total').textContent = allReferrals.length;
+        document.getElementById('ref-stat-quiz').textContent = allReferrals.filter(r => r.quiz_completed).length;
+        document.getElementById('ref-stat-trial').textContent = allReferrals.filter(r => r.trial_started).length;
+        document.getElementById('ref-stat-active').textContent = allReferrals.filter(r => r.account_activated).length;
+
+        // Build referrers table
+        const referrersBody = document.getElementById('referrers-table-body');
+        if (allReferrers.length === 0) {
+            referrersBody.innerHTML = '<tr><td colspan="6" class="loading-cell">No referrers found. Members get a referral code on their profile page.</td></tr>';
+        } else {
+            referrersBody.innerHTML = '';
+            allReferrers.forEach(referrer => {
+                const refs = allReferrals.filter(r => r.referrer_code === referrer.referral_code);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${escapeHtml(referrer.name || referrer.email)}</td>
+                    <td><code>${escapeHtml(referrer.referral_code)}</code></td>
+                    <td>${refs.length}</td>
+                    <td>${refs.filter(r => r.quiz_completed).length}</td>
+                    <td>${refs.filter(r => r.trial_started).length}</td>
+                    <td>${refs.filter(r => r.account_activated).length}</td>
+                `;
+                referrersBody.appendChild(row);
+            });
+        }
+
+        // Build all referrals table
+        const referralsBody = document.getElementById('referrals-table-body');
+        if (allReferrals.length === 0) {
+            referralsBody.innerHTML = '<tr><td colspan="6" class="loading-cell">No referrals recorded yet.</td></tr>';
+        } else {
+            referralsBody.innerHTML = '';
+            allReferrals.forEach(ref => {
+                const row = document.createElement('tr');
+                const dateStr = ref.created_at
+                    ? new Date(ref.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                    : 'N/A';
+                row.innerHTML = `
+                    <td>${escapeHtml(ref.referred_email || 'N/A')}</td>
+                    <td>${escapeHtml(ref.referrer_email || ref.referrer_code)}</td>
+                    <td>${ref.quiz_completed ? '<span style="color: #2e7d32;">Yes</span>' : '<span style="color: #999;">No</span>'}</td>
+                    <td>${ref.trial_started ? '<span style="color: #e65100;">Yes</span>' : '<span style="color: #999;">No</span>'}</td>
+                    <td>${ref.account_activated ? '<span style="color: #1565c0;">Yes</span>' : '<span style="color: #999;">No</span>'}</td>
+                    <td>${dateStr}</td>
+                `;
+                referralsBody.appendChild(row);
+            });
+        }
+
+    } catch (err) {
+        console.error('Error loading referral data:', err);
+        showToast('Error loading referral data', 'error');
+    } finally {
+        if (refreshBtn) {
+            refreshBtn.classList.remove('loading');
+            refreshBtn.disabled = false;
+        }
+    }
+}
+
+// Helper: escape HTML to prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }

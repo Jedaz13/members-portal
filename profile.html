@@ -335,6 +335,153 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
+        /* Referral Program */
+        .referral-link-box {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .referral-link-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text);
+            background: var(--white);
+            min-width: 0;
+        }
+
+        .btn-copy-referral {
+            padding: 10px 20px;
+            background: var(--forest, #2d5a3d);
+            color: var(--white);
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .btn-copy-referral:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-copy-referral.copied {
+            background: #28a745;
+        }
+
+        .referral-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .referral-stat-card {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .referral-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--forest, #2d5a3d);
+            margin-bottom: 4px;
+        }
+
+        .referral-stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .referral-history {
+            margin-top: 8px;
+        }
+
+        .referral-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .referral-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--background);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .referral-item-email {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .referral-item-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .referral-item-status.quiz {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .referral-item-status.trial {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .referral-item-status.active {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .referral-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .referral-stats {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            .referral-stat-value {
+                font-size: 22px;
+            }
+
+            .referral-stat-label {
+                font-size: 11px;
+            }
+
+            .referral-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+        }
+
         /* Danger Zone */
         .danger-zone {
             border: 1px solid #e74c3c;
@@ -529,6 +676,47 @@
                             <input type="checkbox" id="qa-notifications-toggle" checked>
                             <span class="toggle-slider"></span>
                         </label>
+                    </div>
+                </section>
+
+                <!-- Referral Program -->
+                <section id="referral-section" class="profile-section">
+                    <h2 class="section-title">Referral Program</h2>
+                    <p style="color: var(--text-light); font-size: 14px; margin-bottom: 16px;">
+                        Share your referral link with friends and family. Track when they complete the quiz, start a trial, or activate their account.
+                    </p>
+
+                    <!-- Referral Link -->
+                    <div class="referral-link-box">
+                        <label style="font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: block;">Your Referral Link</label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" id="referral-link-input" class="referral-link-input" readonly value="Loading...">
+                            <button id="copy-referral-btn" class="btn-copy-referral">Copy</button>
+                        </div>
+                    </div>
+
+                    <!-- Referral Stats Dashboard -->
+                    <div id="referral-stats" class="referral-stats">
+                        <div class="referral-stat-card">
+                            <div class="referral-stat-value" id="stat-quiz-completed">0</div>
+                            <div class="referral-stat-label">Quiz Completed</div>
+                        </div>
+                        <div class="referral-stat-card">
+                            <div class="referral-stat-value" id="stat-trial-started">0</div>
+                            <div class="referral-stat-label">Trial Started</div>
+                        </div>
+                        <div class="referral-stat-card">
+                            <div class="referral-stat-value" id="stat-account-activated">0</div>
+                            <div class="referral-stat-label">Account Activated</div>
+                        </div>
+                    </div>
+
+                    <!-- Referral History -->
+                    <div id="referral-history" class="referral-history hidden">
+                        <h3 style="font-size: 15px; font-weight: 600; color: var(--text); margin: 20px 0 12px;">Referral History</h3>
+                        <div id="referral-list" class="referral-list">
+                            <!-- Populated by JS -->
+                        </div>
                     </div>
                 </section>
 
@@ -805,16 +993,184 @@
             }
         }
 
+        // ============================================
+        // REFERRAL SYSTEM
+        // ============================================
+
+        // Generate or get referral code for user
+        async function ensureReferralCode() {
+            if (currentMember.referral_code) {
+                return currentMember.referral_code;
+            }
+
+            try {
+                // Generate a referral code from email
+                const emailPrefix = currentMember.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+                let code = emailPrefix.substring(0, 20);
+
+                // Check if code exists already
+                const { data: existing } = await supabaseClient
+                    .from('users')
+                    .select('referral_code')
+                    .eq('referral_code', code)
+                    .maybeSingle();
+
+                if (existing) {
+                    // Add random suffix for uniqueness
+                    code = code + Math.floor(Math.random() * 1000);
+                }
+
+                // Update user with new referral code
+                const { error } = await supabaseClient
+                    .from('users')
+                    .update({ referral_code: code })
+                    .eq('email', currentMember.email);
+
+                if (error) {
+                    console.error('Error setting referral code:', error);
+                    return null;
+                }
+
+                currentMember.referral_code = code;
+                return code;
+            } catch (err) {
+                console.error('Error generating referral code:', err);
+                return null;
+            }
+        }
+
+        // Load referral stats and populate UI
+        async function loadReferralData() {
+            const code = await ensureReferralCode();
+
+            if (!code) {
+                document.getElementById('referral-link-input').value = 'Error generating link';
+                return;
+            }
+
+            // Set referral link
+            const referralLink = 'https://guthealingacademy.com/quiz?ref=' + code;
+            document.getElementById('referral-link-input').value = referralLink;
+
+            // Load referral stats
+            try {
+                const { data: referrals, error } = await supabaseClient
+                    .from('referrals')
+                    .select('*')
+                    .eq('referrer_code', code)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Error loading referrals:', error);
+                    return;
+                }
+
+                if (!referrals || referrals.length === 0) {
+                    document.getElementById('stat-quiz-completed').textContent = '0';
+                    document.getElementById('stat-trial-started').textContent = '0';
+                    document.getElementById('stat-account-activated').textContent = '0';
+                    return;
+                }
+
+                // Calculate stats
+                const quizCompleted = referrals.filter(r => r.quiz_completed).length;
+                const trialStarted = referrals.filter(r => r.trial_started).length;
+                const accountActivated = referrals.filter(r => r.account_activated).length;
+
+                document.getElementById('stat-quiz-completed').textContent = quizCompleted;
+                document.getElementById('stat-trial-started').textContent = trialStarted;
+                document.getElementById('stat-account-activated').textContent = accountActivated;
+
+                // Show referral history if there are referrals
+                if (referrals.length > 0) {
+                    document.getElementById('referral-history').classList.remove('hidden');
+                    const listEl = document.getElementById('referral-list');
+                    listEl.innerHTML = '';
+
+                    referrals.forEach(function(ref) {
+                        // Determine highest status
+                        let statusText = 'Quiz Completed';
+                        let statusClass = 'quiz';
+                        if (ref.account_activated) {
+                            statusText = 'Account Active';
+                            statusClass = 'active';
+                        } else if (ref.trial_started) {
+                            statusText = 'Trial Started';
+                            statusClass = 'trial';
+                        }
+
+                        const displayEmail = ref.referred_email || 'Anonymous';
+                        const maskedEmail = displayEmail !== 'Anonymous'
+                            ? displayEmail.substring(0, 3) + '***@' + displayEmail.split('@')[1]
+                            : 'Anonymous';
+
+                        const dateStr = ref.created_at
+                            ? new Date(ref.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                            : '';
+
+                        const item = document.createElement('div');
+                        item.className = 'referral-item';
+                        item.innerHTML =
+                            '<div>' +
+                                '<span class="referral-item-email">' + maskedEmail + '</span>' +
+                                (dateStr ? '<span style="color: var(--text-light); font-size: 12px; margin-left: 8px;">' + dateStr + '</span>' : '') +
+                            '</div>' +
+                            '<span class="referral-item-status ' + statusClass + '">' + statusText + '</span>';
+                        listEl.appendChild(item);
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading referral data:', err);
+            }
+        }
+
+        // Copy referral link to clipboard
+        function copyReferralLink() {
+            const input = document.getElementById('referral-link-input');
+            const btn = document.getElementById('copy-referral-btn');
+
+            if (!input.value || input.value === 'Loading...' || input.value.startsWith('Error')) {
+                return;
+            }
+
+            navigator.clipboard.writeText(input.value).then(function() {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(function() {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(function() {
+                // Fallback for older browsers
+                input.select();
+                document.execCommand('copy');
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(function() {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', async () => {
             // Load profile
             await loadProfile();
+
+            // Load referral data (after profile is loaded)
+            if (currentMember) {
+                loadReferralData();
+            }
 
             // Manage billing button
             document.getElementById('manage-billing-btn')?.addEventListener('click', openStripePortal);
 
             // Cancel membership button (opens Stripe portal)
             document.getElementById('cancel-membership-btn')?.addEventListener('click', openStripePortal);
+
+            // Copy referral link button
+            document.getElementById('copy-referral-btn')?.addEventListener('click', copyReferralLink);
 
             // Notification toggles
             document.getElementById('email-notifications-toggle')?.addEventListener('change', (e) => {
