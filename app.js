@@ -1349,6 +1349,222 @@ var ALLOWED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/g
                              'text/plain'];
 
 // ============================================
+// REFERRAL TRACKING
+// ============================================
+
+// Capture referral code from URL on page load
+function captureReferralCode() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var refCode = urlParams.get('ref');
+    if (refCode) {
+        localStorage.setItem('referral_code', refCode);
+        console.log('Referral code captured:', refCode);
+        // Clean the ref param from URL without reload
+        urlParams.delete('ref');
+        var newUrl = window.location.pathname;
+        var remaining = urlParams.toString();
+        if (remaining) newUrl += '?' + remaining;
+        if (window.location.hash) newUrl += window.location.hash;
+        window.history.replaceState({}, '', newUrl);
+    }
+}
+
+// Track referral when user signs in with a valid account
+async function trackReferral(member, accessToken) {
+    var refCode = localStorage.getItem('referral_code');
+    if (!refCode) return;
+
+    // Don't self-refer
+    if (member.referral_code === refCode) {
+        localStorage.removeItem('referral_code');
+        return;
+    }
+
+    // Skip if user was already referred
+    if (member.referred_by) {
+        localStorage.removeItem('referral_code');
+        return;
+    }
+
+    console.log('Processing referral for code:', refCode);
+
+    try {
+        // Update user record with referral info
+        var updateResponse = await fetch(SUPABASE_URL + '/rest/v1/users?email=ilike.' + encodeURIComponent(member.email), {
+            method: 'PATCH',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ referred_by: refCode })
+        });
+
+        if (!updateResponse.ok) {
+            console.warn('Failed to update referred_by:', await updateResponse.text());
+        }
+
+        // Determine funnel stage
+        var quizCompleted = !!member.protocol;
+        var trialStarted = member.status === 'trial' || member.status === 'active' || member.status === 'trial_expired';
+        var accountActivated = member.status === 'active';
+
+        // Check if referral record already exists for this email
+        var checkResponse = await fetch(SUPABASE_URL + '/rest/v1/referrals?referrer_code=eq.' + encodeURIComponent(refCode) + '&referred_email=ilike.' + encodeURIComponent(member.email) + '&select=id', {
+            method: 'GET',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        var existingReferrals = [];
+        if (checkResponse.ok) {
+            existingReferrals = await checkResponse.json();
+        }
+
+        if (existingReferrals.length > 0) {
+            // Update existing referral record
+            var updateData = { updated_at: new Date().toISOString() };
+            if (trialStarted) {
+                updateData.trial_started = true;
+                updateData.trial_started_at = updateData.trial_started_at || new Date().toISOString();
+            }
+            if (accountActivated) {
+                updateData.account_activated = true;
+                updateData.account_activated_at = updateData.account_activated_at || new Date().toISOString();
+            }
+
+            await fetch(SUPABASE_URL + '/rest/v1/referrals?id=eq.' + existingReferrals[0].id, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + accessToken,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify(updateData)
+            });
+        } else {
+            // Create new referral record
+            // Look up the referrer's user_id and email
+            var referrerResponse = await fetch(SUPABASE_URL + '/rest/v1/users?referral_code=eq.' + encodeURIComponent(refCode) + '&select=id,email', {
+                method: 'GET',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + accessToken,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            var referrerData = [];
+            if (referrerResponse.ok) {
+                referrerData = await referrerResponse.json();
+            }
+
+            if (referrerData.length === 0) {
+                console.warn('Referrer not found for code:', refCode);
+                localStorage.removeItem('referral_code');
+                return;
+            }
+
+            var referrer = referrerData[0];
+            var now = new Date().toISOString();
+
+            var referralRecord = {
+                referrer_user_id: referrer.id,
+                referrer_email: referrer.email,
+                referrer_code: refCode,
+                referred_email: member.email,
+                referred_user_id: member.id,
+                quiz_completed: quizCompleted,
+                quiz_completed_at: quizCompleted ? now : null,
+                trial_started: trialStarted,
+                trial_started_at: trialStarted ? now : null,
+                account_activated: accountActivated,
+                account_activated_at: accountActivated ? now : null,
+                created_at: now,
+                updated_at: now
+            };
+
+            await fetch(SUPABASE_URL + '/rest/v1/referrals', {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + accessToken,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify(referralRecord)
+            });
+        }
+
+        // Clean up
+        localStorage.removeItem('referral_code');
+        console.log('Referral tracked successfully');
+
+    } catch (err) {
+        console.error('Error tracking referral:', err);
+        // Don't remove from localStorage on error - try again next time
+    }
+}
+
+// Update existing referral record when user status changes (trial -> active)
+async function updateReferralStatus(member, accessToken) {
+    if (!member.referred_by) return;
+
+    try {
+        var checkResponse = await fetch(SUPABASE_URL + '/rest/v1/referrals?referrer_code=eq.' + encodeURIComponent(member.referred_by) + '&referred_email=ilike.' + encodeURIComponent(member.email) + '&select=id,trial_started,account_activated', {
+            method: 'GET',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!checkResponse.ok) return;
+
+        var referrals = await checkResponse.json();
+        if (referrals.length === 0) return;
+
+        var referral = referrals[0];
+        var updateData = { updated_at: new Date().toISOString() };
+        var needsUpdate = false;
+
+        if (!referral.trial_started && (member.status === 'trial' || member.status === 'active')) {
+            updateData.trial_started = true;
+            updateData.trial_started_at = new Date().toISOString();
+            needsUpdate = true;
+        }
+
+        if (!referral.account_activated && member.status === 'active') {
+            updateData.account_activated = true;
+            updateData.account_activated_at = new Date().toISOString();
+            needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+            await fetch(SUPABASE_URL + '/rest/v1/referrals?id=eq.' + referral.id, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': 'Bearer ' + accessToken,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                },
+                body: JSON.stringify(updateData)
+            });
+            console.log('Referral status updated for:', member.email);
+        }
+    } catch (err) {
+        console.error('Error updating referral status:', err);
+    }
+}
+
+// ============================================
 // VIEW MANAGEMENT
 // ============================================
 function hideAllViews() {
@@ -1688,6 +1904,16 @@ async function checkUserStatusAndRoute(user, accessToken) {
         currentMember = member;
         console.log('Current member:', currentMember);
 
+        // Track referral (non-blocking, fire and forget)
+        trackReferral(member, accessToken).catch(function(err) {
+            console.warn('Referral tracking error:', err);
+        });
+
+        // Update referral status if user was previously referred (non-blocking)
+        updateReferralStatus(member, accessToken).catch(function(err) {
+            console.warn('Referral status update error:', err);
+        });
+
         // Step 2: Handle status-based routing
         // Default to 'lead' if status is null/undefined
         let updatedStatus = member.status || 'lead';
@@ -1697,25 +1923,15 @@ async function checkUserStatusAndRoute(user, accessToken) {
         // Users with status='lead' or NULL should NOT have portal access
         // They need to pay first to get 'trial' or 'active' status
         if (!member.status || member.status === 'lead') {
-            console.log('User is a lead (non-payer) - redirecting to offer page');
-            // Sign them out first
-            await supabase.auth.signOut();
-            currentUser = null;
-            currentMember = null;
-            // Redirect to the offer page
-            window.location.href = 'https://www.guthealingacademy.com/offer/';
+            console.log('User is a lead (non-payer) - showing subscription required view');
+            showView('no-subscription-view');
             return;
         }
 
-        // Handle cancelled users - redirect to offer page to resubscribe
+        // Handle cancelled users - show subscription view to resubscribe
         if (member.status === 'cancelled') {
-            console.log('User membership is cancelled - redirecting to offer page');
-            // Sign them out first
-            await supabase.auth.signOut();
-            currentUser = null;
-            currentMember = null;
-            // Redirect to the offer page
-            window.location.href = 'https://www.guthealingacademy.com/offer/';
+            console.log('User membership is cancelled - showing subscription required view');
+            showView('no-subscription-view');
             return;
         }
 
@@ -1772,13 +1988,10 @@ async function checkUserStatusAndRoute(user, accessToken) {
                 initializeDashboard();
                 break;
             default:
-                // Any other status (lead, cancelled, etc.) - redirect to offer page
+                // Any other status (lead, cancelled, etc.) - show subscription view
                 // This is a safety fallback - should have been caught earlier
-                console.log('Unexpected status:', updatedStatus, '- redirecting to offer page');
-                await supabase.auth.signOut();
-                currentUser = null;
-                currentMember = null;
-                window.location.href = 'https://www.guthealingacademy.com/offer/';
+                console.log('Unexpected status:', updatedStatus, '- showing subscription required view');
+                showView('no-subscription-view');
         }
 
     } catch (err) {
@@ -3711,6 +3924,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dashboard-logout').addEventListener('click', signOut);
     document.getElementById('not-found-logout').addEventListener('click', signOut);
     document.getElementById('trial-expired-logout').addEventListener('click', signOut);
+    document.getElementById('no-subscription-logout')?.addEventListener('click', signOut);
 
     // Send message button
     document.getElementById('send-message-btn').addEventListener('click', sendMessage);
@@ -3740,6 +3954,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Capture referral code from URL if present
+    captureReferralCode();
 
     // Initialize Login Page Features
     initLoginPageFeatures();
