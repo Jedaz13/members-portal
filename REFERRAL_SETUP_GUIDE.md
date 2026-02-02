@@ -12,116 +12,60 @@ script to preserve the `?ref=` parameter through the funnel.
 
 ---
 
-## What You Need to Add
+## Quick Setup (Recommended)
 
-### 1. Add This Script to ALL Pages That Receive Referral Traffic
+### 1. Add One Script Tag to Every External Page
 
-This includes: `quiz-4`, `offer-4`, `offer-3`, and any landing pages.
-
-Add this script snippet **in the `<head>` or at the top of `<body>`** on each page:
+Add this single line to the `<head>` of every quiz, offer, and landing page:
 
 ```html
-<script>
-// === REFERRAL TRACKING (add to quiz & offer pages) ===
-(function() {
-    var urlParams = new URLSearchParams(window.location.search);
-    var refCode = urlParams.get('ref');
-
-    // If ref code is in URL, store it in cookie (14-day expiry)
-    if (refCode) {
-        var expires = new Date();
-        expires.setDate(expires.getDate() + 14);
-        document.cookie = 'ref_code=' + encodeURIComponent(refCode) +
-            ';expires=' + expires.toUTCString() +
-            ';path=/;domain=.guthealingacademy.com;SameSite=Lax';
-        // Also store in localStorage as backup
-        try { localStorage.setItem('referral_code', refCode); } catch(e) {}
-    }
-
-    // Read existing ref code from cookie (for pages loaded without ?ref=)
-    function getRefCode() {
-        var match = document.cookie.match(/(?:^|;\s*)ref_code=([^;]*)/);
-        return match ? decodeURIComponent(match[1]) : null;
-    }
-
-    // Append ref code to any outgoing links to the members portal
-    function appendRefToLinks() {
-        var ref = refCode || getRefCode();
-        if (!ref) return;
-
-        document.querySelectorAll('a[href]').forEach(function(link) {
-            var href = link.getAttribute('href');
-            // Only modify links pointing to the members portal
-            if (href && (
-                href.includes('app.guthealingacademy.com') ||
-                href.includes('/signup') ||
-                href.includes('/index.html')
-            )) {
-                var url;
-                try { url = new URL(href, window.location.origin); } catch(e) { return; }
-                if (!url.searchParams.has('ref')) {
-                    url.searchParams.set('ref', ref);
-                    link.setAttribute('href', url.toString());
-                }
-            }
-        });
-    }
-
-    // Run on DOM ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', appendRefToLinks);
-    } else {
-        appendRefToLinks();
-    }
-
-    // Also run after any dynamic content loads (for SPA-like pages)
-    var observer = new MutationObserver(function() { appendRefToLinks(); });
-    observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
-})();
-</script>
+<script src="https://app.guthealingacademy.com/referral-tracker.js"></script>
 ```
 
-### 2. Quiz Result -> Signup Redirect
+That's it. The script automatically:
+- Captures `?ref=` from the URL and stores it in a 14-day cookie
+- Backs up the ref code in localStorage
+- Auto-appends `?ref=` to all links pointing to the members portal
+- Watches for dynamically added links and updates them too
 
-When the quiz is completed and you redirect the user to sign up, make sure to include
-the ref parameter:
+### 2. For JavaScript Redirects (Quiz Results, Button Clicks)
+
+If your page redirects users via JavaScript (not a regular `<a>` link), use the
+built-in helper to build the URL with the ref code attached:
 
 ```javascript
-// BEFORE (no referral tracking):
-window.location.href = 'https://app.guthealingacademy.com/signup.html?email=' + userEmail;
-
-// AFTER (with referral tracking):
-var ref = '';
-var refMatch = document.cookie.match(/(?:^|;\s*)ref_code=([^;]*)/);
-if (refMatch) ref = decodeURIComponent(refMatch[1]);
-// Or from localStorage:
-if (!ref) try { ref = localStorage.getItem('referral_code') || ''; } catch(e) {}
-
+// Quiz result redirect
 var signupUrl = 'https://app.guthealingacademy.com/signup.html?email=' + encodeURIComponent(userEmail);
-if (ref) signupUrl += '&ref=' + encodeURIComponent(ref);
-window.location.href = signupUrl;
+window.location.href = GHA_Referral.buildUrl(signupUrl);
+
+// Button click redirect
+var url = 'https://app.guthealingacademy.com/signup.html';
+window.location.href = GHA_Referral.buildUrl(url);
 ```
 
-### 3. Offer Pages -> Checkout/Signup Links
+`GHA_Referral.buildUrl(url)` appends `?ref=CODE` if a referral code exists,
+or returns the URL unchanged if there's no referral.
 
-On offer-3, offer-4, etc., the script from step 1 will automatically append `?ref=`
-to links pointing to the members portal. If you have JavaScript-triggered redirects
-(button onclick, form submissions), add the ref parameter manually:
+You can also get the raw ref code:
 
 ```javascript
-// Get ref code from cookie or localStorage
-function getRefCode() {
-    var match = document.cookie.match(/(?:^|;\s*)ref_code=([^;]*)/);
-    if (match) return decodeURIComponent(match[1]);
-    try { return localStorage.getItem('referral_code') || ''; } catch(e) { return ''; }
-}
-
-// Use in your redirect:
-var url = 'https://app.guthealingacademy.com/signup.html';
-var ref = getRefCode();
-if (ref) url += '?ref=' + encodeURIComponent(ref);
-window.location.href = url;
+var ref = GHA_Referral.getRefCode(); // returns code string or null
 ```
+
+---
+
+## Pages to Update
+
+| Page | What to Add |
+|------|------------|
+| Quiz landing (quiz-4) | Script tag in `<head>` |
+| Quiz result / redirect | Script tag + `GHA_Referral.buildUrl()` in redirect |
+| Offer page (offer-3) | Script tag in `<head>` |
+| Offer page (offer-4) | Script tag in `<head>` |
+| Any new landing page | Script tag in `<head>` |
+
+Every new page you create just needs the one `<script>` tag. No other changes
+are needed unless the page uses JavaScript redirects.
 
 ---
 
@@ -151,15 +95,76 @@ different domains.
 
 ---
 
-## Pages to Update
+## Alternative: Inline Script (No External File)
 
-| Page | What to Add |
-|------|------------|
-| Quiz landing (quiz-4) | Full script from step 1 |
-| Quiz result / redirect | Ref param in signup redirect (step 2) |
-| Offer page (offer-3) | Full script from step 1 |
-| Offer page (offer-4) | Full script from step 1 |
-| Any other landing page | Full script from step 1 |
+If you prefer not to load the external script, you can copy-paste this into the
+`<head>` of each page:
+
+```html
+<script>
+(function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var refCode = urlParams.get('ref');
+
+    if (refCode) {
+        var expires = new Date();
+        expires.setDate(expires.getDate() + 14);
+        document.cookie = 'ref_code=' + encodeURIComponent(refCode) +
+            ';expires=' + expires.toUTCString() +
+            ';path=/;domain=.guthealingacademy.com;SameSite=Lax';
+        try { localStorage.setItem('referral_code', refCode); } catch(e) {}
+    }
+
+    function getRefCode() {
+        var match = document.cookie.match(/(?:^|;\s*)ref_code=([^;]*)/);
+        return match ? decodeURIComponent(match[1]) : null;
+    }
+
+    function appendRefToLinks() {
+        var ref = refCode || getRefCode();
+        if (!ref) return;
+        document.querySelectorAll('a[href]').forEach(function(link) {
+            var href = link.getAttribute('href');
+            if (href && (
+                href.includes('app.guthealingacademy.com') ||
+                href.includes('/signup') ||
+                href.includes('/index.html')
+            )) {
+                var url;
+                try { url = new URL(href, window.location.origin); } catch(e) { return; }
+                if (!url.searchParams.has('ref')) {
+                    url.searchParams.set('ref', ref);
+                    link.setAttribute('href', url.toString());
+                }
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', appendRefToLinks);
+    } else {
+        appendRefToLinks();
+    }
+
+    var observer = new MutationObserver(function() { appendRefToLinks(); });
+    observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+```
+
+Note: The inline version does NOT expose `GHA_Referral.buildUrl()`. For JavaScript
+redirects with the inline version, manually read the ref code:
+
+```javascript
+var ref = '';
+var refMatch = document.cookie.match(/(?:^|;\s*)ref_code=([^;]*)/);
+if (refMatch) ref = decodeURIComponent(refMatch[1]);
+if (!ref) try { ref = localStorage.getItem('referral_code') || ''; } catch(e) {}
+
+var signupUrl = 'https://app.guthealingacademy.com/signup.html?email=' + encodeURIComponent(userEmail);
+if (ref) signupUrl += '&ref=' + encodeURIComponent(ref);
+window.location.href = signupUrl;
+```
 
 ---
 
