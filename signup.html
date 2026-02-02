@@ -337,6 +337,20 @@
             return urlParams.get('email') || '';
         }
 
+        // Capture referral code from URL and store in cookie + localStorage
+        function captureReferralCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refCode = urlParams.get('ref');
+            if (refCode) {
+                localStorage.setItem('referral_code', refCode);
+                // Set a 14-day cookie for cross-session attribution
+                const expires = new Date();
+                expires.setDate(expires.getDate() + 14);
+                document.cookie = 'ref_code=' + encodeURIComponent(refCode) + ';expires=' + expires.toUTCString() + ';path=/;SameSite=Lax';
+                console.log('Referral code captured on signup:', refCode);
+            }
+        }
+
         // Show toast notification
         function showToast(message) {
             const toast = document.getElementById('toast');
@@ -486,6 +500,9 @@
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
+            // Capture referral code from URL before anything else
+            captureReferralCode();
+
             // Pre-fill email from URL if provided
             const email = getEmailFromURL();
             if (email) {

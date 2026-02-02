@@ -461,6 +461,34 @@
             font-size: 14px;
         }
 
+        .earnings-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .earnings-card {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+
+        .earnings-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--forest, #2d5a3d);
+            margin-bottom: 2px;
+        }
+
+        .earnings-label {
+            font-size: 11px;
+            color: var(--text-light);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         @media (max-width: 600px) {
             .referral-stats {
                 grid-template-columns: repeat(3, 1fr);
@@ -709,6 +737,75 @@
                             <div class="referral-stat-value" id="stat-account-activated">0</div>
                             <div class="referral-stat-label">Account Activated</div>
                         </div>
+                    </div>
+
+                    <!-- Earnings Summary -->
+                    <div id="referral-earnings" class="referral-earnings">
+                        <h3 style="font-size: 15px; font-weight: 600; color: var(--text); margin: 20px 0 12px;">Earnings</h3>
+                        <div class="earnings-cards">
+                            <div class="earnings-card">
+                                <div class="earnings-value" id="earnings-total">$0.00</div>
+                                <div class="earnings-label">Total Earned</div>
+                            </div>
+                            <div class="earnings-card">
+                                <div class="earnings-value" id="earnings-pending" style="color: #e65100;">$0.00</div>
+                                <div class="earnings-label">Pending</div>
+                            </div>
+                            <div class="earnings-card">
+                                <div class="earnings-value" id="earnings-paid" style="color: #2e7d32;">$0.00</div>
+                                <div class="earnings-label">Paid Out</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div id="payment-details-section" style="margin-top: 20px;">
+                        <h3 style="font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 12px;">Payment Details</h3>
+                        <p style="color: var(--text-light); font-size: 13px; margin-bottom: 12px;">Add your payment details so we can send you your earnings.</p>
+
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Payment Method</label>
+                            <select id="payout-method-select" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; background: var(--white);">
+                                <option value="">Select method...</option>
+                                <option value="paypal">PayPal</option>
+                                <option value="bank">Bank Transfer</option>
+                            </select>
+                        </div>
+
+                        <!-- PayPal Fields -->
+                        <div id="paypal-fields" class="hidden">
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">PayPal Email</label>
+                                <input type="email" id="payout-paypal-email" placeholder="your@email.com"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            </div>
+                        </div>
+
+                        <!-- Bank Fields -->
+                        <div id="bank-fields" class="hidden">
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Account Holder Name</label>
+                                <input type="text" id="payout-bank-holder" placeholder="Full name"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Bank Name</label>
+                                <input type="text" id="payout-bank-name" placeholder="Bank name"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">IBAN</label>
+                                <input type="text" id="payout-bank-iban" placeholder="IBAN number"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">SWIFT/BIC</label>
+                                <input type="text" id="payout-bank-swift" placeholder="SWIFT/BIC code"
+                                    style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                            </div>
+                        </div>
+
+                        <button id="save-payment-btn" class="btn-copy-referral" style="margin-top: 8px;">Save Payment Details</button>
                     </div>
 
                     <!-- Referral History -->
@@ -1124,6 +1221,130 @@
             }
         }
 
+        // Load earnings data
+        async function loadEarningsData() {
+            try {
+                const { data: commissions, error } = await supabaseClient
+                    .from('referral_commissions')
+                    .select('*')
+                    .eq('referrer_user_id', currentMember.id);
+
+                if (error) {
+                    console.error('Error loading commissions:', error);
+                    return;
+                }
+
+                if (!commissions || commissions.length === 0) {
+                    document.getElementById('earnings-total').textContent = '$0.00';
+                    document.getElementById('earnings-pending').textContent = '$0.00';
+                    document.getElementById('earnings-paid').textContent = '$0.00';
+                    return;
+                }
+
+                var totalEarned = 0;
+                var pendingAmount = 0;
+                var paidAmount = 0;
+
+                commissions.forEach(function(c) {
+                    var amt = parseFloat(c.commission_amount || 0);
+                    if (c.status === 'refunded') return;
+                    totalEarned += amt;
+                    if (c.status === 'paid') {
+                        paidAmount += amt;
+                    } else {
+                        pendingAmount += amt;
+                    }
+                });
+
+                document.getElementById('earnings-total').textContent = '$' + totalEarned.toFixed(2);
+                document.getElementById('earnings-pending').textContent = '$' + pendingAmount.toFixed(2);
+                document.getElementById('earnings-paid').textContent = '$' + paidAmount.toFixed(2);
+
+            } catch (err) {
+                console.error('Error loading earnings:', err);
+            }
+        }
+
+        // Load and populate payment details
+        function populatePaymentDetails() {
+            var method = currentMember.payout_method || '';
+            var select = document.getElementById('payout-method-select');
+            if (select) select.value = method;
+
+            if (method === 'paypal') {
+                document.getElementById('paypal-fields').classList.remove('hidden');
+                document.getElementById('bank-fields').classList.add('hidden');
+            } else if (method === 'bank') {
+                document.getElementById('bank-fields').classList.remove('hidden');
+                document.getElementById('paypal-fields').classList.add('hidden');
+            }
+
+            if (currentMember.payout_paypal_email) {
+                document.getElementById('payout-paypal-email').value = currentMember.payout_paypal_email;
+            }
+            if (currentMember.payout_bank_holder) {
+                document.getElementById('payout-bank-holder').value = currentMember.payout_bank_holder;
+            }
+            if (currentMember.payout_bank_name) {
+                document.getElementById('payout-bank-name').value = currentMember.payout_bank_name;
+            }
+            if (currentMember.payout_bank_iban) {
+                document.getElementById('payout-bank-iban').value = currentMember.payout_bank_iban;
+            }
+            if (currentMember.payout_bank_swift) {
+                document.getElementById('payout-bank-swift').value = currentMember.payout_bank_swift;
+            }
+        }
+
+        // Save payment details
+        async function savePaymentDetails() {
+            var method = document.getElementById('payout-method-select').value;
+            if (!method) {
+                showToast('Please select a payment method.');
+                return;
+            }
+
+            var updateData = { payout_method: method };
+
+            if (method === 'paypal') {
+                var paypalEmail = document.getElementById('payout-paypal-email').value.trim();
+                if (!paypalEmail) {
+                    showToast('Please enter your PayPal email.');
+                    return;
+                }
+                updateData.payout_paypal_email = paypalEmail;
+            } else if (method === 'bank') {
+                var holder = document.getElementById('payout-bank-holder').value.trim();
+                var bankName = document.getElementById('payout-bank-name').value.trim();
+                var iban = document.getElementById('payout-bank-iban').value.trim();
+                var swift = document.getElementById('payout-bank-swift').value.trim();
+                if (!holder || !bankName || !iban) {
+                    showToast('Please fill in all required bank fields.');
+                    return;
+                }
+                updateData.payout_bank_holder = holder;
+                updateData.payout_bank_name = bankName;
+                updateData.payout_bank_iban = iban;
+                updateData.payout_bank_swift = swift;
+            }
+
+            try {
+                var { error } = await supabaseClient
+                    .from('users')
+                    .update(updateData)
+                    .eq('email', currentMember.email);
+
+                if (error) throw error;
+
+                // Update local state
+                Object.assign(currentMember, updateData);
+                showToast('Payment details saved!');
+            } catch (err) {
+                console.error('Error saving payment details:', err);
+                showToast('Failed to save payment details.');
+            }
+        }
+
         // Copy referral link to clipboard
         function copyReferralLink() {
             const input = document.getElementById('referral-link-input');
@@ -1161,7 +1382,18 @@
             // Load referral data (after profile is loaded)
             if (currentMember) {
                 loadReferralData();
+                loadEarningsData();
+                populatePaymentDetails();
             }
+
+            // Payment method toggle
+            document.getElementById('payout-method-select')?.addEventListener('change', function(e) {
+                document.getElementById('paypal-fields').classList.toggle('hidden', e.target.value !== 'paypal');
+                document.getElementById('bank-fields').classList.toggle('hidden', e.target.value !== 'bank');
+            });
+
+            // Save payment details
+            document.getElementById('save-payment-btn')?.addEventListener('click', savePaymentDetails);
 
             // Manage billing button
             document.getElementById('manage-billing-btn')?.addEventListener('click', openStripePortal);

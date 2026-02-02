@@ -500,66 +500,98 @@
                             </svg>
                         </div>
                         <div class="overview-card-content">
-                            <div class="overview-card-value" id="ref-stat-quiz">--</div>
-                            <div class="overview-card-label">Quiz Completed</div>
+                            <div class="overview-card-value" id="ref-stat-active">--</div>
+                            <div class="overview-card-label">Activated</div>
                         </div>
                     </div>
                     <div class="overview-card">
                         <div class="overview-card-icon emails">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <polyline points="12 6 12 12 16 14"/>
+                                <line x1="12" y1="1" x2="12" y2="23"/>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                             </svg>
                         </div>
                         <div class="overview-card-content">
-                            <div class="overview-card-value" id="ref-stat-trial">--</div>
-                            <div class="overview-card-label">Trial Started</div>
+                            <div class="overview-card-value" id="ref-stat-owed">--</div>
+                            <div class="overview-card-label">Total Owed</div>
                         </div>
                     </div>
                     <div class="overview-card">
                         <div class="overview-card-icon time">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
                             </svg>
                         </div>
                         <div class="overview-card-content">
-                            <div class="overview-card-value" id="ref-stat-active">--</div>
-                            <div class="overview-card-label">Account Activated</div>
+                            <div class="overview-card-value" id="ref-stat-paid">--</div>
+                            <div class="overview-card-label">Total Paid</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Referrers Table -->
+                <!-- Monthly Payout Management -->
                 <div class="panel-card">
                     <div class="panel-header-row">
                         <div>
-                            <h2 class="panel-title">Referrers</h2>
-                            <p class="panel-intro">Members with referral codes and their stats.</p>
+                            <h2 class="panel-title">Monthly Payouts</h2>
+                            <p class="panel-intro">Review commissions and settle payments. Default: 20% one-time per paid activation. Min payout: $50.</p>
                         </div>
-                        <button id="btn-referral-refresh" class="btn-refresh">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M23 4v6h-6"></path>
-                                <path d="M1 20v-6h6"></path>
-                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
-                                <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
-                            </svg>
-                            Refresh
-                        </button>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <select id="payout-month-select" class="form-select" style="padding:6px 10px;border-radius:6px;border:1px solid #ddd;font-size:13px;">
+                            </select>
+                            <button id="btn-referral-refresh" class="btn-refresh">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                                    <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                                </svg>
+                                Refresh
+                            </button>
+                        </div>
                     </div>
                     <div class="table-container">
-                        <table class="quiz-table" id="referrers-table">
+                        <table class="quiz-table" id="payouts-table">
+                            <thead>
+                                <tr>
+                                    <th>Referrer</th>
+                                    <th>Payment Info</th>
+                                    <th>Activations</th>
+                                    <th>Rate</th>
+                                    <th>Owed</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payouts-table-body">
+                                <tr><td colspan="7" class="loading-cell">Loading payout data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Commission Settings per Referrer -->
+                <div class="panel-card">
+                    <div class="panel-header-row">
+                        <div>
+                            <h2 class="panel-title">Commission Settings</h2>
+                            <p class="panel-intro">Set custom commission rates per referrer. Default is 20%.</p>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="quiz-table" id="commission-settings-table">
                             <thead>
                                 <tr>
                                     <th>Referrer</th>
                                     <th>Code</th>
-                                    <th>Total</th>
-                                    <th>Quiz</th>
-                                    <th>Trial</th>
-                                    <th>Active</th>
+                                    <th>Rate</th>
+                                    <th>Total Referrals</th>
+                                    <th>Activated</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="referrers-table-body">
-                                <tr><td colspan="6" class="loading-cell">Loading referral data...</td></tr>
+                            <tbody id="commission-settings-body">
+                                <tr><td colspan="6" class="loading-cell">Loading...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -578,11 +610,35 @@
                                     <th>Quiz</th>
                                     <th>Trial</th>
                                     <th>Active</th>
+                                    <th>Plan</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
                             <tbody id="referrals-table-body">
-                                <tr><td colspan="6" class="loading-cell">Loading referral data...</td></tr>
+                                <tr><td colspan="7" class="loading-cell">Loading referral data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Payout History -->
+                <div class="panel-card">
+                    <h2 class="panel-title">Payout History</h2>
+                    <p class="panel-intro">Record of all settled payouts.</p>
+                    <div class="table-container">
+                        <table class="quiz-table" id="payout-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Referrer</th>
+                                    <th>Month</th>
+                                    <th>Commissions</th>
+                                    <th>Amount</th>
+                                    <th>Paid On</th>
+                                    <th>Method</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payout-history-body">
+                                <tr><td colspan="6" class="loading-cell">Loading history...</td></tr>
                             </tbody>
                         </table>
                     </div>
