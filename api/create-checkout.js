@@ -54,6 +54,7 @@ module.exports = async function handler(req, res) {
       email,
       name,
       protocol_name,
+      protocol,
       include_survival_guide,
       include_meal_plan,
       // Quiz params for metadata passthrough
@@ -68,9 +69,9 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields: email and protocol_name' });
     }
 
-    const protocolPrice = PROTOCOL_PRICES[protocol_name];
+    const protocolPrice = PROTOCOL_PRICES[protocol];
     if (!protocolPrice) {
-      return res.status(400).json({ error: 'Invalid protocol_name: ' + protocol_name });
+      return res.status(400).json({ error: 'Invalid protocol: ' + protocol });
     }
 
     // Build line items — protocol is always included
