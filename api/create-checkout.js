@@ -2,10 +2,17 @@ const Stripe = require('stripe');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Stripe Price IDs — replace after creating products in Stripe Dashboard
-const STRIPE_PRICE_PROTOCOL = "price_XXXXX";   // $47 one-time
-const STRIPE_PRICE_SURVIVAL = "price_XXXXX";   // $19 one-time
-const STRIPE_PRICE_MEALPLAN = "price_XXXXX";   // $37 one-time
+// Stripe Price IDs — per-protocol pricing
+const PROTOCOL_PRICES = {
+  'bloat_reset':  'price_1SwkoVLZMe5qWSedZMXuSKnF',
+  'regularity':   'price_1Swl2jLZMe5qWSedVESlYi1A',
+  'calm_gut':     'price_1Swl3RLZMe5qWSedDd40BgDG',
+  'stability':    'price_1Swl3gLZMe5qWSed2ZoLaoOd',
+  'rebuild':      'price_1Swl3tLZMe5qWSedxrlIAzwG'
+};
+
+const STRIPE_PRICE_SURVIVAL = 'price_1Swl5GLZMe5qWSedSB44hOjF';  // $19 one-time
+const STRIPE_PRICE_MEALPLAN = 'price_1Swl6DLZMe5qWSedzUotZrpG';  // $37 one-time
 
 const ALLOWED_ORIGINS = [
   'https://www.guthealingacademy.com',
@@ -61,9 +68,14 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields: email and protocol_name' });
     }
 
+    const protocolPrice = PROTOCOL_PRICES[protocol_name];
+    if (!protocolPrice) {
+      return res.status(400).json({ error: 'Invalid protocol_name: ' + protocol_name });
+    }
+
     // Build line items — protocol is always included
     const line_items = [
-      { price: STRIPE_PRICE_PROTOCOL, quantity: 1 }
+      { price: protocolPrice, quantity: 1 }
     ];
 
     if (include_survival_guide) {
