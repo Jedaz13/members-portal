@@ -1311,7 +1311,7 @@ async function markQAQuestion(questionId, newStatus) {
 // ============================================
 
 // Quiz Analytics State
-let quizDateRange = 'today';
+let quizDateRange = '30d';
 let quizStartDate = null;
 let quizEndDate = null;
 let quizFunnelData = [];
@@ -1503,16 +1503,22 @@ async function loadQuizOverviewStats() {
 
     try {
         // Get quiz starts
-        const { data: startsData, error: startsError } = await supabaseClient
+        const { data: uniqueStarts, count: startCount, error: startsError } = await supabaseClient
             .from('quiz_events')
-            .select('session_id', { count: 'exact', head: true })
+            .select('session_id', { count: 'exact' })
             .eq('quiz_source', 'quiz-4')
             .eq('event_type', 'quiz_start')
             .gte('created_at', startDate)
             .lte('created_at', endDate);
 
+        if (startsError) {
+            console.error('quiz_events query error:', startsError);
+            showToast('Cannot read quiz data. Check quiz_events table RLS policies in Supabase.', 'error');
+            return;
+        }
+
         // Get email captures
-        const { data: emailsData, count: emailCount, error: emailsError } = await supabaseClient
+        const { count: emailCount, error: emailsError } = await supabaseClient
             .from('quiz_events')
             .select('session_id', { count: 'exact', head: true })
             .eq('quiz_source', 'quiz-4')
@@ -1521,20 +1527,11 @@ async function loadQuizOverviewStats() {
             .lte('created_at', endDate);
 
         // Get completions
-        const { data: completionsData, count: completionCount, error: completionsError } = await supabaseClient
+        const { count: completionCount, error: completionsError } = await supabaseClient
             .from('quiz_events')
             .select('session_id', { count: 'exact', head: true })
             .eq('quiz_source', 'quiz-4')
             .eq('event_type', 'quiz_complete')
-            .gte('created_at', startDate)
-            .lte('created_at', endDate);
-
-        // Get unique sessions for starts count
-        const { data: uniqueStarts, error: uniqueStartsError } = await supabaseClient
-            .from('quiz_events')
-            .select('session_id')
-            .eq('quiz_source', 'quiz-4')
-            .eq('event_type', 'quiz_start')
             .gte('created_at', startDate)
             .lte('created_at', endDate);
 
@@ -1607,6 +1604,8 @@ async function loadQuizFunnelData() {
             if (!dropoffError && dropoffData && dropoffData.length > 0) {
                 funnelData = dropoffData;
             } else {
+                if (statsError) console.warn('quiz_funnel_stats error:', statsError.message);
+                if (dropoffError) console.warn('quiz_dropoff_analysis error:', dropoffError.message);
                 console.log('Calculating funnel from raw events...');
                 funnelData = await calculateFunnelFromEvents(startDate, endDate);
             }
@@ -1812,6 +1811,7 @@ async function loadQuizDailyStats() {
 
         // If view doesn't exist, calculate from raw events
         if (error || !dailyData || dailyData.length === 0) {
+            if (error) console.warn('quiz_daily_stats error:', error.message);
             console.log('Calculating daily stats from raw events...');
             dailyData = await calculateDailyStatsFromEvents(start, end);
         }
@@ -1883,6 +1883,7 @@ async function loadQuizActiveSessions() {
 
         // If view doesn't exist, calculate manually
         if (error || !activeSessions) {
+            if (error) console.warn('quiz_active_sessions error:', error.message);
             console.log('Calculating active sessions from raw events...');
             activeSessions = await calculateActiveSessionsFromEvents();
         }
@@ -1995,10 +1996,14 @@ function renderFunnelChart() {
         funnelChart.destroy();
     }
 
+    const funnelEmpty = document.getElementById('funnel-empty');
     if (quizFunnelData.length === 0) {
-        ctx.parentElement.innerHTML = '<div class="empty-state"><p>No funnel data available for the selected date range.</p></div>';
+        ctx.style.display = 'none';
+        if (funnelEmpty) funnelEmpty.style.display = '';
         return;
     }
+    ctx.style.display = '';
+    if (funnelEmpty) funnelEmpty.style.display = 'none';
 
     // Prepare data
     const labels = quizFunnelData.map(d => `${d.screen_index}`);
@@ -2212,10 +2217,14 @@ function renderTrendsChart() {
         trendsChart.destroy();
     }
 
+    const trendsEmpty = document.getElementById('trends-empty');
     if (quizDailyData.length === 0) {
-        ctx.parentElement.innerHTML = '<div class="empty-state"><p>No trend data available for the selected date range.</p></div>';
+        ctx.style.display = 'none';
+        if (trendsEmpty) trendsEmpty.style.display = '';
         return;
     }
+    ctx.style.display = '';
+    if (trendsEmpty) trendsEmpty.style.display = 'none';
 
     const labels = quizDailyData.map(d => {
         const date = new Date(d.date + 'T00:00:00');
@@ -2283,10 +2292,15 @@ function renderAnswerChart(canvasId, data, chartVarName) {
         window[chartVarName].destroy();
     }
 
+    const emptyId = 'empty-' + canvasId.replace('chart-', '');
+    const emptyEl = document.getElementById(emptyId);
     if (!data || data.length === 0) {
-        ctx.parentElement.innerHTML = '<div class="empty-state-small"><p>No data</p></div>';
+        ctx.style.display = 'none';
+        if (emptyEl) emptyEl.style.display = '';
         return;
     }
+    ctx.style.display = '';
+    if (emptyEl) emptyEl.style.display = 'none';
 
     // Aggregate answers
     const answerCounts = {};
