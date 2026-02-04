@@ -2010,3 +2010,397 @@ a:hover {
         padding: 8px 10px;
     }
 }
+
+/* ============================================
+   Case Reviews Dashboard
+   ============================================ */
+
+.case-reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Case Review Card */
+.cr-card {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--divider);
+    box-shadow: 0 2px 8px var(--shadow);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.cr-card:hover {
+    box-shadow: 0 4px 16px var(--shadow-lg);
+}
+
+.cr-card.priority {
+    border-color: var(--citrus);
+    box-shadow: 0 0 0 2px var(--citrus-light);
+}
+
+/* Card Header */
+.cr-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--divider);
+    background: var(--background-cream);
+}
+
+.cr-card-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cr-customer-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.cr-customer-email {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.cr-card-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cr-time {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.cr-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.cr-status.submitted {
+    background: var(--citrus-light);
+    color: #856404;
+}
+
+.cr-status.in_review {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.cr-status.completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.cr-priority-badge {
+    background: var(--alert);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+/* Health Profile Context */
+.cr-context {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--divider);
+}
+
+.cr-context-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.cr-context-tag {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    background: var(--background-sage);
+    border-radius: 4px;
+    color: var(--text-secondary);
+}
+
+.cr-context-tag.protocol {
+    background: var(--forest);
+    color: white;
+}
+
+.cr-context-tag.gut-brain {
+    background: var(--citrus-light);
+    color: #856404;
+}
+
+.cr-goal {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-top: 6px;
+}
+
+/* Questions Section */
+.cr-questions {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--divider);
+}
+
+.cr-question-item {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text);
+    padding: 8px 0;
+}
+
+.cr-question-item:not(:last-child) {
+    border-bottom: 1px dashed var(--divider);
+}
+
+.cr-question-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-right: 8px;
+}
+
+/* Supplements & Notes */
+.cr-extras {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--divider);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.cr-extras-label {
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.cr-extras-text {
+    line-height: 1.5;
+}
+
+/* Attachments */
+.cr-attachments {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--divider);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.cr-attachment-icon {
+    font-size: 1rem;
+}
+
+.cr-attachment-link {
+    color: var(--leaf);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.cr-attachment-link:hover {
+    text-decoration: underline;
+}
+
+/* Card Actions Footer */
+.cr-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 12px 20px;
+    background: var(--background-sage);
+    border-top: 1px solid var(--divider);
+    gap: 8px;
+}
+
+/* Response Area (expanded) */
+.cr-response-area {
+    padding: 20px;
+    border-top: 1px solid var(--divider);
+    background: var(--background-cream);
+    display: none;
+}
+
+.cr-response-area.active {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+.cr-response-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.cr-response-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 14px 16px;
+    border: 1px solid var(--divider);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    resize: vertical;
+    transition: border-color 0.2s ease;
+    background: var(--white);
+}
+
+.cr-response-textarea:focus {
+    outline: none;
+    border-color: var(--leaf);
+}
+
+.cr-response-textarea::placeholder {
+    color: var(--text-light);
+}
+
+.cr-response-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.cr-response-meta-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.cr-char-count {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.cr-response-by {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.cr-response-by label {
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.cr-response-by select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--divider);
+    font-size: 0.85rem;
+    font-family: inherit;
+    background: var(--white);
+}
+
+.cr-response-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Completed Response Display */
+.cr-completed-response {
+    padding: 16px 20px;
+    border-top: 1px solid var(--divider);
+    display: none;
+}
+
+.cr-completed-response.active {
+    display: block;
+}
+
+.cr-completed-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.cr-completed-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.cr-completed-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    background: #f0f9f4;
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 3px solid var(--success);
+    white-space: pre-wrap;
+}
+
+/* Case Reviews Responsive */
+@media (max-width: 768px) {
+    .cr-card-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .cr-card-header-right {
+        flex-wrap: wrap;
+    }
+
+    .cr-context-tags {
+        gap: 6px;
+    }
+
+    .cr-card-footer {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .cr-response-meta {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cr-response-actions {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .cr-card-footer button {
+        width: 100%;
+    }
+
+    .cr-response-actions {
+        flex-direction: column;
+    }
+
+    .cr-response-actions button {
+        width: 100%;
+    }
+}

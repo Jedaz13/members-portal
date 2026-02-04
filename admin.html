@@ -93,6 +93,10 @@
             <button class="tab-btn" data-tab="referrals">
                 Referrals
             </button>
+            <button class="tab-btn" data-tab="case-reviews">
+                Case Reviews
+                <span class="badge" id="case-reviews-badge" style="display: none;">0</span>
+            </button>
             <button class="tab-btn" data-tab="members" disabled>
                 Members
                 <span class="coming-soon">Soon</span>
@@ -646,6 +650,61 @@
                                 <tr><td colspan="6" class="loading-cell">Loading history...</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case Reviews Panel -->
+            <div id="case-reviews-panel" class="tab-panel">
+                <div class="panel-card">
+                    <div class="panel-header-row">
+                        <div>
+                            <h2 class="panel-title">Case Reviews</h2>
+                            <p class="panel-intro" id="case-reviews-summary">Personal case reviews submitted for Rebecca's analysis.</p>
+                        </div>
+                    </div>
+
+                    <!-- Filter Bar -->
+                    <div class="filter-bar">
+                        <div class="filter-group">
+                            <label class="filter-label" for="cr-status-filter">Status:</label>
+                            <select id="cr-status-filter" class="filter-select">
+                                <option value="all">All</option>
+                                <option value="submitted">Pending</option>
+                                <option value="in_review">In Review</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="filter-label" for="cr-sort-filter">Sort:</label>
+                            <select id="cr-sort-filter" class="filter-select">
+                                <option value="newest">Newest first</option>
+                                <option value="oldest">Oldest first</option>
+                            </select>
+                        </div>
+                        <div class="filter-stats" id="cr-filter-stats">
+                            <strong>0</strong> reviews
+                        </div>
+                        <div class="filter-actions">
+                            <button id="btn-cr-refresh" class="btn-refresh">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 4v6h-6"></path>
+                                    <path d="M1 20v-6h6"></path>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                                    <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                                </svg>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Case Reviews List -->
+                    <div id="case-reviews-list" class="case-reviews-list">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <h3>No case reviews yet</h3>
+                            <p>Case reviews will appear here when customers submit them via the upsell page.</p>
+                        </div>
                     </div>
                 </div>
             </div>
