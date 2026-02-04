@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Set default tab from URL or config
-    if (tabParam && ['support', 'qa', 'quiz-analytics', 'referrals', 'members', 'settings'].includes(tabParam)) {
+    if (tabParam && ['support', 'qa', 'quiz-analytics', 'referrals', 'case-reviews', 'members', 'settings'].includes(tabParam)) {
         ADMIN_CONFIG.defaultTab = tabParam;
     }
 
@@ -271,6 +271,33 @@ function updateAdminUI() {
 function initializeTabs() {
     const defaultTab = ADMIN_CONFIG.defaultTab;
     switchTab(defaultTab);
+
+    // Eagerly load case review badge count
+    loadCaseReviewBadgeCount();
+}
+
+async function loadCaseReviewBadgeCount() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('case_reviews')
+            .select('id, status')
+            .in('status', ['submitted', 'in_review']);
+
+        if (!error && data) {
+            const badge = document.getElementById('case-reviews-badge');
+            if (badge) {
+                if (data.length > 0) {
+                    badge.textContent = data.length;
+                    badge.style.display = 'inline';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch (err) {
+        // Silently fail - badge is non-critical
+        console.log('Could not load case review badge count:', err);
+    }
 }
 
 function switchTab(tabId) {
@@ -301,6 +328,8 @@ function switchTab(tabId) {
         initializeQuizAnalytics();
     } else if (tabId === 'referrals') {
         loadReferralData();
+    } else if (tabId === 'case-reviews') {
+        initializeCaseReviews();
     }
 
     // Update URL without reload
@@ -386,6 +415,28 @@ function setupEventListeners() {
     if (referralRefreshBtn) {
         referralRefreshBtn.addEventListener('click', () => {
             loadReferralData();
+        });
+    }
+
+    // Case Reviews event listeners
+    const crRefreshBtn = document.getElementById('btn-cr-refresh');
+    if (crRefreshBtn) {
+        crRefreshBtn.addEventListener('click', () => {
+            loadCaseReviews();
+        });
+    }
+
+    const crStatusFilter = document.getElementById('cr-status-filter');
+    if (crStatusFilter) {
+        crStatusFilter.addEventListener('change', () => {
+            renderCaseReviews();
+        });
+    }
+
+    const crSortFilter = document.getElementById('cr-sort-filter');
+    if (crSortFilter) {
+        crSortFilter.addEventListener('change', () => {
+            renderCaseReviews();
         });
     }
 }
@@ -2785,6 +2836,490 @@ function loadPayoutHistory() {
         `;
         tbody.appendChild(row);
     });
+}
+
+// ============================================
+// Case Reviews
+// ============================================
+
+// Protocol friendly names for case reviews
+const CR_PROTOCOL_FRIENDLY_NAMES = {
+    'Bloating': 'The Sensitive Responder',
+    'IBS-C': 'The Rhythmic Regulator',
+    'IBS-D': 'The Calm Gut Responder',
+    'IBS-M': 'The Stability Seeker',
+    'Post-SIBO': 'The Gut Restorer',
+    'Gut-Brain': 'The Mind-Body Connector'
+};
+
+let caseReviews = [];
+let caseReviewsInitialized = false;
+
+async function initializeCaseReviews() {
+    if (!caseReviewsInitialized) {
+        caseReviewsInitialized = true;
+    }
+    await loadCaseReviews();
+}
+
+async function loadCaseReviews() {
+    const refreshBtn = document.getElementById('btn-cr-refresh');
+    if (refreshBtn) refreshBtn.classList.add('loading');
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('case_reviews')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error loading case reviews:', error);
+            showToast('Error loading case reviews', 'error');
+            caseReviews = [];
+        } else {
+            caseReviews = data || [];
+        }
+
+        renderCaseReviews();
+        updateCaseReviewBadge();
+
+    } catch (err) {
+        console.error('Error loading case reviews:', err);
+        caseReviews = [];
+        renderCaseReviews();
+    } finally {
+        if (refreshBtn) refreshBtn.classList.remove('loading');
+    }
+}
+
+function updateCaseReviewBadge() {
+    const pendingCount = caseReviews.filter(r => r.status === 'submitted' || r.status === 'in_review').length;
+    const badge = document.getElementById('case-reviews-badge');
+    if (badge) {
+        if (pendingCount > 0) {
+            badge.textContent = pendingCount;
+            badge.style.display = 'inline';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function renderCaseReviews() {
+    const container = document.getElementById('case-reviews-list');
+    const statusFilter = document.getElementById('cr-status-filter')?.value || 'all';
+    const sortFilter = document.getElementById('cr-sort-filter')?.value || 'newest';
+
+    // Filter
+    let filtered = caseReviews;
+    if (statusFilter !== 'all') {
+        filtered = filtered.filter(r => r.status === statusFilter);
+    }
+
+    // Sort
+    filtered = [...filtered].sort((a, b) => {
+        const dateA = new Date(a.created_at);
+        const dateB = new Date(b.created_at);
+        return sortFilter === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    // Update stats
+    const pendingCount = caseReviews.filter(r => r.status === 'submitted').length;
+    const inReviewCount = caseReviews.filter(r => r.status === 'in_review').length;
+    const completedCount = caseReviews.filter(r => r.status === 'completed').length;
+
+    const statsEl = document.getElementById('cr-filter-stats');
+    if (statsEl) {
+        statsEl.innerHTML = `<strong>${filtered.length}</strong> reviews (${pendingCount} pending &middot; ${completedCount} completed)`;
+    }
+
+    const summaryEl = document.getElementById('case-reviews-summary');
+    if (summaryEl) {
+        summaryEl.textContent = `${pendingCount} pending \u00b7 ${inReviewCount} in review \u00b7 ${completedCount} completed`;
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <h3>No case reviews found</h3>
+                <p>${statusFilter !== 'all' ? 'No reviews match the current filter.' : 'Case reviews will appear here when customers submit them.'}</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filtered.map(review => renderCaseReviewCard(review)).join('');
+}
+
+function renderCaseReviewCard(review) {
+    const name = review.name || review.email?.split('@')[0] || 'Unknown';
+    const timeStr = formatRelativeTime(review.created_at);
+    const statusLabel = review.status === 'submitted' ? 'Pending' : review.status === 'in_review' ? 'In Review' : 'Completed';
+
+    // Protocol friendly name
+    const protocolName = review.protocol_name || review.protocol || '';
+    const friendlyProtocol = CR_PROTOCOL_FRIENDLY_NAMES[protocolName] || protocolName;
+
+    // Build context tags
+    let contextTags = '';
+    if (friendlyProtocol) {
+        contextTags += `<span class="cr-context-tag protocol">${escapeHtml(friendlyProtocol)}</span>`;
+    }
+    if (review.primary_complaint_label || review.primary_complaint) {
+        contextTags += `<span class="cr-context-tag">${escapeHtml(review.primary_complaint_label || review.primary_complaint)}</span>`;
+    }
+    if (review.duration) {
+        contextTags += `<span class="cr-context-tag">${escapeHtml(review.duration)}</span>`;
+    }
+    if (review.treatments_formatted) {
+        contextTags += `<span class="cr-context-tag">Tried: ${escapeHtml(review.treatments_formatted)}</span>`;
+    }
+    if (review.gut_brain) {
+        contextTags += `<span class="cr-context-tag gut-brain">Gut-Brain: ${escapeHtml(review.gut_brain)}/5</span>`;
+    }
+
+    // Build questions list
+    let questionsHtml = '';
+    for (let i = 1; i <= 6; i++) {
+        const q = review[`question_${i}`];
+        if (q) {
+            questionsHtml += `
+                <div class="cr-question-item">
+                    <span class="cr-question-label">Q${i}:</span>
+                    ${escapeHtml(q)}
+                </div>
+            `;
+        }
+    }
+
+    // Supplements
+    let extrasHtml = '';
+    if (review.current_supplements) {
+        extrasHtml += `
+            <div class="cr-extras">
+                <div class="cr-extras-label">Supplements & Medications</div>
+                <div class="cr-extras-text">${escapeHtml(review.current_supplements)}</div>
+            </div>
+        `;
+    }
+    if (review.additional_notes) {
+        extrasHtml += `
+            <div class="cr-extras">
+                <div class="cr-extras-label">Additional Notes</div>
+                <div class="cr-extras-text">${escapeHtml(review.additional_notes)}</div>
+            </div>
+        `;
+    }
+
+    // Attachments
+    let attachmentsHtml = '';
+    const attachments = review.attachments || [];
+    if (attachments.length > 0) {
+        const attachmentLinks = attachments.map(a =>
+            `<a class="cr-attachment-link" href="${escapeHtml(a.url)}" target="_blank">${escapeHtml(a.name)}</a>`
+        ).join(', ');
+        attachmentsHtml = `
+            <div class="cr-attachments">
+                <span class="cr-attachment-icon">📎</span>
+                ${attachments.length} file${attachments.length > 1 ? 's' : ''} attached: ${attachmentLinks}
+            </div>
+        `;
+    }
+
+    // Goal
+    let goalHtml = '';
+    if (review.goal) {
+        goalHtml = `<div class="cr-goal">Goal: "${escapeHtml(review.goal)}"</div>`;
+    }
+
+    // Priority badge
+    const priorityBadge = review.is_priority ? '<span class="cr-priority-badge">Priority</span>' : '';
+
+    // Action buttons based on status
+    let footerHtml = '';
+    let responseAreaHtml = '';
+    let completedResponseHtml = '';
+
+    if (review.status === 'submitted') {
+        footerHtml = `
+            <div class="cr-card-footer">
+                <button class="btn-secondary" onclick="toggleCaseReviewPriority('${review.id}', ${!review.is_priority})">
+                    ${review.is_priority ? 'Remove Priority' : 'Mark as Priority'}
+                </button>
+                <button class="btn-primary" onclick="startCaseReview('${review.id}')">
+                    Start Review
+                </button>
+            </div>
+        `;
+    } else if (review.status === 'in_review') {
+        footerHtml = `
+            <div class="cr-card-footer">
+                <button class="btn-secondary" onclick="toggleCaseReviewPriority('${review.id}', ${!review.is_priority})">
+                    ${review.is_priority ? 'Remove Priority' : 'Mark as Priority'}
+                </button>
+                <button class="btn-primary" onclick="toggleResponseArea('${review.id}')">
+                    Write Response
+                </button>
+            </div>
+        `;
+        responseAreaHtml = `
+            <div class="cr-response-area" id="cr-response-${review.id}">
+                <div class="cr-response-label">Write Your Response</div>
+                <textarea
+                    class="cr-response-textarea"
+                    id="cr-textarea-${review.id}"
+                    placeholder="Write your personalised response here. Address each question specifically. Include 'What to discuss with your doctor' section where relevant."
+                    oninput="updateCharCount('${review.id}')"
+                >${escapeHtml(review.draft_text || '')}</textarea>
+                <div class="cr-response-meta">
+                    <div class="cr-response-meta-left">
+                        <span class="cr-char-count" id="cr-charcount-${review.id}">${(review.draft_text || '').length} characters</span>
+                        <div class="cr-response-by">
+                            <label>Response by:</label>
+                            <select id="cr-responder-${review.id}">
+                                <option value="Rebecca Taylor">Rebecca Taylor</option>
+                                <option value="Paulina Andrzejewska">Paulina Andrzejewska</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="cr-response-actions">
+                        <button class="btn-secondary" onclick="saveCaseReviewDraft('${review.id}')">Save Draft</button>
+                        <button class="btn-success" onclick="sendCaseReviewResponse('${review.id}')">Send Response</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else if (review.status === 'completed') {
+        const respondedAt = review.responded_at
+            ? new Date(review.responded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : '';
+        footerHtml = `
+            <div class="cr-card-footer">
+                <button class="btn-text" onclick="toggleCompletedResponse('${review.id}')">View Response</button>
+                <button class="btn-secondary" onclick="reopenCaseReview('${review.id}')">Reopen</button>
+            </div>
+        `;
+        completedResponseHtml = `
+            <div class="cr-completed-response" id="cr-completed-${review.id}">
+                <div class="cr-completed-header">
+                    <div class="cr-response-label" style="color: var(--success);">Response</div>
+                    <div class="cr-completed-meta">
+                        By ${escapeHtml(review.response_by || 'Unknown')} &middot; ${respondedAt}
+                    </div>
+                </div>
+                <div class="cr-completed-text">${escapeHtml(review.response_text || '')}</div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="cr-card ${review.is_priority ? 'priority' : ''}" id="cr-card-${review.id}">
+            <div class="cr-card-header">
+                <div class="cr-card-header-left">
+                    <div class="cr-customer-name">${escapeHtml(name)}</div>
+                    <div class="cr-customer-email">${escapeHtml(review.email || '')}</div>
+                </div>
+                <div class="cr-card-header-right">
+                    ${priorityBadge}
+                    <span class="cr-status ${review.status}">${statusLabel}</span>
+                    <span class="cr-time">Submitted ${timeStr}</span>
+                </div>
+            </div>
+            <div class="cr-context">
+                <div class="cr-context-tags">${contextTags}</div>
+                ${goalHtml}
+            </div>
+            <div class="cr-questions">
+                ${questionsHtml}
+            </div>
+            ${extrasHtml}
+            ${attachmentsHtml}
+            ${footerHtml}
+            ${responseAreaHtml}
+            ${completedResponseHtml}
+        </div>
+    `;
+}
+
+function formatRelativeTime(dateStr) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+}
+
+// Case Review Actions
+
+async function startCaseReview(reviewId) {
+    try {
+        const { error } = await supabaseClient
+            .from('case_reviews')
+            .update({ status: 'in_review' })
+            .eq('id', reviewId);
+
+        if (error) {
+            console.error('Error starting review:', error);
+            showToast('Error starting review', 'error');
+            return;
+        }
+
+        showToast('Review started', 'success');
+        await loadCaseReviews();
+    } catch (err) {
+        console.error('Error starting review:', err);
+        showToast('Error starting review', 'error');
+    }
+}
+
+async function toggleCaseReviewPriority(reviewId, isPriority) {
+    try {
+        const { error } = await supabaseClient
+            .from('case_reviews')
+            .update({ is_priority: isPriority })
+            .eq('id', reviewId);
+
+        if (error) {
+            console.error('Error toggling priority:', error);
+            showToast('Error updating priority', 'error');
+            return;
+        }
+
+        showToast(isPriority ? 'Marked as priority' : 'Priority removed', 'success');
+        await loadCaseReviews();
+    } catch (err) {
+        console.error('Error toggling priority:', err);
+        showToast('Error updating priority', 'error');
+    }
+}
+
+function toggleResponseArea(reviewId) {
+    const area = document.getElementById(`cr-response-${reviewId}`);
+    if (area) {
+        area.classList.toggle('active');
+    }
+}
+
+function toggleCompletedResponse(reviewId) {
+    const area = document.getElementById(`cr-completed-${reviewId}`);
+    if (area) {
+        area.classList.toggle('active');
+    }
+}
+
+function updateCharCount(reviewId) {
+    const textarea = document.getElementById(`cr-textarea-${reviewId}`);
+    const counter = document.getElementById(`cr-charcount-${reviewId}`);
+    if (textarea && counter) {
+        counter.textContent = `${textarea.value.length} characters`;
+    }
+}
+
+async function saveCaseReviewDraft(reviewId) {
+    const textarea = document.getElementById(`cr-textarea-${reviewId}`);
+    if (!textarea) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from('case_reviews')
+            .update({ draft_text: textarea.value })
+            .eq('id', reviewId);
+
+        if (error) {
+            console.error('Error saving draft:', error);
+            showToast('Error saving draft', 'error');
+            return;
+        }
+
+        // Update local cache
+        const review = caseReviews.find(r => r.id === reviewId);
+        if (review) review.draft_text = textarea.value;
+
+        showToast('Draft saved', 'success');
+    } catch (err) {
+        console.error('Error saving draft:', err);
+        showToast('Error saving draft', 'error');
+    }
+}
+
+async function sendCaseReviewResponse(reviewId) {
+    const textarea = document.getElementById(`cr-textarea-${reviewId}`);
+    const responderSelect = document.getElementById(`cr-responder-${reviewId}`);
+
+    if (!textarea || !textarea.value.trim()) {
+        showToast('Please write a response before sending', 'warning');
+        return;
+    }
+
+    const responseText = textarea.value.trim();
+    const responseBy = responderSelect?.value || 'Rebecca Taylor';
+
+    if (!confirm(`Send this response as ${responseBy}? The customer will be notified.`)) {
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('case_reviews')
+            .update({
+                response_text: responseText,
+                response_by: responseBy,
+                responded_at: new Date().toISOString(),
+                status: 'completed',
+                draft_text: null
+            })
+            .eq('id', reviewId);
+
+        if (error) {
+            console.error('Error sending response:', error);
+            showToast('Error sending response', 'error');
+            return;
+        }
+
+        showToast('Response sent successfully', 'success');
+        await loadCaseReviews();
+    } catch (err) {
+        console.error('Error sending response:', err);
+        showToast('Error sending response', 'error');
+    }
+}
+
+async function reopenCaseReview(reviewId) {
+    if (!confirm('Reopen this case review? The status will be set back to In Review.')) {
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('case_reviews')
+            .update({ status: 'in_review' })
+            .eq('id', reviewId);
+
+        if (error) {
+            console.error('Error reopening review:', error);
+            showToast('Error reopening review', 'error');
+            return;
+        }
+
+        showToast('Review reopened', 'success');
+        await loadCaseReviews();
+    } catch (err) {
+        console.error('Error reopening review:', err);
+        showToast('Error reopening review', 'error');
+    }
 }
 
 // Helper: escape HTML to prevent XSS
