@@ -114,7 +114,7 @@ module.exports = async function handler(req, res) {
         gut_brain_score: gut_brain_score || '',
         vision: vision || ''
       },
-      success_url: `https://www.guthealingacademy.com/thank-you/?${queryString}`,
+      success_url: `https://www.guthealingacademy.com/case-review/?${queryString}`,
       cancel_url: `https://www.guthealingacademy.com/offer-protocol/?${queryString}`
     });
 
