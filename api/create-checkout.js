@@ -104,6 +104,7 @@ module.exports = async function handler(req, res) {
       mode: 'payment',
       customer_email: email,
       line_items,
+      allow_promotion_codes: true,
       metadata: {
         name: name || '',
         protocol_name: protocol_name || '',
