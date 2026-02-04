@@ -57,6 +57,8 @@ module.exports = async function handler(req, res) {
       protocol,
       include_survival_guide,
       include_meal_plan,
+      success_url: customSuccessUrl,
+      cancel_url: customCancelUrl,
       // Quiz params for metadata passthrough
       primary_complaint,
       duration,
@@ -114,8 +116,8 @@ module.exports = async function handler(req, res) {
         gut_brain_score: gut_brain_score || '',
         vision: vision || ''
       },
-      success_url: `https://www.guthealingacademy.com/case-review/?${queryString}`,
-      cancel_url: `https://www.guthealingacademy.com/offer-protocol/?${queryString}`
+      success_url: customSuccessUrl || `https://www.guthealingacademy.com/case-review/?${queryString}`,
+      cancel_url: customCancelUrl || `https://www.guthealingacademy.com/offer-protocol/?${queryString}`
     });
 
     return res.status(200).json({ url: session.url });
