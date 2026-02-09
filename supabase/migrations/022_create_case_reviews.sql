@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS case_reviews (
     current_supplements TEXT,
     additional_notes TEXT,
 
-    -- File attachments (JSON array of {name, url, type, size})
-    attachments JSONB DEFAULT '[]'::jsonb,
+    -- File uploads (JSON array of {name, path, url, type, size})
+    uploaded_files JSONB DEFAULT '[]'::jsonb,
 
     -- Review status
     -- 'submitted' = paid and awaiting review
@@ -53,12 +53,12 @@ CREATE TABLE IF NOT EXISTS case_reviews (
     status TEXT DEFAULT 'submitted' CHECK (status IN ('submitted', 'in_review', 'completed')),
 
     -- Priority flag
-    is_priority BOOLEAN DEFAULT false,
+    priority BOOLEAN DEFAULT false,
 
     -- Response from reviewer
     response_text TEXT,
     response_by TEXT,
-    responded_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
 
     -- Draft support
     draft_text TEXT,
