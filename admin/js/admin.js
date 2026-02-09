@@ -3012,17 +3012,39 @@ function renderCaseReviewCard(review) {
         `;
     }
 
-    // Attachments
-    let attachmentsHtml = '';
-    const attachments = review.attachments || [];
-    if (attachments.length > 0) {
-        const attachmentLinks = attachments.map(a =>
-            `<a class="cr-attachment-link" href="${escapeHtml(a.url)}" target="_blank">${escapeHtml(a.name)}</a>`
-        ).join(', ');
-        attachmentsHtml = `
-            <div class="cr-attachments">
-                <span class="cr-attachment-icon">📎</span>
-                ${attachments.length} file${attachments.length > 1 ? 's' : ''} attached: ${attachmentLinks}
+    // Uploaded Files
+    let uploadedFilesHtml = '';
+    let rawFiles = review.uploaded_files;
+    if (typeof rawFiles === 'string') {
+        try { rawFiles = JSON.parse(rawFiles); } catch (e) { rawFiles = []; }
+    }
+    const uploadedFiles = Array.isArray(rawFiles) ? rawFiles : [];
+    if (uploadedFiles.length > 0) {
+        const fileRows = uploadedFiles.map(f => {
+            const file = typeof f === 'string' ? { name: f } : f;
+            const name = file.name || 'Unknown file';
+            const isImage = file.type && file.type.startsWith('image/');
+            const isPdf = file.type === 'application/pdf';
+            const icon = isPdf
+                ? '<svg class="cr-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15v-2h2c1 0 1.5.5 1.5 1s-.5 1-1.5 1H9z"/></svg>'
+                : isImage
+                    ? '<svg class="cr-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
+                    : '<svg class="cr-file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+            let sizeStr = '';
+            if (file.size) {
+                sizeStr = file.size >= 1048576
+                    ? `<span class="cr-file-size">${(file.size / 1048576).toFixed(1)} MB</span>`
+                    : `<span class="cr-file-size">${Math.round(file.size / 1024)} KB</span>`;
+            }
+            const viewLink = file.url
+                ? `<a class="cr-file-link" href="${escapeHtml(file.url)}" target="_blank" rel="noopener noreferrer">View</a>`
+                : '';
+            return `<div class="cr-file-row">${icon}<span class="cr-file-name">${escapeHtml(name)}</span>${sizeStr}${viewLink}</div>`;
+        }).join('');
+        uploadedFilesHtml = `
+            <div class="cr-extras">
+                <div class="cr-extras-label">Uploaded Files</div>
+                <div class="cr-files-list">${fileRows}</div>
             </div>
         `;
     }
@@ -3034,7 +3056,7 @@ function renderCaseReviewCard(review) {
     }
 
     // Priority badge
-    const priorityBadge = review.is_priority ? '<span class="cr-priority-badge">Priority</span>' : '';
+    const priorityBadge = review.priority ? '<span class="cr-priority-badge">Priority</span>' : '';
 
     // Action buttons based on status
     let footerHtml = '';
@@ -3044,8 +3066,8 @@ function renderCaseReviewCard(review) {
     if (review.status === 'submitted') {
         footerHtml = `
             <div class="cr-card-footer">
-                <button class="btn-secondary" onclick="toggleCaseReviewPriority('${review.id}', ${!review.is_priority})">
-                    ${review.is_priority ? 'Remove Priority' : 'Mark as Priority'}
+                <button class="btn-secondary" onclick="toggleCaseReviewPriority('${review.id}', ${!review.priority})">
+                    ${review.priority ? 'Remove Priority' : 'Mark as Priority'}
                 </button>
                 <button class="btn-primary" onclick="startCaseReview('${review.id}')">
                     Start Review
@@ -3055,8 +3077,8 @@ function renderCaseReviewCard(review) {
     } else if (review.status === 'in_review') {
         footerHtml = `
             <div class="cr-card-footer">
-                <button class="btn-secondary" onclick="toggleCaseReviewPriority('${review.id}', ${!review.is_priority})">
-                    ${review.is_priority ? 'Remove Priority' : 'Mark as Priority'}
+                <button class="btn-secondary" onclick="toggleCaseReviewPriority('${review.id}', ${!review.priority})">
+                    ${review.priority ? 'Remove Priority' : 'Mark as Priority'}
                 </button>
                 <button class="btn-primary" onclick="toggleResponseArea('${review.id}')">
                     Write Response
@@ -3091,8 +3113,8 @@ function renderCaseReviewCard(review) {
             </div>
         `;
     } else if (review.status === 'completed') {
-        const respondedAt = review.responded_at
-            ? new Date(review.responded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        const respondedAt = review.completed_at
+            ? new Date(review.completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
             : '';
         footerHtml = `
             <div class="cr-card-footer">
@@ -3114,7 +3136,7 @@ function renderCaseReviewCard(review) {
     }
 
     return `
-        <div class="cr-card ${review.is_priority ? 'priority' : ''}" id="cr-card-${review.id}">
+        <div class="cr-card ${review.priority ? 'priority' : ''}" id="cr-card-${review.id}">
             <div class="cr-card-header">
                 <div class="cr-card-header-left">
                     <div class="cr-customer-name">${escapeHtml(name)}</div>
@@ -3134,7 +3156,7 @@ function renderCaseReviewCard(review) {
                 ${questionsHtml}
             </div>
             ${extrasHtml}
-            ${attachmentsHtml}
+            ${uploadedFilesHtml}
             ${footerHtml}
             ${responseAreaHtml}
             ${completedResponseHtml}
@@ -3189,7 +3211,7 @@ async function toggleCaseReviewPriority(reviewId, isPriority) {
     try {
         const { error } = await supabaseClient
             .from('case_reviews')
-            .update({ is_priority: isPriority })
+            .update({ priority: isPriority })
             .eq('id', reviewId);
 
         if (error) {
@@ -3277,7 +3299,7 @@ async function sendCaseReviewResponse(reviewId) {
             .update({
                 response_text: responseText,
                 response_by: responseBy,
-                responded_at: new Date().toISOString(),
+                completed_at: new Date().toISOString(),
                 status: 'completed',
                 draft_text: null
             })

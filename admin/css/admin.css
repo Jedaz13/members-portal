@@ -2200,10 +2200,14 @@ a:hover {
     line-height: 1.5;
 }
 
-/* Attachments */
-.cr-attachments {
-    padding: 10px 20px;
-    border-bottom: 1px solid var(--divider);
+/* Uploaded Files */
+.cr-files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cr-file-row {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2211,17 +2215,31 @@ a:hover {
     color: var(--text-secondary);
 }
 
-.cr-attachment-icon {
-    font-size: 1rem;
+.cr-file-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--text-muted);
 }
 
-.cr-attachment-link {
+.cr-file-name {
+    font-weight: 500;
+}
+
+.cr-file-size {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.cr-file-link {
     color: var(--leaf);
     font-weight: 500;
     cursor: pointer;
+    margin-left: auto;
+    text-decoration: none;
 }
 
-.cr-attachment-link:hover {
+.cr-file-link:hover {
     text-decoration: underline;
 }
 
