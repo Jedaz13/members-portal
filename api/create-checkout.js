@@ -102,6 +102,10 @@ module.exports = async function handler(req, res) {
 
     const queryString = params.toString();
 
+    const successParams = new URLSearchParams(params);
+    successParams.set('session_id', '{CHECKOUT_SESSION_ID}');
+    var successUrl = customSuccessUrl || `https://www.guthealingacademy.com/case-review/?${successParams.toString()}`;
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       customer_email: email,
@@ -116,7 +120,7 @@ module.exports = async function handler(req, res) {
         gut_brain_score: gut_brain_score || '',
         vision: vision || ''
       },
-      success_url: customSuccessUrl || `https://www.guthealingacademy.com/case-review/?${queryString}`,
+      success_url: successUrl,
       cancel_url: customCancelUrl || `https://www.guthealingacademy.com/offer-protocol/?${queryString}`
     });
 
