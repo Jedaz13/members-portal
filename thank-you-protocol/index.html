@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thank You - Gut Healing Academy</title>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KQ3LKTBL');</script>
+<!-- End Google Tag Manager -->
+
+<script>
+// PURCHASE #2 TRACKING - Upsell purchase (Ask Rebecca)
+// Only fires if session_id present (user bought the upsell)
+// If user clicked "No thanks", there's no session_id and this doesn't fire
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var sessionId = params.get('session_id');
+
+  // No session_id = user skipped the upsell, don't fire purchase
+  if (!sessionId || !sessionId.startsWith('cs_')) {
+    console.log('[Tracking] No session_id - user skipped upsell');
+    return;
+  }
+
+  // Prevent duplicate tracking on page refresh
+  if (sessionStorage.getItem('tracked_' + sessionId)) {
+    console.log('[Tracking] Upsell already tracked:', sessionId);
+    return;
+  }
+
+  // Supabase Edge Function fetches real amount from Stripe
+  var SUPABASE_URL = 'https://mwabljnngygkmahjgvps.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13YWJsam5uZ3lna21haGpndnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MjQ3MzgsImV4cCI6MjA4MTEwMDczOH0.rbZYj1aXui_xZ0qkg7QONdHppnJghT2r0ycZwtr3a-E';
+
+  fetch(SUPABASE_URL + '/functions/v1/get-stripe-session?session_id=' + sessionId, {
+    headers: {
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.error) {
+      console.error('[Tracking] Stripe session error:', data.error);
+      return;
+    }
+
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'purchase',
+      ecommerce: {
+        transaction_id: data.transaction_id,
+        value: data.value,
+        currency: data.currency,
+        items: data.items.map(function(item) {
+          return {
+            item_name: item.name,
+            price: item.price,
+            quantity: item.quantity
+          };
+        })
+      }
+    });
+
+    sessionStorage.setItem('tracked_' + sessionId, 'true');
+    console.log('[Tracking] Upsell purchase tracked:', data.value, data.currency);
+  })
+  .catch(function(err) {
+    console.error('[Tracking] Fetch failed, using fallback:', err);
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'purchase',
+      ecommerce: {
+        transaction_id: sessionId,
+        value: 0,
+        currency: 'USD',
+        items: [{ item_name: 'upsell', price: 0, quantity: 1 }]
+      }
+    });
+    sessionStorage.setItem('tracked_' + sessionId, 'true');
+  });
+})();
+</script>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KQ3LKTBL"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<h1>Thank You!</h1>
+<p>Your purchase is confirmed. Check your email for next steps.</p>
+
+</body>
+</html>
