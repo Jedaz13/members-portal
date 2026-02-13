@@ -102,9 +102,13 @@ module.exports = async function handler(req, res) {
 
     const queryString = params.toString();
 
-    const successParams = new URLSearchParams(params);
-    successParams.set('session_id', '{CHECKOUT_SESSION_ID}');
-    var successUrl = customSuccessUrl || `https://www.guthealingacademy.com/case-review/?${successParams.toString()}`;
+    // Append session_id via string concatenation — NOT URLSearchParams —
+    // because Stripe needs the literal {CHECKOUT_SESSION_ID} unencoded.
+    // URLSearchParams would encode braces to %7B/%7D and Stripe won't replace it.
+    const successQuery = queryString
+      ? queryString + '&session_id={CHECKOUT_SESSION_ID}'
+      : 'session_id={CHECKOUT_SESSION_ID}';
+    var successUrl = customSuccessUrl || `https://www.guthealingacademy.com/case-review/?${successQuery}`;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
